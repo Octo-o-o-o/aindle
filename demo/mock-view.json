@@ -1,0 +1,134 @@
+{
+  "time": "21:26",
+  "date": "周四 9月3日",
+  "hub": "Mac mini",
+  "generatedAt": "2026-09-03T21:26:00+08:00",
+  "staleHosts": ["win"],
+  "lanes": { "local": 8, "relayAdmin": 4, "relayUser": 3, "relayPeople": 3 },
+  "hosts": [
+    { "id": "mbp",  "name": "MacBook Pro", "short": "MBP",  "role": "HOST · MBP", "ok": 1, "seen": "4 秒前",    "live": 4, "wait": 2, "tokens": "41.8M", "sessions": 7 },
+    { "id": "mini", "name": "Mac mini",    "short": "Mini", "role": "HOST · HUB", "ok": 1, "seen": "2 秒前",    "live": 2, "wait": 0, "tokens": "27.3M", "sessions": 5 },
+    { "id": "win",  "name": "Windows",     "short": "Win",  "role": "HOST · WIN", "ok": 0, "seen": "16 分钟前", "live": 0, "wait": 0, "tokens": "8.9M",  "sessions": 3 }
+  ],
+  "subs": [
+    { "id": "claude-yx", "tool": "Claude Max", "label": "Claude Max · 一笑 · 3 机共享", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h",   "pct": 62, "reset": "23:40" },
+      { "key": "7d",   "pct": 41, "reset": "周日 20:00" },
+      { "key": "Opus", "pct": 27, "reset": "周日 20:00" }
+    ]},
+    { "id": "claude-dong", "tool": "Claude Max", "label": "Claude Max · 冬 · Mini", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h",   "pct": 28, "reset": "22:05" },
+      { "key": "7d",   "pct": 19, "reset": "周六 09:00" },
+      { "key": "Opus", "pct": 8,  "reset": "周六 09:00" }
+    ]},
+    { "id": "claude-yf", "tool": "Claude Max", "label": "Claude Max · 雨飞 · MBP", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h", "pct": 11, "reset": "明日 01:10" },
+      { "key": "7d", "pct": 6,  "reset": "周五 14:00" }
+    ]},
+    { "id": "codex-personal", "tool": "Codex Plus", "label": "Codex Plus · 个人 · MBP", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h", "pct": 81, "reset": "23:15" },
+      { "key": "7d", "pct": 55, "reset": "周五 12:00" }
+    ]},
+    { "id": "codex-corp", "tool": "Codex", "label": "Codex · 公司 · Mini", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h", "pct": 14, "reset": "22:50" },
+      { "key": "7d", "pct": 9,  "reset": "下周一 09:00" }
+    ]},
+    { "id": "cursor-ultra", "tool": "Cursor Ultra", "label": "Cursor Ultra · 个人 · 账期 10/4", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "Auto", "pct": 71, "reset": "账期" },
+      { "key": "API",  "pct": 44, "reset": "账期" }
+    ]},
+    { "id": "grok-build", "tool": "Grok Build", "label": "Grok Build · 主号 · MBP", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "今日", "pct": 19, "reset": "00:00" },
+      { "key": "本周", "pct": 33, "reset": "周一 00:00" },
+      { "key": "本月", "pct": 22, "reset": "10/1" }
+    ]},
+    { "id": "glm-relay", "tool": "GLM 中转", "label": "GLM 中转 · 第三方 · 无限额条", "source": "local", "scope": "", "kind": "quota", "none": 1 },
+    { "id": "sub2api-site", "tool": "全站", "label": "全站 · 8 账号 · 累计 $1280 · 今日 $12", "source": "relay", "scope": "admin", "kind": "site", "none": 1 },
+    { "id": "sub2api-anthropic", "tool": "anthropic", "label": "anthropic · account-a", "source": "relay", "scope": "admin", "kind": "account", "windows": [
+      { "key": "5h", "pct": 12, "reset": "01:40" },
+      { "key": "7d", "pct": 44, "reset": "周日 21:00" }
+    ]},
+    { "id": "sub2api-gemini", "tool": "gemini", "label": "gemini · account-b", "source": "relay", "scope": "admin", "kind": "account", "windows": [
+      { "key": "5h", "pct": 67, "reset": "22:10" },
+      { "key": "7d", "pct": 23, "reset": "周六 08:30" }
+    ]},
+    { "id": "sub2api-openai", "tool": "openai", "label": "openai · account-c", "source": "relay", "scope": "admin", "kind": "account", "windows": [
+      { "key": "5h", "pct": 91, "reset": "21:55" },
+      { "key": "7d", "pct": 78, "reset": "周五 19:20" }
+    ]},
+    { "id": "sub2api-me", "tool": "我的", "label": "我的 · demo-user · 累计 $86 · 今日 $1.20 · 2 keys", "source": "relay", "scope": "user", "kind": "member", "none": 1,
+      "breakdown": {
+        "userId": 1,
+        "todayCount": 6,
+        "days": [
+          { "date": "2026-08-28", "cost": 4.2,  "requests": 9 },
+          { "date": "2026-08-29", "cost": 0.8,  "requests": 2 },
+          { "date": "2026-08-30", "cost": 11.6, "requests": 21 },
+          { "date": "2026-08-31", "cost": 6.4,  "requests": 13 },
+          { "date": "2026-09-01", "cost": 2.1,  "requests": 5 },
+          { "date": "2026-09-02", "cost": 8.9,  "requests": 17 },
+          { "date": "2026-09-03", "cost": 1.2,  "requests": 6 }
+        ],
+        "today": [
+          { "at": "2026-09-03T20:41:00+08:00", "model": "claude-sonnet-4", "cost": 0.42, "count": 2, "via": "prod-key" },
+          { "at": "2026-09-03T19:18:00+08:00", "model": "gpt-5", "cost": 0.31, "count": 1, "via": "prod-key" },
+          { "at": "2026-09-03T14:02:00+08:00", "model": "claude-sonnet-4", "cost": 0.47, "count": 3, "via": "test-key" }
+        ]
+      }
+    },
+    { "id": "sub2api-spend-claude", "tool": "claude", "label": "claude · 今日 $0.89 · 本周 $21", "source": "relay", "scope": "user", "kind": "spend", "none": 1 },
+    { "id": "sub2api-key-prod", "tool": "prod-key", "label": "prod-key · 额度 $50 · 已用 $31", "source": "relay", "scope": "user", "kind": "key", "windows": [
+      { "key": "额度", "pct": 62, "reset": "不过期" }
+    ]},
+    { "id": "sub2api-key-test", "tool": "test-key", "label": "test-key · 额度 $5 · 已用 $0.4", "source": "relay", "scope": "user", "kind": "key", "windows": [
+      { "key": "额度", "pct": 8, "reset": "不过期" }
+    ]},
+    { "id": "sub2api-user-a", "tool": "alice", "label": "累计 $40 · 今日 $2.10 · 3 次", "source": "relay", "scope": "people", "kind": "member", "none": 1,
+      "breakdown": {
+        "userId": 9,
+        "todayCount": 3,
+        "days": [
+          { "date": "2026-08-30", "cost": 12.4, "requests": 18 },
+          { "date": "2026-09-01", "cost": 6.2,  "requests": 11 },
+          { "date": "2026-09-02", "cost": 9.8,  "requests": 14 },
+          { "date": "2026-09-03", "cost": 2.1,  "requests": 3 }
+        ],
+        "today": [
+          { "at": "2026-09-03T21:05:00+08:00", "model": "gpt-5", "cost": 1.6, "count": 2, "via": "web" },
+          { "at": "2026-09-03T16:44:00+08:00", "model": "claude-opus-4", "cost": 0.5, "count": 1, "via": "cli" }
+        ]
+      }
+    },
+    { "id": "sub2api-user-b", "tool": "bob", "label": "累计 $87 · 今日 $0 · 上次 昨天", "source": "relay", "scope": "people", "kind": "member", "none": 1,
+      "breakdown": {
+        "userId": 10,
+        "todayCount": 0,
+        "days": [
+          { "date": "2026-09-02", "cost": 15.3, "requests": 22 },
+          { "date": "2026-09-03", "cost": 0,    "requests": 0 }
+        ],
+        "today": []
+      }
+    },
+    { "id": "sub2api-user-c", "tool": "carol", "label": "累计 $12 · 今日 $0 · 上次 3 天前", "source": "relay", "scope": "people", "kind": "member", "none": 1 }
+  ],
+  "now": [
+    { "tag": "ACTIVE", "title": "Aindle 调研落盘",     "tool": "Claude", "folder": "Aindle",   "detail": "Claude · 一笑 · MBP · 16 分钟",          "elapsed": "16分前",      "ended": "" },
+    { "tag": "WAIT",   "title": "Windows agent 骨架",   "tool": "Codex",  "folder": "Aindle",   "detail": "Codex 个人 · MBP · 待批准 · 3 分钟",    "elapsed": "3分12秒前",   "ended": "" },
+    { "tag": "ACTIVE", "title": "公司仓库 review",      "tool": "Codex",  "folder": "SayDo",    "detail": "Codex 公司 · Mini · 22 分钟",           "elapsed": "22分前",      "ended": "" },
+    { "tag": "IDLE",   "title": "截图包导出",           "tool": "Grok",   "folder": "YoUsage",  "detail": "Grok · MBP · 4 分钟无写入",             "elapsed": "41分前",      "ended": "" },
+    { "tag": "IDLE",   "title": "设置页改版",           "tool": "Cursor", "folder": "OctoDesk", "detail": "Cursor Ultra · Windows · 最后活动 25 分钟前", "elapsed": "1小时2分前", "ended": "" },
+    { "tag": "IDLE",   "title": "GLM 长文翻译",         "tool": "GLM",    "folder": "",         "detail": "GLM · MBP · 7 分钟无写入",              "elapsed": "55分前",      "ended": "" },
+    { "tag": "WAIT",   "title": "雨飞账号补齐测试",     "tool": "Claude", "folder": "Aindle",   "detail": "Claude · 雨飞 · MBP · 待确认模型",       "elapsed": "9分48秒前",   "ended": "" }
+  ],
+  "recent": [
+    { "tag": "DONE", "title": "生成实施 prompt",   "tool": "Claude", "folder": "Aindle",   "detail": "Claude · 一笑 · MBP · 8 分钟前",      "elapsed": "", "ended": "21:18" },
+    { "tag": "DONE", "title": "字体子集打包",       "tool": "Grok",   "folder": "YoUsage",  "detail": "Grok · MBP · 15 分钟前",            "elapsed": "", "ended": "21:11" },
+    { "tag": "DONE", "title": "Cursor 账期对照",    "tool": "Cursor", "folder": "OctoDesk", "detail": "Cursor Ultra · Windows · 31 分钟前", "elapsed": "", "ended": "20:55" },
+    { "tag": "DONE", "title": "Oasis 1 设备档",     "tool": "Claude", "folder": "Aindle",   "detail": "Claude · 一笑 · MBP · 42 分钟前",    "elapsed": "", "ended": "20:44" },
+    { "tag": "FAIL", "title": "上下文超限",         "tool": "Claude", "folder": "SayDo",    "detail": "Claude · 冬 · Mini · 47 分钟前",     "elapsed": "", "ended": "20:39" },
+    { "tag": "DONE", "title": "公司 Codex hook",    "tool": "Codex",  "folder": "SayDo",    "detail": "Codex 公司 · Mini · 50 分钟前",      "elapsed": "", "ended": "20:36" },
+    { "tag": "FAIL", "title": "Grok billing 超时",  "tool": "Grok",   "folder": "YoUsage",  "detail": "Grok · MBP · 53 分钟前",            "elapsed": "", "ended": "20:33" },
+    { "tag": "DONE", "title": "WSL 家目录扫描",     "tool": "Codex",  "folder": "",         "detail": "Codex 个人 · Windows · 58 分钟前",   "elapsed": "", "ended": "20:28" }
+  ]
+}

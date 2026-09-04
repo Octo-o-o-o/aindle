@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.aindle.agent</string>
+  <key>WorkingDirectory</key>
+  <string>__AINDLE_ROOT__</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__AINDLE_NODE__</string>
+    <string>--import</string>
+    <string>tsx</string>
+    <string>packages/agent/src/cli.ts</string>
+    <string>--loop</string>
+    <string>120</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>__AINDLE_HOME__</string>
+    <key>AINDLE_HUB_URL</key>
+    <string>http://127.0.0.1:8790</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>8</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>__AINDLE_HOME__/Library/Logs/aindle/agent.log</string>
+  <key>StandardErrorPath</key>
+  <string>__AINDLE_HOME__/Library/Logs/aindle/agent.err</string>
+</dict>
+</plist>

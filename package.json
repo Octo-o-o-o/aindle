@@ -1,0 +1,76 @@
+{
+  "name": "aindle",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Kindle-friendly AI usage monitor: hub + agents for Claude, Codex, Cursor, Grok, Kimi, and Sub2API",
+  "type": "module",
+  "bin": {
+    "aindle": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "packages/*/src",
+    "packages/*/package.json",
+    "packages/*/tsconfig.json",
+    "packages/hub/public",
+    "packages/core/test",
+    "config/registry.example.yaml",
+    "docs",
+    "demo",
+    "kindle",
+    "scripts",
+    "src",
+    "README.md",
+    "README.zh-CN.md",
+    "AGENTS.md",
+    "LICENSE"
+  ],
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @aindle/core && npm run build -w @aindle/hub && npm run build -w @aindle/agent",
+    "test": "npm run test -w @aindle/core",
+    "hub": "node --import tsx packages/hub/src/cli.ts",
+    "agent": "node --import tsx packages/agent/src/cli.ts",
+    "check": "bash scripts/check.sh"
+  },
+  "keywords": [
+    "kindle",
+    "eink",
+    "claude",
+    "codex",
+    "cursor",
+    "grok",
+    "kimi",
+    "sub2api",
+    "usage",
+    "monitor",
+    "quota"
+  ],
+  "author": "Octo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Octo-o-o-o/aindle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Octo-o-o-o/aindle/issues"
+  },
+  "homepage": "https://github.com/Octo-o-o-o/aindle#readme",
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.9",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.tmp/
+__pycache__/
+*.pyc
+*.log
+.env
+.env.*
+.npmrc
+config/registry.yaml
+.DS_Store
+*.pem
+*.password
+.jwt-*.json

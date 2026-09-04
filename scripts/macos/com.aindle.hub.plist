@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.aindle.hub</string>
+  <key>WorkingDirectory</key>
+  <string>__AINDLE_ROOT__</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__AINDLE_NODE__</string>
+    <string>--import</string>
+    <string>tsx</string>
+    <string>packages/hub/src/cli.ts</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>__AINDLE_HOME__</string>
+    <key>AINDLE_PORT</key>
+    <string>8790</string>
+    <key>AINDLE_HOST</key>
+    <string>0.0.0.0</string>
+    <key>AINDLE_SEED_MOCK</key>
+    <string>0</string>
+    <key>AINDLE_HUB_ID</key>
+    <string>mini</string>
+    <key>AINDLE_HUB_LABEL</key>
+    <string>Mac mini</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>8</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>__AINDLE_HOME__/Library/Logs/aindle/hub.log</string>
+  <key>StandardErrorPath</key>
+  <string>__AINDLE_HOME__/Library/Logs/aindle/hub.err</string>
+</dict>
+</plist>

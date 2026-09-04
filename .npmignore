@@ -1,0 +1,13 @@
+config/registry.yaml
+node_modules
+.git
+.env
+.env.*
+.npmrc
+*.log
+.DS_Store
+*.pem
+*.password
+.jwt-*.json
+**/*.map
+packages/*/dist

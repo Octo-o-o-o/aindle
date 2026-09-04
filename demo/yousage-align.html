@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YoUsage → Aindle · 对齐稿</title>
+<style>
+  :root {
+    --ink: #111111;
+    --paper: #f4efe4;
+    --rule: #c9c0b0;
+    --warm: #8a3b12;
+    --ok: #1f4d38;
+    --warn: #7a4a00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #ece6d8; color: var(--ink); }
+  body {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "Source Han Serif SC", serif;
+    line-height: 1.45;
+  }
+  .page { max-width: 1680px; margin: 0 auto; padding: 36px 28px 80px; }
+  .kicker { font-family: "Avenir Next", "PingFang SC", sans-serif; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--warm); }
+  h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin: 8px 0 10px; }
+  .lead { font-size: 20px; max-width: 46rem; margin: 0 0 22px; }
+  .banner {
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    padding: 16px 18px;
+    margin: 0 0 28px;
+    max-width: 52rem;
+  }
+  .banner b { font-family: "Avenir Next", "PingFang SC", sans-serif; }
+  .meta { font-family: "Avenir Next", "PingFang SC", sans-serif; font-size: 13px; color: #444; margin-top: 8px; }
+  .frames { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; align-items: start; }
+  .col h2 { font-size: 22px; margin: 0 0 6px; }
+  .col p.note { font-family: "Avenir Next", "PingFang SC", sans-serif; font-size: 13px; margin: 0 0 12px; min-height: 3.6em; }
+  .tag {
+    display: inline-block; font-family: "Avenir Next", "PingFang SC", sans-serif;
+    font-size: 11px; letter-spacing: 0.08em; border: 1px solid var(--ink);
+    padding: 2px 7px; margin-bottom: 8px;
+  }
+  .tag.yes { background: var(--ink); color: var(--paper); }
+  .tag.no { background: transparent; }
+  .stage {
+    width: 100%;
+    background: #d8d0c0;
+    border: 1px solid var(--ink);
+    overflow: hidden;
+    position: relative;
+  }
+  .oasis {
+    width: 1072px; height: 1448px;
+    transform-origin: top left;
+    background: var(--paper); color: var(--ink);
+    font-family: "PingFang SC", "Hiragino Sans GB", Helvetica, Arial, sans-serif;
+    font-weight: 700; -webkit-font-smoothing: none;
+  }
+  .wrap { width: 1072px; height: 1448px; position: relative; overflow: hidden; }
+  .pad { padding: 26px 30px 54px; }
+  .mast { display: flex; justify-content: space-between; align-items: center; }
+  .date { font-size: 48px; letter-spacing: 2px; }
+  .brand { font-size: 20px; letter-spacing: 3px; text-align: right; }
+  .hair { height: 1px; background: var(--ink); margin: 14px 0; }
+  .fact { font-size: 26px; margin: 0 0 18px; }
+  .sec { font-size: 24px; letter-spacing: 2px; margin: 22px 0 2px; }
+  .trow { display: flex; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--ink); }
+  .trow:last-child { border-bottom: 0; }
+  .mark {
+    width: 72px; flex-shrink: 0; font-size: 16px; letter-spacing: 1px;
+    border: 2px solid var(--ink); text-align: center; padding: 4px 0; margin-right: 14px;
+  }
+  .mark.dark { background: var(--ink); color: var(--paper); }
+  .body { flex: 1; min-width: 0; }
+  .ttitle { font-size: 30px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tsub { font-size: 20px; margin-top: 4px; font-weight: 700; }
+  .tmeta { width: 210px; flex-shrink: 0; text-align: right; font-size: 22px; }
+  .muted .ttitle, .muted .tsub, .muted .tmeta, .muted .sec { opacity: 0.55; }
+  .empty { font-size: 28px; padding: 18px 0; }
+  .gauge {
+    display: flex; align-items: baseline; gap: 18px; margin: 8px 0 16px;
+  }
+  .hu { font-size: 96px; letter-spacing: -2px; }
+  .zone { font-size: 32px; }
+  .pills { display: flex; gap: 8px; margin: 0 0 18px; }
+  .pill { width: 48px; height: 18px; border: 2px solid var(--ink); }
+  .pill.on { background: var(--ink); }
+  .cta { border: 2px solid var(--ink); padding: 14px 16px; font-size: 26px; margin: 16px 0; }
+  .qrow { display: flex; align-items: center; min-height: 56px; padding: 14px 0; border-bottom: 1px solid var(--ink); }
+  .qtitle { width: 188px; font-size: 32px; }
+  .mbar { flex: 1; height: 16px; border: 2px solid var(--ink); border-radius: 999px; overflow: hidden; background: #fff; margin: 0 12px; }
+  .mfill { height: 100%; background: var(--ink); width: 62%; }
+  .mpct { width: 72px; text-align: right; font-size: 26px; }
+  .foot {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 48px;
+    border-top: 1px solid var(--ink); display: flex; align-items: center;
+    justify-content: space-between; padding: 0 30px; font-size: 20px;
+  }
+  .after { margin-top: 36px; max-width: 52rem; }
+  .after h2 { font-size: 26px; margin: 0 0 10px; }
+  .after ol { padding-left: 1.2em; }
+  .after li { margin: 0 0 8px; font-size: 17px; }
+  .warn { border-left: 4px solid var(--warm); padding: 0 0 0 14px; }
+  @media (max-width: 1180px) {
+    .frames { grid-template-columns: 1fr; }
+    .col p.note { min-height: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="kicker">Alignment demo · not a product build</div>
+  <h1>从 YoUsage 推到 Aindle，只推任务语义。</h1>
+  <p class="lead">
+    左：现在的「进行中」页在说什么。中：第一刀之后同一块屏该怎么说。右：不要焊上去的精力产品。
+    三块都是 Oasis 1 画板（1072×1448）的对齐稿，数字是为对比编的，不是采集证据。
+  </p>
+  <div class="banner">
+    <b>结论先放这里。</b> Aindle 已经有 `wait` 字段、WAIT 徽章和双速刷新，活采集却从不产出 wait。
+    YoUsage 用真机证明过：SubAgent 会把「进行中」吹大，prompt 首句不能当标题。
+    工作轨迹卡和 HU% 都还不是能上墨水屏的东西。
+    <div class="meta">Keno = Aindle 已锁定 · 不做精力第四页 · wait 可读转录 tool_use 结构（不含正文）。完整裁决表见 docs/plan/2026-09-04-yousage-borrowing-assessment.fable.md · B×10 / C×35 / A×0</div>
+  </div>
+
+  <div class="frames">
+    <section class="col">
+      <div class="tag">现状 · 活路径</div>
+      <h2>1. 现在的进行中</h2>
+      <p class="note">年龄档把所有热文件都叫「进行中」。后台 Task、一句「继续」、主会话挤在同一列。WAIT 在合同里，屏上没有。</p>
+      <div class="stage" id="s1"><div class="oasis" id="o1"></div></div>
+    </section>
+    <section class="col">
+      <div class="tag yes">第一刀 · 建议</div>
+      <h2>2. 等人 / 人手 / 后台</h2>
+      <p class="note">只改任务语义。限额页不动。标题用项目和工具自己的名字，不写 prompt。等你必须是直接信号。</p>
+      <div class="stage" id="s2"><div class="oasis" id="o2"></div></div>
+    </section>
+    <section class="col">
+      <div class="tag no">不要这样做</div>
+      <h2>3. 精力表焊上副屏</h2>
+      <p class="note">这是 YoUsage 的 L0，不是 Aindle。一上 HU%、休息按钮和复核催办，书桌就变成第二块人表。</p>
+      <div class="stage" id="s3"><div class="oasis" id="o3"></div></div>
+    </section>
+  </div>
+
+  <div class="after">
+    <h2>第一刀就这三件事</h2>
+    <ol>
+      <li>采集补上真正的 <b>wait</b>：未闭合的权限 / 提问。现有 WAIT 徽章和 5 分钟刷新会自己变真。</li>
+      <li>主机条和本页改成 <b>等你 N · 人手 M · 后台 K</b>。同项目 3 个 SubAgent 不得把「人手」加成 4。</li>
+      <li>标题顺序：custom title / thread name / 目录名。禁止再拿 user 正文第一句当大字。</li>
+    </ol>
+    <p class="warn">工作卡上的「目的 / 留下了什么 / 需要你」是 YoUsage 自己都还没验收的实验，本 Demo 中页也没有画它。第二刀最多先把「等你」和「可能可查看」两句文案分开。</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  function oasis(inner, page, footL, footR) {
+    return (
+      '<div class="wrap"><div class="pad">' +
+        '<div class="mast"><div class="date" style="font-size:48px;letter-spacing:2px;">9月4日 周五</div>' +
+        '<div class="brand">AINDLE · ' + page + '</div></div>' +
+        '<div class="hair"></div>' +
+        inner +
+      '</div><div class="foot"><div>' + footL + '</div><div>' + footR + '</div></div></div>'
+    );
+  }
+  function row(mark, dark, title, sub, meta, muted) {
+    return (
+      '<div class="trow' + (muted ? ' muted' : '') + '">' +
+        '<div class="mark' + (dark ? ' dark' : '') + '">' + mark + '</div>' +
+        '<div class="body"><div class="ttitle">' + title + '</div>' +
+        (sub ? '<div class="tsub">' + sub + '</div>' : '') + '</div>' +
+        '<div class="tmeta">' + meta + '</div></div>'
+    );
+  }
+
+  document.getElementById('o1').innerHTML = oasis(
+    '<div class="fact">这一小时 7</div>' +
+    row('ACTIVE', true, '继续', 'Codex · 16 分钟前活动', 'YoUsage') +
+    row('ACTIVE', true, '帮我看看这段为什么重复计量', 'Claude · 4 分钟前活动', 'Aindle') +
+    row('ACTIVE', true, 'Task: implement foldSpawned edge cases', 'Claude · 3 分钟前活动', 'Aindle') +
+    row('ACTIVE', true, 'Aindle 调研落盘', 'Claude · 18 分钟前活动', 'Aindle') +
+    row('IDLE', false, '再扫一遍 Grok sessions', 'Grok · 9 分钟前活动', 'Aindle') +
+    row('IDLE', false, 'user_query 包装是否还在', 'Cursor · 22 分钟前活动', 'Mileage') +
+    row('DONE', false, 'Sub2API 用户页对过了', 'Claude · 41 分钟前', 'Aindle') +
+    '<div class="sec">刚结束 1</div>' +
+    row('DONE', false, '把 registry 里的 GLM 先占位', 'Claude · 55 分钟前', 'Aindle'),
+    '进行中',
+    '2/3 · 进行中 · 翻页键看本机 / 中转',
+    '23:04  ·  MacBook Pro 在线'
+  );
+
+  document.getElementById('o2').innerHTML = oasis(
+    '<div class="fact">等你 1 · 人手在跑 2 · 后台 4</div>' +
+    '<div class="sec">等你</div>' +
+    row('WAIT', true, 'Aindle', 'Claude 留下一个权限问题 · 工具直接记录', '4 分钟') +
+    '<div class="sec">人手在跑</div>' +
+    row('ACTIVE', true, '工作轨迹实验', 'Codex · YoUsage', '16 分钟') +
+    row('IDLE', false, 'Aindle 调研落盘', 'Claude · 可能还开着', '18 分钟') +
+    '<div class="sec">可能可查看 · 估算</div>' +
+    row('DONE', false, 'Mileage', 'Cursor 跑完待收割 · 不是断言', '22 分钟') +
+    '<div class="sec muted">后台 4 · 不占人手</div>' +
+    '<div class="trow muted"><div class="body"><div class="ttitle">3 个 Claude Task · 1 个 Codex 子线程</div><div class="tsub">同项目已折叠，不进「人手」</div></div></div>',
+    '进行中',
+    '2/3 · 进行中 · 翻页键看本机 / 中转',
+    '23:04  ·  MacBook Pro 在线'
+  );
+
+  document.getElementById('o3').innerHTML = oasis(
+    '<div class="gauge"><div class="hu">42</div><div class="zone">有点累了</div></div>' +
+    '<div class="pills"><div class="pill on"></div><div class="pill on"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div></div>' +
+    '<div class="fact">今日 430 / 500 点 · AI 3.6M</div>' +
+    '<div class="qrow"><div class="qtitle">Claude</div><div class="mbar"><div class="mfill"></div></div><div class="mpct">62%</div></div>' +
+    '<div class="sec">体征</div>' +
+    row('⚠', false, '同时进行 9 件事', '超过舒适上限 8 · 先收掉一件', '催办') +
+    row('⚠', false, '3 个成果在堆积', '31 分钟没验收', '催办') +
+    '<div class="cta">去休息 · 静音 1h · 我累了</div>' +
+    '<div class="sec">回头看</div>' +
+    row('看', false, '低状态批准了一次编辑', '点开看原文', '动作面'),
+    '精力',
+    '这不是 Aindle',
+    'YoUsage L0 误焊'
+  );
+
+  function fit() {
+    ['s1', 's2', 's3'].forEach(function (id) {
+      var stage = document.getElementById(id);
+      var oasisEl = stage.querySelector('.oasis');
+      var s = stage.clientWidth / 1072;
+      oasisEl.style.transform = 'scale(' + s + ')';
+      stage.style.height = Math.round(1448 * s) + 'px';
+    });
+  }
+  fit();
+  window.addEventListener('resize', fit);
+})();
+</script>
+</body>
+</html>

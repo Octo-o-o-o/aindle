@@ -1,0 +1,64 @@
+{
+  "items": [
+    {
+      "name": "Aindle",
+      "priority": 0,
+      "items": [
+        {
+          "name": "开锁屏监控（本机）",
+          "priority": 1,
+          "action": "sh /mnt/us/aindle/start.sh local",
+          "exitmenu": true
+        },
+        {
+          "name": "开锁屏监控（任务）",
+          "priority": 2,
+          "action": "sh /mnt/us/aindle/start.sh now",
+          "exitmenu": true
+        },
+        {
+          "name": "开锁屏监控（中转）",
+          "priority": 3,
+          "action": "sh /mnt/us/aindle/start.sh relay",
+          "exitmenu": true
+        },
+        {
+          "name": "立即刷新",
+          "priority": 4,
+          "action": "sh /mnt/us/aindle/refresh.sh",
+          "exitmenu": false
+        },
+        {
+          "name": "用网页操作",
+          "priority": 5,
+          "action": "sh /mnt/us/aindle/operate.sh",
+          "exitmenu": true
+        },
+        {
+          "name": "重新打开锁屏监控",
+          "priority": 6,
+          "action": "sh /mnt/us/aindle/resume.sh",
+          "exitmenu": true
+        },
+        {
+          "name": "锁屏下一页",
+          "priority": 7,
+          "action": "sh /mnt/us/aindle/page.sh next",
+          "exitmenu": false
+        },
+        {
+          "name": "锁屏上一页",
+          "priority": 8,
+          "action": "sh /mnt/us/aindle/page.sh prev",
+          "exitmenu": false
+        },
+        {
+          "name": "关闭锁屏监控",
+          "priority": 9,
+          "action": "sh /mnt/us/aindle/stop.sh",
+          "exitmenu": true
+        }
+      ]
+    }
+  ]
+}

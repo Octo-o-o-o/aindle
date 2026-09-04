@@ -1,0 +1,1260 @@
+<!-- 本文件由 scripts/build-demo.mjs 生成，请勿手改。
+     改样式请编辑 packages/hub/public/monitor.html，改数据请编辑 demo/mock-view.json，
+     然后运行 node scripts/build-demo.mjs 重新生成。 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aindle · Oasis Monitor Demo</title>
+<style type="text/css">
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+  body { background: #f4efe4; color: #111111; font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+  a { color: #111111; }
+  input.button { cursor: pointer; font-family: inherit; }
+</style>
+</head>
+<body bgcolor="#F4EFE4" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+
+<div id="topbar"></div>
+
+<div id="view-panels" style="display:none;">
+  <div id="panels-head"></div>
+  <div id="panel-0"></div>
+  <div id="panel-1"></div>
+  <div id="panel-2"></div>
+  <div id="panel-3"></div>
+  <div id="pager"></div>
+</div>
+
+<div id="view-full" style="display:none;"></div>
+<div id="float" style="display:none;"></div>
+
+<noscript>
+  <table width="100%" cellpadding="12" cellspacing="0" border="1" bordercolor="#111111">
+    <tr><td>
+      <b>Aindle Monitor 需要 JavaScript。</b><br>
+      本页目标设备是 Kindle 实验浏览器（WebKit，ES5 即可），无需现代浏览器特性。<br>
+      若你看到此提示，说明当前浏览器比 Kindle Touch 代的实验浏览器还旧；
+      这类设备请走「主机出 PNG + FBInk」管线，不要直接用浏览器。
+    </td></tr>
+  </table>
+</noscript>
+
+<script type="text/javascript">
+window.AINDLE_MOCK = {
+  "time": "21:26",
+  "date": "周四 9月3日",
+  "hub": "Mac mini",
+  "generatedAt": "2026-09-03T21:26:00+08:00",
+  "staleHosts": ["win"],
+  "lanes": { "local": 8, "relayAdmin": 4, "relayUser": 3, "relayPeople": 3 },
+  "hosts": [
+    { "id": "mbp",  "name": "MacBook Pro", "short": "MBP",  "role": "HOST · MBP", "ok": 1, "seen": "4 秒前",    "live": 4, "wait": 2, "tokens": "41.8M", "sessions": 7 },
+    { "id": "mini", "name": "Mac mini",    "short": "Mini", "role": "HOST · HUB", "ok": 1, "seen": "2 秒前",    "live": 2, "wait": 0, "tokens": "27.3M", "sessions": 5 },
+    { "id": "win",  "name": "Windows",     "short": "Win",  "role": "HOST · WIN", "ok": 0, "seen": "16 分钟前", "live": 0, "wait": 0, "tokens": "8.9M",  "sessions": 3 }
+  ],
+  "subs": [
+    { "id": "claude-yx", "tool": "Claude Max", "label": "Claude Max · 一笑 · 3 机共享", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h",   "pct": 62, "reset": "23:40" },
+      { "key": "7d",   "pct": 41, "reset": "周日 20:00" },
+      { "key": "Opus", "pct": 27, "reset": "周日 20:00" }
+    ]},
+    { "id": "claude-dong", "tool": "Claude Max", "label": "Claude Max · 冬 · Mini", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h",   "pct": 28, "reset": "22:05" },
+      { "key": "7d",   "pct": 19, "reset": "周六 09:00" },
+      { "key": "Opus", "pct": 8,  "reset": "周六 09:00" }
+    ]},
+    { "id": "claude-yf", "tool": "Claude Max", "label": "Claude Max · 雨飞 · MBP", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h", "pct": 11, "reset": "明日 01:10" },
+      { "key": "7d", "pct": 6,  "reset": "周五 14:00" }
+    ]},
+    { "id": "codex-personal", "tool": "Codex Plus", "label": "Codex Plus · 个人 · MBP", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h", "pct": 81, "reset": "23:15" },
+      { "key": "7d", "pct": 55, "reset": "周五 12:00" }
+    ]},
+    { "id": "codex-corp", "tool": "Codex", "label": "Codex · 公司 · Mini", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "5h", "pct": 14, "reset": "22:50" },
+      { "key": "7d", "pct": 9,  "reset": "下周一 09:00" }
+    ]},
+    { "id": "cursor-ultra", "tool": "Cursor Ultra", "label": "Cursor Ultra · 个人 · 账期 10/4", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "Auto", "pct": 71, "reset": "账期" },
+      { "key": "API",  "pct": 44, "reset": "账期" }
+    ]},
+    { "id": "grok-build", "tool": "Grok Build", "label": "Grok Build · 主号 · MBP", "source": "local", "scope": "", "kind": "quota", "windows": [
+      { "key": "今日", "pct": 19, "reset": "00:00" },
+      { "key": "本周", "pct": 33, "reset": "周一 00:00" },
+      { "key": "本月", "pct": 22, "reset": "10/1" }
+    ]},
+    { "id": "glm-relay", "tool": "GLM 中转", "label": "GLM 中转 · 第三方 · 无限额条", "source": "local", "scope": "", "kind": "quota", "none": 1 },
+    { "id": "sub2api-site", "tool": "全站", "label": "全站 · 8 账号 · 累计 $1280 · 今日 $12", "source": "relay", "scope": "admin", "kind": "site", "none": 1 },
+    { "id": "sub2api-anthropic", "tool": "anthropic", "label": "anthropic · account-a", "source": "relay", "scope": "admin", "kind": "account", "windows": [
+      { "key": "5h", "pct": 12, "reset": "01:40" },
+      { "key": "7d", "pct": 44, "reset": "周日 21:00" }
+    ]},
+    { "id": "sub2api-gemini", "tool": "gemini", "label": "gemini · account-b", "source": "relay", "scope": "admin", "kind": "account", "windows": [
+      { "key": "5h", "pct": 67, "reset": "22:10" },
+      { "key": "7d", "pct": 23, "reset": "周六 08:30" }
+    ]},
+    { "id": "sub2api-openai", "tool": "openai", "label": "openai · account-c", "source": "relay", "scope": "admin", "kind": "account", "windows": [
+      { "key": "5h", "pct": 91, "reset": "21:55" },
+      { "key": "7d", "pct": 78, "reset": "周五 19:20" }
+    ]},
+    { "id": "sub2api-me", "tool": "我的", "label": "我的 · demo-user · 累计 $86 · 今日 $1.20 · 2 keys", "source": "relay", "scope": "user", "kind": "member", "none": 1,
+      "breakdown": {
+        "userId": 1,
+        "todayCount": 6,
+        "days": [
+          { "date": "2026-08-28", "cost": 4.2,  "requests": 9 },
+          { "date": "2026-08-29", "cost": 0.8,  "requests": 2 },
+          { "date": "2026-08-30", "cost": 11.6, "requests": 21 },
+          { "date": "2026-08-31", "cost": 6.4,  "requests": 13 },
+          { "date": "2026-09-01", "cost": 2.1,  "requests": 5 },
+          { "date": "2026-09-02", "cost": 8.9,  "requests": 17 },
+          { "date": "2026-09-03", "cost": 1.2,  "requests": 6 }
+        ],
+        "today": [
+          { "at": "2026-09-03T20:41:00+08:00", "model": "claude-sonnet-4", "cost": 0.42, "count": 2, "via": "prod-key" },
+          { "at": "2026-09-03T19:18:00+08:00", "model": "gpt-5", "cost": 0.31, "count": 1, "via": "prod-key" },
+          { "at": "2026-09-03T14:02:00+08:00", "model": "claude-sonnet-4", "cost": 0.47, "count": 3, "via": "test-key" }
+        ]
+      }
+    },
+    { "id": "sub2api-spend-claude", "tool": "claude", "label": "claude · 今日 $0.89 · 本周 $21", "source": "relay", "scope": "user", "kind": "spend", "none": 1 },
+    { "id": "sub2api-key-prod", "tool": "prod-key", "label": "prod-key · 额度 $50 · 已用 $31", "source": "relay", "scope": "user", "kind": "key", "windows": [
+      { "key": "额度", "pct": 62, "reset": "不过期" }
+    ]},
+    { "id": "sub2api-key-test", "tool": "test-key", "label": "test-key · 额度 $5 · 已用 $0.4", "source": "relay", "scope": "user", "kind": "key", "windows": [
+      { "key": "额度", "pct": 8, "reset": "不过期" }
+    ]},
+    { "id": "sub2api-user-a", "tool": "alice", "label": "累计 $40 · 今日 $2.10 · 3 次", "source": "relay", "scope": "people", "kind": "member", "none": 1,
+      "breakdown": {
+        "userId": 9,
+        "todayCount": 3,
+        "days": [
+          { "date": "2026-08-30", "cost": 12.4, "requests": 18 },
+          { "date": "2026-09-01", "cost": 6.2,  "requests": 11 },
+          { "date": "2026-09-02", "cost": 9.8,  "requests": 14 },
+          { "date": "2026-09-03", "cost": 2.1,  "requests": 3 }
+        ],
+        "today": [
+          { "at": "2026-09-03T21:05:00+08:00", "model": "gpt-5", "cost": 1.6, "count": 2, "via": "web" },
+          { "at": "2026-09-03T16:44:00+08:00", "model": "claude-opus-4", "cost": 0.5, "count": 1, "via": "cli" }
+        ]
+      }
+    },
+    { "id": "sub2api-user-b", "tool": "bob", "label": "累计 $87 · 今日 $0 · 上次 昨天", "source": "relay", "scope": "people", "kind": "member", "none": 1,
+      "breakdown": {
+        "userId": 10,
+        "todayCount": 0,
+        "days": [
+          { "date": "2026-09-02", "cost": 15.3, "requests": 22 },
+          { "date": "2026-09-03", "cost": 0,    "requests": 0 }
+        ],
+        "today": []
+      }
+    },
+    { "id": "sub2api-user-c", "tool": "carol", "label": "累计 $12 · 今日 $0 · 上次 3 天前", "source": "relay", "scope": "people", "kind": "member", "none": 1 }
+  ],
+  "now": [
+    { "tag": "ACTIVE", "title": "Aindle 调研落盘",     "tool": "Claude", "folder": "Aindle",   "detail": "Claude · 一笑 · MBP · 16 分钟",          "elapsed": "16分前",      "ended": "" },
+    { "tag": "WAIT",   "title": "Windows agent 骨架",   "tool": "Codex",  "folder": "Aindle",   "detail": "Codex 个人 · MBP · 待批准 · 3 分钟",    "elapsed": "3分12秒前",   "ended": "" },
+    { "tag": "ACTIVE", "title": "公司仓库 review",      "tool": "Codex",  "folder": "SayDo",    "detail": "Codex 公司 · Mini · 22 分钟",           "elapsed": "22分前",      "ended": "" },
+    { "tag": "IDLE",   "title": "截图包导出",           "tool": "Grok",   "folder": "YoUsage",  "detail": "Grok · MBP · 4 分钟无写入",             "elapsed": "41分前",      "ended": "" },
+    { "tag": "IDLE",   "title": "设置页改版",           "tool": "Cursor", "folder": "OctoDesk", "detail": "Cursor Ultra · Windows · 最后活动 25 分钟前", "elapsed": "1小时2分前", "ended": "" },
+    { "tag": "IDLE",   "title": "GLM 长文翻译",         "tool": "GLM",    "folder": "",         "detail": "GLM · MBP · 7 分钟无写入",              "elapsed": "55分前",      "ended": "" },
+    { "tag": "WAIT",   "title": "雨飞账号补齐测试",     "tool": "Claude", "folder": "Aindle",   "detail": "Claude · 雨飞 · MBP · 待确认模型",       "elapsed": "9分48秒前",   "ended": "" }
+  ],
+  "recent": [
+    { "tag": "DONE", "title": "生成实施 prompt",   "tool": "Claude", "folder": "Aindle",   "detail": "Claude · 一笑 · MBP · 8 分钟前",      "elapsed": "", "ended": "21:18" },
+    { "tag": "DONE", "title": "字体子集打包",       "tool": "Grok",   "folder": "YoUsage",  "detail": "Grok · MBP · 15 分钟前",            "elapsed": "", "ended": "21:11" },
+    { "tag": "DONE", "title": "Cursor 账期对照",    "tool": "Cursor", "folder": "OctoDesk", "detail": "Cursor Ultra · Windows · 31 分钟前", "elapsed": "", "ended": "20:55" },
+    { "tag": "DONE", "title": "Oasis 1 设备档",     "tool": "Claude", "folder": "Aindle",   "detail": "Claude · 一笑 · MBP · 42 分钟前",    "elapsed": "", "ended": "20:44" },
+    { "tag": "FAIL", "title": "上下文超限",         "tool": "Claude", "folder": "SayDo",    "detail": "Claude · 冬 · Mini · 47 分钟前",     "elapsed": "", "ended": "20:39" },
+    { "tag": "DONE", "title": "公司 Codex hook",    "tool": "Codex",  "folder": "SayDo",    "detail": "Codex 公司 · Mini · 50 分钟前",      "elapsed": "", "ended": "20:36" },
+    { "tag": "FAIL", "title": "Grok billing 超时",  "tool": "Grok",   "folder": "YoUsage",  "detail": "Grok · MBP · 53 分钟前",            "elapsed": "", "ended": "20:33" },
+    { "tag": "DONE", "title": "WSL 家目录扫描",     "tool": "Codex",  "folder": "",         "detail": "Codex 个人 · Windows · 58 分钟前",   "elapsed": "", "ended": "20:28" }
+  ]
+};
+</script>
+<script type="text/javascript">
+(function () {
+  var BASE_W = 1072;
+  var S = 1;
+
+  var INK = "#111111";
+  var PAPER = "#F4EFE4";
+  var SOFT = "#DDD6C8";
+  var TAG_ZH = { ACTIVE: "进行中", WAIT: "待处理", IDLE: "空闲", DONE: "已完成", FAIL: "失败" };
+
+  var MOCK = null;
+  var LIVE_UPDATED = "—";
+
+  var currentView = "local";
+  var currentScope = "admin";
+  var idx = 1;
+  var forced = "";
+  var floatOpen = "";
+  var refreshSec = 0;
+  var DETAIL = [];
+
+  var DEVICES = {
+    "oasis1": { w: 1072, name: "Oasis 1",       big: 0 },
+    "oasis2": { w: 1264, name: "Oasis 2",       big: 0 },
+    "oasis3": { w: 1264, name: "Oasis 3",       big: 0 },
+    "pw":     { w: 1072, name: "Paperwhite",    big: 0 },
+    "basic":  { w: 1072, name: "Kindle 基础款", big: 0 },
+    "dx":     { w: 824,  name: "Kindle DX",     big: 0 },
+    "scribe": { w: 1860, name: "Scribe",        big: 1 }
+  };
+
+  /* ---------- 基础工具 ---------- */
+
+  function qs(name) {
+    var s = window.location.search || "";
+    if (s.charAt(0) === "?") s = s.substring(1);
+    var parts = s.split("&");
+    var i;
+    for (i = 0; i < parts.length; i++) {
+      var kv = parts[i].split("=");
+      if (decodeURIComponent(kv[0] || "") === name) return decodeURIComponent(kv[1] || "");
+    }
+    return "";
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function vp() {
+    var w = window.innerWidth, h = window.innerHeight;
+    if ((!w || !h) && document.documentElement) {
+      w = w || document.documentElement.clientWidth;
+      h = h || document.documentElement.clientHeight;
+    }
+    if ((!w || !h) && document.body) {
+      w = w || document.body.clientWidth;
+      h = h || document.body.clientHeight;
+    }
+    if ((!w || !h) && window.screen) {
+      w = w || screen.width;
+      h = h || screen.height;
+    }
+    if (!w || !h) { w = BASE_W; h = 1448; }
+    return { w: w, h: h };
+  }
+
+  function isEink() {
+    var ua = navigator.userAgent || "";
+    return /Kindle\/[0-9]/.test(ua) && !/Silk/.test(ua);
+  }
+
+  function isKindleUi() {
+    if (qs("kindle") === "1") return true;
+    if (qs("device") === "oasis1") return true;
+    return isEink();
+  }
+
+  function computeScale() {
+    var s = 1;
+    var dev = DEVICES[qs("device")];
+    if (dev) {
+      s = dev.w / BASE_W;
+      if (s < 0.72) s = 0.72;
+      if (s > 1.85) s = 1.85;
+    }
+    var o = parseFloat(qs("scale") || "0");
+    if (o >= 0.4 && o <= 3) s = o;
+    S = s;
+  }
+
+  function px(n) { var v = Math.round(n * S); return v < 1 ? 1 : v; }
+  function F(n) { return "font-size:" + px(n) + "px;"; }
+  function SP(n) { return '<div style="height:' + px(n) + 'px;font-size:1px;line-height:1px;">&nbsp;</div>'; }
+
+  function isBigCanvas() {
+    if (qs("device") === "scribe") return true;
+    var dev = DEVICES[qs("device")];
+    if (dev && dev.big) return true;
+    var ua = navigator.userAgent || "";
+    if (/Scribe/i.test(ua)) return true;
+    var v = vp();
+    return Math.max(v.w, v.h) >= 1700 && Math.min(v.w, v.h) >= 1000;
+  }
+
+  function wantPanels() {
+    var mode = forced || qs("mode");
+    if (mode === "full") return false;
+    if (mode === "panels") return true;
+    if (isBigCanvas()) return false;
+    if (qs("kindle") === "1") return true;
+    var dev = DEVICES[qs("device")];
+    if (dev) return !dev.big;
+    var v = vp();
+    if (isEink()) {
+      return !(Math.max(v.w, v.h) >= 1700 && Math.min(v.w, v.h) >= 1000);
+    }
+    return Math.min(v.w, v.h) < 720;
+  }
+
+  function diag() {
+    if (qs("debug") !== "1") return "";
+    var v = vp();
+    var dev = DEVICES[qs("device")];
+    var guess = dev ? dev.name + "(预设)" : (isEink() ? "Kindle e-ink" : "桌面/其它");
+    return '<br><span style="' + F(11) + '">debug · 视口 ' + v.w + "x" + v.h +
+      " · 内容宽 " + (document.body ? document.body.scrollWidth : "?") +
+      " · 缩放 x" + (Math.round(S * 100) / 100) + " · " + esc(guess) +
+      " · " + esc(navigator.userAgent || "?") + "</span>";
+  }
+
+  /* ---------- 状态同步到 hash（整页刷新后回到原处） ---------- */
+
+  function hashRead() {
+    var s = String(window.location.hash || "");
+    if (s.charAt(0) === "#") s = s.substring(1);
+    var out = {};
+    var parts = s.split("&");
+    var i;
+    for (i = 0; i < parts.length; i++) {
+      var kv = parts[i].split("=");
+      if (kv[0]) out[kv[0]] = kv[1] || "";
+    }
+    return out;
+  }
+
+  function hashWrite() {
+    try {
+      var h = "#view=" + currentView + "&scope=" + currentScope + "&page=" + idx +
+        (forced ? "&mode=" + forced : "");
+      if (String(window.location.hash || "") !== h) window.location.hash = h;
+    } catch (e) { /* 老浏览器忽略 */ }
+  }
+
+  /* ---------- 基础组件 ---------- */
+
+  function rule(h) {
+    return '<div style="height:' + (h || px(3)) + 'px;background:' + INK + ';font-size:1px;line-height:1px;">&nbsp;</div>';
+  }
+
+  function hair() {
+    return '<div style="height:1px;background:' + INK + ';font-size:1px;line-height:1px;">&nbsp;</div>';
+  }
+
+  function pill(tag) {
+    var zh = TAG_ZH[tag] || tag || "?";
+    var dark = (tag === "ACTIVE" || tag === "FAIL");
+    return '<span style="' + F(12) + "font-weight:700;letter-spacing:" + px(1) + "px;border:1px solid " +
+      INK + ";padding:" + px(2) + "px " + px(6) + "px;background:" + (dark ? INK : "#FFFFFF") +
+      ";color:" + (dark ? "#FFFFFF" : INK) + ';">' + zh + "</span>";
+  }
+
+  function bar(pct, tall) {
+    pct = Math.round(Number(pct) || 0);
+    if (pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+    var h = tall ? px(24) : (isKindleUi() ? px(22) : px(16));
+    if (h < 10) h = 10;
+    var rest = 100 - pct;
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="' + INK + '"><tr>' +
+      '<td width="' + pct + '%"' + (pct > 0 ? ' bgcolor="' + INK + '"' : "") + ' height="' + h +
+      '"><span style="font-size:1px;">&nbsp;</span></td>' +
+      (rest > 0
+        ? '<td width="' + rest + '%" bgcolor="#FFFFFF" height="' + h + '"><span style="font-size:1px;">&nbsp;</span></td>'
+        : "") +
+      "</tr></table>";
+  }
+
+  function card(inner) {
+    return '<table width="100%" cellpadding="' + px(14) + '" cellspacing="0" border="1" bordercolor="' +
+      INK + '" bgcolor="' + PAPER + '"><tr><td>' + inner + "</td></tr></table>" + SP(12);
+  }
+
+  function section(title, extra) {
+    return SP(18) +
+      '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td>' +
+      '<span style="' + F(26) + '"><b>' + esc(title) + "</b></span>" +
+      (extra ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(extra) + "</span>" : "") +
+      "</td></tr></table>" + SP(10);
+  }
+
+  function tbtn(id, label) {
+    return '<input type="button" class="button" id="' + id + '" value="' + label +
+      '" style="' + F(15) + "padding:" + px(8) + "px " + px(14) + "px;border:1px solid " + INK +
+      ";background:#FFFFFF;color:" + INK + ';">';
+  }
+
+  function inkTab(id, label, on) {
+    return '<span id="' + id + '" style="cursor:pointer;' + F(19) + "letter-spacing:" + px(2) +
+      "px;padding:" + px(8) + "px " + px(2) + "px;border-bottom:" + (on ? px(3) : "0") + "px solid " + INK + ';">' +
+      (on ? "<b>" + label + "</b>" : label) + "</span>";
+  }
+
+  /* ---------- 数据整形 ---------- */
+
+  function moneyText(n) {
+    n = Number(n);
+    if (!isFinite(n)) return "—";
+    if (n >= 1000) return "$" + Math.round(n);
+    if (n >= 10) return "$" + n.toFixed(1);
+    return "$" + n.toFixed(2);
+  }
+
+  function shortDate(iso) {
+    if (!iso) return "—";
+    var p = String(iso).split("-");
+    if (p.length >= 3) return Number(p[1]) + "/" + Number(p[2].substring(0, 2));
+    return iso;
+  }
+
+  function shortTime(iso) {
+    var d = Date.parse(iso);
+    if (!isFinite(d)) return String(iso || "—");
+    var x = new Date(d);
+    var hh = String(x.getHours());
+    var mm = String(x.getMinutes());
+    if (hh.length < 2) hh = "0" + hh;
+    if (mm.length < 2) mm = "0" + mm;
+    return hh + ":" + mm;
+  }
+
+  function laneCount(source, scope) {
+    if (!MOCK || !MOCK.subs) return 0;
+    var n = 0, i;
+    for (i = 0; i < MOCK.subs.length; i++) {
+      var s = MOCK.subs[i];
+      if (s.source === source && (!scope || s.scope === scope)) n += 1;
+    }
+    return n;
+  }
+
+  function ensureScope() {
+    var adminN = laneCount("relay", "admin");
+    var userN = laneCount("relay", "user");
+    var peopleN = laneCount("relay", "people");
+    if (currentView === "relay") {
+      if (currentScope === "admin" && adminN === 0 && userN > 0) currentScope = "user";
+      if (currentScope === "user" && userN === 0 && adminN > 0) currentScope = "admin";
+      if (currentScope === "people" && peopleN === 0 && adminN > 0) currentScope = "admin";
+    }
+  }
+
+  function pageNames() {
+    if (currentView === "relay") {
+      if (isKindleUi()) {
+        if (currentScope === "user") return ["我的"];
+        if (currentScope === "people") return ["用户"];
+        return ["中转"];
+      }
+      if (currentScope === "user") return ["用量", "Key"];
+      if (currentScope === "people") return ["用户"];
+      return ["概览", "上游"];
+    }
+    if (isKindleUi()) return ["本机", "进行中"];
+    return ["主机", "限额", "进行中", "近 1 小时"];
+  }
+
+  function viewTitle() {
+    if (currentView === "relay") {
+      if (currentScope === "user") return "中转 · 我的";
+      if (currentScope === "people") return "中转 · 用户";
+      return "中转 · 全站";
+    }
+    return "本机";
+  }
+
+  function visibleSubs() {
+    var out = [], i;
+    if (!MOCK || !MOCK.subs) return out;
+    for (i = 0; i < MOCK.subs.length; i++) {
+      var s = MOCK.subs[i];
+      var src = s.source || "local";
+      if (currentView === "local") {
+        if (src === "local") out.push(s);
+      } else if (src === "relay" && s.scope === currentScope) {
+        out.push(s);
+      }
+    }
+    return out;
+  }
+
+  function splitRelay(subs) {
+    var head = [], rest = [], i;
+    for (i = 0; i < subs.length; i++) {
+      var k = subs[i].kind;
+      if (k === "site" || k === "member" || k === "spend") head.push(subs[i]);
+      else rest.push(subs[i]);
+    }
+    return { head: head, rest: rest };
+  }
+
+  function cardSub(s) {
+    var label = s.label || "";
+    var title = s.tool || "";
+    if (title && label.indexOf(title + " · ") === 0) label = label.substring(title.length + 3);
+    return label;
+  }
+
+  function runFolder(r) {
+    var f = (r && r.folder) ? String(r.folder) : "";
+    return f === "No Folder" ? "" : f;
+  }
+
+  function runWhen(r) {
+    if (r.tag === "DONE" || r.tag === "FAIL") return r.ended || "—";
+    return r.elapsed || "";
+  }
+
+  function cardCols() {
+    if (isKindleUi()) return 1;
+    var w = vp().w;
+    if (w >= 1500) return 3;
+    if (w >= 900) return 2;
+    return 1;
+  }
+
+  /* ---------- 复合组件 ---------- */
+
+  function winRows(windows) {
+    if (!windows || !windows.length) {
+      return '<span style="' + F(14) + '">还没有读数。</span>';
+    }
+    var html = '<table width="100%" cellpadding="' + px(3) + '" cellspacing="0" border="0">';
+    var i;
+    for (i = 0; i < windows.length; i++) {
+      var w = windows[i];
+      html += "<tr>" +
+        '<td width="' + px(64) + '"><span style="' + F(16) + '"><b>' + esc(w.key) + "</b></span></td>" +
+        "<td>" + bar(w.pct) + "</td>" +
+        '<td width="' + px(64) + '" align="right"><span style="' + F(16) + '"><b>' + esc(w.pct) + "%</b></span></td>" +
+        '<td width="' + px(120) + '" align="right"><span style="' + F(13) + '">' + esc(w.reset || "") + "</span></td>" +
+        "</tr>";
+    }
+    return html + "</table>";
+  }
+
+  function quotaCard(s) {
+    var sub = cardSub(s);
+    var extra = "";
+    if (s.breakdown && s.kind === "member" && !isKindleUi()) {
+      DETAIL.push(s);
+      extra = SP(8) + tbtn("btn-detail-" + (DETAIL.length - 1), "详情");
+    }
+    var head = '<span style="' + F(22) + '"><b>' + esc(s.tool) + "</b></span>" +
+      (sub ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(sub) + "</span>" : "");
+    if (s.none) {
+      var hint = s.error ? "采集失败，保留上次读数。"
+        : (s.source || "local") === "local" ? "本地可监控，暂无限额条。" : "";
+      return card(head + (hint ? "<br>" + SP(4) + '<span style="' + F(14) + '">' + hint + "</span>" : "") + extra);
+    }
+    return card(head + "<br>" + SP(6) + winRows(s.windows) + extra);
+  }
+
+  function quotaCards(subs, emptyText, cols) {
+    var i, c;
+    if (!subs.length) {
+      return card('<span style="' + F(16) + '">' + esc(emptyText) + "</span>");
+    }
+    cols = cols || 1;
+    if (cols < 2) {
+      var single = "";
+      for (i = 0; i < subs.length; i++) single += quotaCard(subs[i]);
+      return single;
+    }
+    var html = '<table width="100%" cellpadding="0" cellspacing="' + px(6) + '" border="0">';
+    var w = Math.floor(100 / cols);
+    for (i = 0; i < subs.length; i += cols) {
+      html += "<tr>";
+      for (c = 0; c < cols; c++) {
+        html += '<td width="' + w + '%" valign="top">' +
+          (subs[i + c] ? quotaCard(subs[i + c]) : "&nbsp;") + "</td>";
+      }
+      html += "</tr>";
+    }
+    return html + "</table>";
+  }
+
+  function runCard(r) {
+    var folder = runFolder(r);
+    var when = runWhen(r);
+    if (vp().w < 600) {
+      return card(pill(r.tag) + '&nbsp;&nbsp;<span style="' + F(20) + '"><b>' + esc(r.title) +
+        "</b></span><br>" + SP(6) +
+        '<span style="' + F(14) + '">' + esc(r.detail) +
+        (folder ? "<br>" + esc(folder) + " · " + esc(when) : (when ? "<br>" + esc(when) : "")) +
+        "</span>");
+    }
+    return card('<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td valign="top">' + pill(r.tag) + '&nbsp;&nbsp;<span style="' + F(22) + '"><b>' +
+      esc(r.title) + "</b></span><br>" + SP(6) +
+      '<span style="' + F(14) + '">' + esc(r.detail) + "</span></td>" +
+      '<td width="' + px(180) + '" valign="top" align="right" nowrap="nowrap">' +
+      (folder ? '<span style="' + F(16) + '"><b>' + esc(folder) + "</b></span><br>" : "") +
+      '<span style="' + F(14) + '">' + esc(when) + "</span></td>" +
+      "</tr></table>");
+  }
+
+  function runCards(rows, emptyText) {
+    if (!rows.length) {
+      return emptyText ? card('<span style="' + F(16) + '">' + esc(emptyText) + "</span>") : "";
+    }
+    var html = "";
+    var i;
+    for (i = 0; i < rows.length; i++) html += runCard(rows[i]);
+    return html;
+  }
+
+  function hostDots() {
+    var hosts = (MOCK && MOCK.hosts) || [];
+    if (!hosts.length) return "";
+    var dots = "";
+    var i;
+    for (i = 0; i < hosts.length; i++) {
+      var h = hosts[i];
+      dots += '<span style="' + F(14) + '">' + (h.ok ? "[*]" : "[&nbsp;]") + " " +
+        esc(h.short || h.name) + "</span>&nbsp;&nbsp;&nbsp;";
+    }
+    return dots;
+  }
+
+  function hostCard(h) {
+    return '<table width="100%" cellpadding="' + px(12) + '" cellspacing="0" border="1" bordercolor="' +
+      INK + '"><tr><td>' +
+      '<span style="' + F(12) + ";letter-spacing:" + px(1) + 'px;">' + esc(h.role || "HOST") + "</span><br>" + SP(2) +
+      '<span style="' + F(20) + '"><b>' + esc(h.name) + "</b></span><br>" + SP(4) +
+      '<span style="' + F(14) + '"><b>' + (h.ok ? "在线" : "陈旧") + "</b> · " + esc(h.seen) +
+      "<br>进行中 " + esc(h.live) +
+      (h.wait != null ? " · 等待 " + esc(h.wait) : "") +
+      (h.sessions != null ? "<br>会话 " + esc(h.sessions) : "") +
+      (h.tokens ? " · 今日 " + esc(h.tokens) : "") + "</span>" +
+      "</td></tr></table>";
+  }
+
+  function hostStrip() {
+    var hosts = (MOCK && MOCK.hosts) || [];
+    if (!hosts.length) return "";
+    var perRow = hosts.length > 4 ? 4 : hosts.length;
+    var html = '<table width="100%" cellpadding="0" cellspacing="' + px(8) + '" border="0">';
+    var i;
+    for (i = 0; i < hosts.length; i++) {
+      if (i % perRow === 0) html += "<tr>";
+      html += '<td width="' + Math.floor(100 / perRow) + '%" valign="top">' + hostCard(hosts[i]) + "</td>";
+      if (i % perRow === perRow - 1 || i === hosts.length - 1) html += "</tr>";
+    }
+    return html + "</table>" + SP(4);
+  }
+
+  function masthead() {
+    var liveN = (MOCK.now || []).length;
+    var tabs = inkTab("ink-local", "本机", currentView === "local") + "&nbsp;&nbsp;&nbsp;" +
+      inkTab("ink-relay", "中转", currentView === "relay");
+    if (currentView === "relay") {
+      tabs += "&nbsp;&nbsp;&nbsp;&nbsp;" +
+        inkTab("ink-admin", "全站", currentScope === "admin") + "&nbsp;&nbsp;&nbsp;" +
+        inkTab("ink-user", "我的", currentScope === "user") + "&nbsp;&nbsp;&nbsp;" +
+        inkTab("ink-people", "用户", currentScope === "people");
+    }
+    var brand = '<span id="ink-help" style="cursor:pointer;' + F(38) + ";letter-spacing:" +
+      px(2) + 'px;"><b>AINDLE</b></span><br>' +
+      '<span style="' + F(13) + ";letter-spacing:" + px(2) + 'px;">AI MONITOR · ' + esc(viewTitle()) + "</span>";
+    var clock = '<span id="ink-clock" style="cursor:pointer;' + F(38) + '"><b>' +
+      esc(MOCK.time) + "</b></span><br>" +
+      '<span style="' + F(13) + '">' + esc(MOCK.date) + " · Hub " + esc(MOCK.hub) +
+      (liveN ? " · " + liveN + " 进行中" : "") + "</span>";
+    if (vp().w < 600) {
+      return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+        '<td valign="bottom">' + brand + "</td>" +
+        '<td valign="bottom" align="right">' + clock + "</td>" +
+        "</tr></table>" + SP(10) + tabs + SP(4) + rule(px(3)) + SP(6);
+    }
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td valign="bottom">' + brand + "</td>" +
+      '<td valign="bottom" align="center" nowrap="nowrap">' + tabs + "</td>" +
+      '<td valign="bottom" align="right">' + clock + "</td>" +
+      "</tr></table>" + SP(10) + rule(px(3)) + SP(6);
+  }
+
+  /* ---------- 顶栏 ---------- */
+
+  function renderTop() {
+    var top = document.getElementById("topbar");
+    if (isBigCanvas()) {
+      top.innerHTML = "";
+      top.style.display = "none";
+      return;
+    }
+    top.style.display = "block";
+    var badge = window.AINDLE_MOCK ? "DEMO" : "LIVE";
+    var meta = "<b>" + badge + "</b> · 更新 " + esc(shortTime(LIVE_UPDATED)) + " · " + esc(viewTitle()) +
+      (refreshSec > 0 ? " · 每 " + refreshSec + "s" : "");
+    if (isKindleUi()) {
+      top.innerHTML =
+        '<table width="100%" bgcolor="' + SOFT + '" cellpadding="' + px(8) + '" cellspacing="0" border="0" style="border-bottom:1px solid ' + INK + ';">' +
+        "<tr>" +
+        '<td><span style="' + F(14) + '">' + meta + diag() + "</span></td>" +
+        '<td width="1%" align="right" nowrap="nowrap">' +
+        tbtn("btn-refresh", "刷新") + "&nbsp;" + tbtn("btn-help", "说明") + "</td>" +
+        "</tr></table>";
+      return;
+    }
+    var narrow = vp().w < 600;
+    var btns = tbtn("btn-refresh", "刷新") +
+      (narrow ? "" : "&nbsp;" + tbtn("btn-help", "说明")) +
+      "&nbsp;" + tbtn("btn-mode", wantPanels() ? (narrow ? "总览" : "大屏总览") : (narrow ? "面板" : "小屏面板"));
+    top.innerHTML =
+      '<table width="100%" bgcolor="' + SOFT + '" cellpadding="' + px(8) + '" cellspacing="0" border="0" style="border-bottom:1px solid ' + INK + ';">' +
+      "<tr>" +
+      '<td><span style="' + F(14) + '">' + meta + diag() + "</span></td>" +
+      '<td width="1%" align="right" nowrap="nowrap">' + btns + "</td>" +
+      "</tr></table>";
+  }
+
+  /* ---------- 面板模式 ---------- */
+
+  function renderPanelHead() {
+    var dots = currentView === "local" ? hostDots() : "";
+    document.getElementById("panels-head").innerHTML =
+      '<div style="padding:' + px(14) + "px " + px(18) + "px 0 " + px(18) + 'px;">' +
+      masthead() +
+      (dots ? dots + SP(6) : "") +
+      "</div>";
+  }
+
+  function renderPager() {
+    var h = px(56);
+    if (h < 44) h = 44;
+    var style = "width:100%;height:" + h + "px;" + F(19) + "border:1px solid " + INK +
+      ";background:#FFFFFF;color:" + INK + ";";
+    document.getElementById("pager").innerHTML =
+      '<div style="padding:0 ' + px(18) + "px " + px(14) + 'px ' + px(18) + 'px;">' +
+      '<table width="100%" cellpadding="0" cellspacing="' + px(8) + '" border="0"><tr>' +
+      '<td width="36%"><input type="button" class="button" id="btn-prev" value="上一页" style="' + style + '"></td>' +
+      '<td width="28%" align="center" valign="middle"><span id="p-indicator" style="' + F(17) + '"></span></td>' +
+      '<td width="36%"><input type="button" class="button" id="btn-next" value="下一页" style="' + style + '"></td>' +
+      "</tr></table></div>";
+  }
+
+  function panelBody(inner) {
+    return '<div style="padding:0 ' + px(18) + "px " + px(8) + 'px ' + px(18) + 'px;">' + inner + "</div>";
+  }
+
+  function renderLocalPanels() {
+    var i;
+    var cols = isKindleUi() ? 1 : cardCols();
+
+    if (isKindleUi()) {
+      var hostLine = "";
+      var hosts = MOCK.hosts || [];
+      for (i = 0; i < hosts.length; i++) {
+        var kh = hosts[i];
+        hostLine += (kh.ok ? "[*]" : "[&nbsp;]") + " <b>" + esc(kh.name) + "</b> · " + esc(kh.seen) +
+          " · 进行中 " + esc(kh.live) + "<br>";
+      }
+      document.getElementById("panel-0").innerHTML = panelBody(
+        section("主机", hosts.length + " 台") +
+        card('<span style="' + F(16) + '">' + hostLine + "</span>") +
+        section("限额", visibleSubs().length + " 份") +
+        quotaCards(visibleSubs(), "还没有本机限额。", 1)
+      );
+      document.getElementById("panel-1").innerHTML = panelBody(
+        section("进行中", (MOCK.now || []).length + " 条") +
+        runCards(MOCK.now || [], "这一小时没有进行中的会话。") +
+        ((MOCK.recent || []).length
+          ? section("近 1 小时", MOCK.recent.length + " 条") + runCards(MOCK.recent, "")
+          : "")
+      );
+      document.getElementById("panel-2").innerHTML = "";
+      document.getElementById("panel-3").innerHTML = "";
+      return;
+    }
+
+    var hostHtml = section("主机", (MOCK.hosts || []).length + " 台");
+    var hs = MOCK.hosts || [];
+    for (i = 0; i < hs.length; i++) hostHtml += card(hostCardInner(hs[i]));
+    document.getElementById("panel-0").innerHTML = panelBody(hostHtml);
+
+    var subs = visibleSubs();
+    document.getElementById("panel-1").innerHTML = panelBody(
+      section("限额", subs.length + " 份") +
+      quotaCards(subs, "还没有本机限额。", cols)
+    );
+    document.getElementById("panel-2").innerHTML = panelBody(
+      section("进行中", (MOCK.now || []).length + " 条") +
+      runCards(MOCK.now || [], "这一小时没有进行中的会话。")
+    );
+    document.getElementById("panel-3").innerHTML = panelBody(
+      section("近 1 小时", (MOCK.recent || []).length + " 条") +
+      runCards(MOCK.recent || [], "近 1 小时没有结束的会话。")
+    );
+  }
+
+  function hostCardInner(h) {
+    return '<span style="' + F(22) + '"><b>' + esc(h.name) + "</b></span>&nbsp;&nbsp;" +
+      '<span style="' + F(14) + '"><b>' + (h.ok ? "在线" : "陈旧") + "</b> · " + esc(h.seen) + "</span><br>" + SP(4) +
+      '<span style="' + F(14) + '">进行中 ' + esc(h.live) + " · 等待 " + esc(h.wait) +
+      " · 会话 " + esc(h.sessions) + " · 今日 " + esc(h.tokens) + "</span>";
+  }
+
+  function renderRelayPanels() {
+    var subs = visibleSubs();
+    var parts = splitRelay(subs);
+    var names = pageNames();
+    var cols = isKindleUi() ? 1 : cardCols();
+    var emptyAll = currentScope === "user"
+      ? "还没有中转用户数据。"
+      : currentScope === "people"
+        ? "还没有其他用户。"
+        : "还没有中转全站数据。";
+    var emptyRest = currentScope === "user" ? "还没有 Key。" : "上游账号还没有读数。";
+
+    if (isKindleUi() || currentScope === "people") {
+      document.getElementById("panel-0").innerHTML = panelBody(
+        section(names[0], currentScope === "people" ? subs.length + " 人" : (parts.head.length + parts.rest.length) + " 张") +
+        (currentScope === "people"
+          ? quotaCards(subs, emptyAll, cols)
+          : quotaCards(parts.head, emptyAll, 1) + (parts.rest.length ? quotaCards(parts.rest, emptyRest, 1) : ""))
+      );
+      document.getElementById("panel-1").innerHTML = "";
+    } else {
+      document.getElementById("panel-0").innerHTML = panelBody(
+        section(names[0], parts.head.length + " 张") +
+        quotaCards(parts.head, emptyAll, 1)
+      );
+      document.getElementById("panel-1").innerHTML = panelBody(
+        section(names[1], parts.rest.length + " 张") +
+        quotaCards(parts.rest, emptyRest, 1)
+      );
+    }
+    document.getElementById("panel-2").innerHTML = "";
+    document.getElementById("panel-3").innerHTML = "";
+  }
+
+  function renderPanels() {
+    if (currentView === "relay") renderRelayPanels();
+    else renderLocalPanels();
+  }
+
+  /* ---------- 大屏总览 ---------- */
+
+  function editionFooter() {
+    var hosts = MOCK.hosts || [];
+    var staleN = (MOCK.staleHosts || []).length;
+    return SP(6) + hair() + SP(8) +
+      '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td><span style="' + F(13) + '">数据 ' + esc(shortTime(MOCK.generatedAt)) +
+      " · Hub " + esc(MOCK.hub) + " · " + hosts.length + " 台主机" +
+      (staleN ? " · " + staleN + " 台陈旧" : "") +
+      (window.AINDLE_MOCK ? " · MOCK 演示数据" : "") + "</span></td>" +
+      '<td align="right"><span style="' + F(13) + '">AINDLE · ' + esc(viewTitle()) + "</span></td>" +
+      "</tr></table>";
+  }
+
+  function editionLocal() {
+    var subs = visibleSubs();
+    var live = MOCK.now || [];
+    var recent = MOCK.recent || [];
+    var leftCol = section("订阅限额", subs.length + " 份") +
+      quotaCards(subs, "还没有本机限额。", vp().w >= 1600 ? 2 : 1);
+    var rightCol = section("进行中", live.length + " 条") +
+      runCards(live, "这一小时没有进行中的会话。") +
+      (recent.length ? section("近 1 小时", recent.length + " 条") + runCards(recent, "") : "");
+    if (vp().w >= 1000) {
+      return '<table width="100%" cellpadding="0" cellspacing="' + px(10) + '" border="0"><tr>' +
+        '<td width="55%" valign="top">' + leftCol + "</td>" +
+        '<td width="45%" valign="top">' + rightCol + "</td>" +
+        "</tr></table>";
+    }
+    return leftCol + rightCol;
+  }
+
+  function editionRelay() {
+    var subs = visibleSubs();
+    var parts = splitRelay(subs);
+    var emptyAll = currentScope === "user"
+      ? "还没有中转用户数据。"
+      : currentScope === "people"
+        ? "还没有其他用户。"
+        : "还没有中转全站数据。";
+    var emptyRest = currentScope === "user" ? "还没有 Key。" : "上游账号还没有读数。";
+    if (currentScope === "people") {
+      return section("用户", subs.length + " 人") + quotaCards(subs, emptyAll, cardCols());
+    }
+    var leftName = currentScope === "user" ? "用量" : "概览";
+    var rightName = currentScope === "user" ? "Key" : "上游";
+    var leftCol = section(leftName, parts.head.length + " 张") + quotaCards(parts.head, emptyAll, 1);
+    var rightCol = section(rightName, parts.rest.length + " 张") + quotaCards(parts.rest, emptyRest, 1);
+    if (vp().w >= 1000) {
+      return '<table width="100%" cellpadding="0" cellspacing="' + px(10) + '" border="0"><tr>' +
+        '<td width="50%" valign="top">' + leftCol + "</td>" +
+        '<td width="50%" valign="top">' + rightCol + "</td>" +
+        "</tr></table>";
+    }
+    return leftCol + rightCol;
+  }
+
+  function renderFull() {
+    var html = masthead() + hostStrip();
+    html += currentView === "relay" ? editionRelay() : editionLocal();
+    html += editionFooter();
+    document.getElementById("view-full").innerHTML =
+      '<div style="padding:' + px(14) + "px " + px(18) + "px " + px(16) + "px " + px(18) + 'px;">' +
+      html + "</div>";
+  }
+
+  /* ---------- 浮层（说明 / 详情） ---------- */
+
+  function showFloat(title, inner) {
+    floatOpen = title || "1";
+    var el = document.getElementById("float");
+    el.style.display = "block";
+    el.innerHTML =
+      '<div style="padding:' + px(14) + "px " + px(18) + "px " + px(16) + "px " + px(18) + 'px;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td><span style="' + F(28) + '"><b>' + esc(title) + "</b></span></td>" +
+      '<td width="1%" align="right" nowrap="nowrap">' + tbtn("btn-float-close", "关闭") + "</td></tr></table>" +
+      SP(10) + rule(px(3)) + SP(8) +
+      inner + "</div>";
+    document.getElementById("view-panels").style.display = "none";
+    document.getElementById("view-full").style.display = "none";
+    var close = document.getElementById("btn-float-close");
+    if (close) close.onclick = hideFloat;
+  }
+
+  function hideFloat() {
+    floatOpen = "";
+    var el = document.getElementById("float");
+    el.style.display = "none";
+    el.innerHTML = "";
+    applyMode();
+  }
+
+  function helpText() {
+    if (currentView === "local") {
+      return "本机显示各机官方限额和近 1 小时会话，不是中转面板里的账号。<br><br>限额条来自本机已登录的 Claude / Codex / Cursor / Grok / Kimi。";
+    }
+    if (currentScope === "user") {
+      return "「我的」是当前登录用户的花费和 Key，不是上游账号的 5h / 7d。<br><br>今日 $0 表示今天还没有产生计费。点「详情」可看近 7 日和当天请求。";
+    }
+    if (currentScope === "people") {
+      return "「用户」是站内各人的花费。点「详情」看近 7 日和当天请求。<br><br>自己的 Key 和分平台在「我的」里看，这里不单独标出哪一个是你。";
+    }
+    return "「全站」是上游账号的 5h / 7d 配额窗口，和本机官方限额分开看。";
+  }
+
+  function showHelp() {
+    showFloat("说明", card('<span style="' + F(16) + '">' + helpText() + "</span>"));
+  }
+
+  function showPerson(s) {
+    var b = s.breakdown || {};
+    var days = b.days || [];
+    var ev = b.today || [];
+    var html = "";
+    var i, max = 0, pct, row;
+    html += section("近 7 日", days.length + " 天");
+    if (!days.length) {
+      html += card('<span style="' + F(16) + '">这 7 天没有计费记录。</span>');
+    } else {
+      for (i = 0; i < days.length; i++) if (days[i].cost > max) max = days[i].cost;
+      var rows = '<table width="100%" cellpadding="' + px(3) + '" cellspacing="0" border="0">';
+      for (i = 0; i < days.length; i++) {
+        row = days[i];
+        pct = max > 0 ? Math.round((row.cost / max) * 100) : 0;
+        rows += "<tr>" +
+          '<td width="' + px(64) + '"><span style="' + F(16) + '"><b>' + esc(shortDate(row.date)) + "</b></span></td>" +
+          "<td>" + bar(pct, true) + "</td>" +
+          '<td width="' + px(90) + '" align="right"><span style="' + F(15) + '"><b>' + moneyText(row.cost) + "</b></span></td>" +
+          '<td width="' + px(80) + '" align="right"><span style="' + F(13) + '">' + esc(row.requests || 0) + " 次</span></td>" +
+          "</tr>";
+      }
+      html += card(rows + "</table>");
+    }
+    var count = b.todayCount != null ? b.todayCount : ev.length;
+    html += section("当天", count + " 次" + (ev.length ? " · " + ev.length + " 个模型" : ""));
+    if (!ev.length) {
+      html += card('<span style="' + F(16) + '">今天还没有计费请求。</span>');
+    } else {
+      var evCards = [];
+      for (i = 0; i < ev.length; i++) {
+        row = ev[i];
+        evCards.push(card(
+          '<span style="' + F(18) + '"><b>' + esc(shortTime(row.at)) + " · " + esc(row.model) + "</b></span><br>" + SP(4) +
+          '<span style="' + F(14) + '">' +
+          (row.count && row.count > 1 ? esc(row.count) + " 次 · " : "") +
+          moneyText(row.cost) + (row.via ? " · " + esc(row.via) : "") + "</span>"
+        ));
+      }
+      var cols = cardCols();
+      if (cols < 2) {
+        html += evCards.join("");
+      } else {
+        html += '<table width="100%" cellpadding="0" cellspacing="' + px(6) + '" border="0">';
+        for (i = 0; i < evCards.length; i += cols) {
+          html += '<tr><td width="' + Math.floor(100 / cols) + '%" valign="top">' + evCards[i] + "</td>";
+          for (var c = 1; c < cols; c++) {
+            html += '<td width="' + Math.floor(100 / cols) + '%" valign="top">' +
+              (evCards[i + c] || "&nbsp;") + "</td>";
+          }
+          html += "</tr>";
+        }
+        html += "</table>";
+      }
+    }
+    showFloat(s.tool || "用户", html);
+  }
+
+  /* ---------- 模式 / 翻页 / 绑定 ---------- */
+
+  function showPanel(n) {
+    var names = pageNames();
+    if (n < 0) n = names.length - 1;
+    if (n >= names.length) n = 0;
+    idx = n;
+    var i;
+    for (i = 0; i < 4; i++) {
+      var el = document.getElementById("panel-" + i);
+      if (!el) continue;
+      el.style.display = (i === idx && i < names.length) ? "block" : "none";
+    }
+    var ind = document.getElementById("p-indicator");
+    if (ind) {
+      var dots = "";
+      for (i = 0; i < names.length; i++) dots += (i === idx ? "●" : "○") + "&nbsp;";
+      ind.innerHTML = "<b>" + esc(names[idx]) + "</b>&nbsp;&nbsp;" + (idx + 1) + " / " + names.length +
+        "<br>" + dots;
+    }
+    hashWrite();
+  }
+
+  function oh(id) {
+    var el = document.getElementById(id);
+    return (el && el.offsetHeight) || 0;
+  }
+
+  function sizePanels() {
+    var room = vp().h - oh("topbar") - oh("panels-head") - oh("pager") - px(10);
+    if (room < 200) return;
+    var i;
+    for (i = 0; i < 4; i++) {
+      var el = document.getElementById("panel-" + i);
+      if (el) el.style.minHeight = room + "px";
+    }
+  }
+
+  function applyMode() {
+    var panels = wantPanels();
+    if (floatOpen) {
+      document.getElementById("view-panels").style.display = "none";
+      document.getElementById("view-full").style.display = "none";
+      document.getElementById("float").style.display = "block";
+      return;
+    }
+    document.getElementById("float").style.display = "none";
+    document.getElementById("view-panels").style.display = panels ? "block" : "none";
+    document.getElementById("view-full").style.display = panels ? "none" : "block";
+    if (panels) {
+      sizePanels();
+      showPanel(idx);
+    }
+  }
+
+  function setView(view, scope) {
+    if (floatOpen) {
+      floatOpen = "";
+      document.getElementById("float").style.display = "none";
+      document.getElementById("float").innerHTML = "";
+    }
+    currentView = view;
+    if (scope) currentScope = scope;
+    ensureScope();
+    idx = currentView === "relay" || isKindleUi() ? 0 : 1;
+    hashWrite();
+    renderAll();
+  }
+
+  function bind() {
+    var el, i;
+    el = document.getElementById("btn-prev");
+    if (el) el.onclick = function () { showPanel(idx - 1); };
+    el = document.getElementById("btn-next");
+    if (el) el.onclick = function () { showPanel(idx + 1); };
+    el = document.getElementById("btn-mode");
+    if (el) el.onclick = function () {
+      forced = wantPanels() ? "full" : "panels";
+      hashWrite();
+      renderAll();
+    };
+    el = document.getElementById("btn-refresh");
+    if (el) el.onclick = function () { window.location.reload(); };
+    el = document.getElementById("btn-help");
+    if (el) el.onclick = showHelp;
+    for (i = 0; i < DETAIL.length; i++) {
+      el = document.getElementById("btn-detail-" + i);
+      if (el) {
+        el.onclick = (function (s) {
+          return function () { showPerson(s); };
+        })(DETAIL[i]);
+      }
+    }
+    el = document.getElementById("btn-view-local");
+    if (el) el.onclick = function () { setView("local"); };
+    el = document.getElementById("btn-view-relay");
+    if (el) el.onclick = function () { setView("relay"); };
+    el = document.getElementById("ink-local");
+    if (el) el.onclick = function () { setView("local"); };
+    el = document.getElementById("ink-relay");
+    if (el) el.onclick = function () { setView("relay"); };
+    el = document.getElementById("ink-admin");
+    if (el) el.onclick = function () { setView("relay", "admin"); };
+    el = document.getElementById("ink-user");
+    if (el) el.onclick = function () { setView("relay", "user"); };
+    el = document.getElementById("ink-people");
+    if (el) el.onclick = function () { setView("relay", "people"); };
+    el = document.getElementById("ink-clock");
+    if (el) el.onclick = function () { window.location.reload(); };
+    el = document.getElementById("ink-help");
+    if (el) el.onclick = showHelp;
+  }
+
+  function renderAll() {
+    if (!MOCK) return;
+    DETAIL = [];
+    ensureScope();
+    computeScale();
+    renderTop();
+    if (!isBigCanvas()) {
+      renderPanelHead();
+      renderPanels();
+      renderPager();
+    }
+    renderFull();
+    applyMode();
+    bind();
+  }
+
+  function loadLive(cb) {
+    var url = "/view.json";
+    var tok = qs("token");
+    if (tok) url += (url.indexOf("?") >= 0 ? "&" : "?") + "token=" + encodeURIComponent(tok);
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          MOCK = JSON.parse(xhr.responseText);
+          LIVE_UPDATED = MOCK.generatedAt || MOCK.time || "—";
+          cb(null);
+        } catch (e) {
+          cb(e);
+        }
+        return;
+      }
+      cb(new Error("HTTP " + xhr.status));
+    };
+    xhr.send(null);
+  }
+
+  function boot() {
+    if (!MOCK) {
+      document.getElementById("topbar").innerHTML =
+        '<table width="100%" cellpadding="12" cellspacing="0" border="1" bordercolor="' + INK + '"><tr><td>正在加载快照…</td></tr></table>';
+      return;
+    }
+    var hash = hashRead();
+    var qv = qs("view") || hash.view;
+    if (qv === "relay" || qv === "sub2api") currentView = "relay";
+    if (qv === "local") currentView = "local";
+    var qscope = qs("scope") || hash.scope;
+    if (qscope === "user" || qscope === "admin" || qscope === "people") currentScope = qscope;
+    var qmode = qs("mode") || hash.mode;
+    if (qmode === "panels" || qmode === "full") forced = qmode;
+    ensureScope();
+
+    var start = qs("page") || hash.page;
+    if (currentView === "relay") {
+      idx = (!isKindleUi() && (start === "1" || start === "accounts" || start === "keys")) ? 1 : 0;
+    } else if (isKindleUi()) {
+      idx = (start === "now" || start === "1" || start === "2") ? 1 : 0;
+    } else {
+      if (start === "hosts" || start === "0") idx = 0;
+      if (start === "quota" || start === "1") idx = 1;
+      if (start === "now" || start === "2") idx = 2;
+      if (start === "recent" || start === "3") idx = 3;
+    }
+
+    renderAll();
+
+    var timer = null;
+    var re = function () {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(renderAll, 200);
+    };
+    window.onresize = re;
+    if (window.addEventListener) {
+      window.addEventListener("orientationchange", re, false);
+
+      var tx = 0, ty = 0;
+      document.addEventListener("touchstart", function (e) {
+        if (e.touches && e.touches.length === 1) {
+          tx = e.touches[0].clientX;
+          ty = e.touches[0].clientY;
+        }
+      }, false);
+      document.addEventListener("touchend", function (e) {
+        if (!wantPanels() || floatOpen) return;
+        if (!e.changedTouches || !e.changedTouches.length) return;
+        var dx = e.changedTouches[0].clientX - tx;
+        var dy = e.changedTouches[0].clientY - ty;
+        if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          if (dx < 0) showPanel(idx + 1);
+          else showPanel(idx - 1);
+        }
+      }, false);
+    }
+
+    document.onkeydown = function (e) {
+      e = e || window.event;
+      var k = e.keyCode || e.which;
+      if (k === 27 && floatOpen) { hideFloat(); return; }
+      if (!wantPanels() || floatOpen) return;
+      if (k === 37) showPanel(idx - 1);
+      if (k === 39) showPanel(idx + 1);
+    };
+
+    refreshSec = parseInt(qs("refresh") || "0", 10);
+    if (!refreshSec && isBigCanvas() && !window.AINDLE_MOCK) refreshSec = 60;
+    if (refreshSec > 0) {
+      setInterval(function () {
+        if (window.AINDLE_MOCK) { renderAll(); return; }
+        loadLive(function (err) {
+          if (!err) renderAll();
+        });
+      }, refreshSec * 1000);
+      renderTop();
+    }
+  }
+
+  try {
+    if (window.AINDLE_MOCK) {
+      MOCK = window.AINDLE_MOCK;
+      LIVE_UPDATED = MOCK.generatedAt || MOCK.time || "—";
+      boot();
+    } else {
+      loadLive(function (err) {
+        if (err) throw err;
+        boot();
+      });
+    }
+  } catch (e) {
+    document.getElementById("topbar").innerHTML =
+      '<table width="100%" cellpadding="12" cellspacing="0" border="1" bordercolor="#111111"><tr><td>' +
+      "<b>初始化失败。</b><br>" + esc(e && e.message ? e.message : e) +
+      "<br>当前浏览器可能过旧；请改用「主机出 PNG + FBInk」管线。</td></tr></table>";
+  }
+})();
+</script>
+</body>
+</html>

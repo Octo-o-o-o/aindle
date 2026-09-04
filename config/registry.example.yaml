@@ -1,0 +1,69 @@
+# Copy to ./config/registry.yaml or run `aindle init`.
+# Only list subscriptions you want to monitor. Aindle does not auto-scan ~/.claude-*.
+# Never commit a filled-in registry. Secrets stay in local files / env vars.
+
+host:
+  id: mbp
+  label: MacBook Pro
+
+subscriptions:
+  - id: claude-default
+    tool: claude
+    label: Claude · Home
+    plan: Max
+    home: ~/.claude
+    projectsDir: ~/.claude/projects
+
+  # Extra Claude profile (uncomment and change home):
+  # - id: claude-work
+  #   tool: claude
+  #   label: Claude · Work
+  #   plan: Max
+  #   home: ~/.claude-work
+  #   projectsDir: ~/.claude-work/projects
+
+  - id: codex-personal
+    tool: codex
+    label: Codex · Personal
+    plan: Plus
+    home: ~/.codex
+
+  - id: cursor-ultra
+    tool: cursor
+    label: Cursor Ultra
+    plan: Ultra
+
+  - id: grok-build
+    tool: grok
+    label: Grok Build
+    home: ~/.grok
+
+  - id: kimi-code
+    tool: kimi
+    label: Kimi Code
+    home: ~/.kimi-code
+    projectsDir: ~/.claude-kimi/projects
+
+  - id: glm-local
+    tool: glm
+    label: GLM · local sessions
+    projectsDir: ~/.claude-glm/projects
+
+  # Sub2API: admin = every upstream account; user = the logged-in user only.
+  # If the public panel is Cloudflare-only, SSH-tunnel to the VPS loopback
+  # (usually 127.0.0.1:8080) and point baseUrl at the local tunnel.
+  # See docs/13-sub2api.md
+  # - id: sub2api-admin
+  #   tool: sub2api
+  #   mode: admin
+  #   label: Sub2API · site
+  #   baseUrl: http://127.0.0.1:18080
+  #   email: admin@example.com
+  #   passwordFile: ~/.config/sub2api/admin.password
+  # - id: sub2api-user
+  #   tool: sub2api
+  #   mode: user
+  #   label: Sub2API · my usage
+  #   baseUrl: http://127.0.0.1:18080
+  #   email: user@example.com
+  #   passwordFile: ~/.config/sub2api/user.password

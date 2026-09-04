@@ -1,0 +1,15 @@
+{
+  "name": "@aindle/agent",
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "@aindle/core": "0.1.0",
+    "yaml": "^2.8.1"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0"
+  }
+}
