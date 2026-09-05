@@ -4,6 +4,11 @@ import { collectCursor } from './cursor.js';
 import { collectGrok } from './grok.js';
 import { collectKimi } from './kimi.js';
 import { collectSub2Api } from './sub2api.js';
+import { collectZcode } from './zcode.js';
+import { collectGemini } from './gemini.js';
+import { collectCopilot } from './copilot.js';
+import { collectKiro } from './kiro.js';
+import { collectDeepSeek } from './deepseek.js';
 import type { Subscription } from '@aindle/core';
 import type { RegistrySubscription } from '../registry.js';
 import { quotaDue, quotaPeek, quotaRemember } from '../lib/quota-gate.js';
@@ -40,8 +45,17 @@ export async function collectSubscriptions(entry: RegistrySubscription): Promise
     case 'kimi':
       return [await collectKimi(entry)];
     case 'glm':
-    case 'zcode':
       return [collectGlm(entry)];
+    case 'zcode':
+      return [await collectZcode(entry)];
+    case 'gemini':
+      return [await collectGemini(entry)];
+    case 'copilot':
+      return [await collectCopilot(entry)];
+    case 'kiro':
+      return [await collectKiro(entry)];
+    case 'deepseek':
+      return [await collectDeepSeek(entry)];
     case 'sub2api': {
       const key = `sub2api:${entry.id}:${entry.mode ?? 'user'}`;
       const cached = quotaPeek<Subscription[]>(key);
@@ -76,4 +90,16 @@ export async function collectSubscriptions(entry: RegistrySubscription): Promise
   }
 }
 
-export { collectClaude, collectCodex, collectCursor, collectGrok, collectGlm, collectKimi };
+export {
+  collectClaude,
+  collectCodex,
+  collectCursor,
+  collectGrok,
+  collectGlm,
+  collectKimi,
+  collectZcode,
+  collectGemini,
+  collectCopilot,
+  collectKiro,
+  collectDeepSeek,
+};

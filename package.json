@@ -2,7 +2,7 @@
   "name": "aindle",
   "version": "0.1.0",
   "private": false,
-  "description": "Kindle-friendly AI usage monitor: hub + agents for Claude, Codex, Cursor, Grok, Kimi, and Sub2API",
+  "description": "Kindle-friendly AI usage monitor: hub + agents for Claude, Codex, Cursor, Grok, Kimi, ZCode, Gemini, Copilot, Kiro, DeepSeek, and Sub2API",
   "type": "module",
   "bin": {
     "aindle": "dist/cli.js"
@@ -43,6 +43,12 @@
     "cursor",
     "grok",
     "kimi",
+    "zcode",
+    "gemini",
+    "copilot",
+    "kiro",
+    "deepseek",
+    "glm",
     "sub2api",
     "usage",
     "monitor",

@@ -5,10 +5,14 @@
   "generatedAt": "2026-09-03T21:26:00+08:00",
   "staleHosts": ["win"],
   "lanes": { "local": 8, "relayAdmin": 4, "relayUser": 3, "relayPeople": 3 },
+  "attention": { "waiting": 2, "human": 2, "background": 3 },
+  "nowMain": 4,
+  "nowTotal": 7,
+  "refreshBusy": true,
   "hosts": [
-    { "id": "mbp",  "name": "MacBook Pro", "short": "MBP",  "role": "HOST · MBP", "ok": 1, "seen": "4 秒前",    "live": 4, "wait": 2, "tokens": "41.8M", "sessions": 7 },
-    { "id": "mini", "name": "Mac mini",    "short": "Mini", "role": "HOST · HUB", "ok": 1, "seen": "2 秒前",    "live": 2, "wait": 0, "tokens": "27.3M", "sessions": 5 },
-    { "id": "win",  "name": "Windows",     "short": "Win",  "role": "HOST · WIN", "ok": 0, "seen": "16 分钟前", "live": 0, "wait": 0, "tokens": "8.9M",  "sessions": 3 }
+    { "id": "mbp",  "name": "MacBook Pro", "short": "MBP",  "role": "HOST · MBP", "ok": 1, "seen": "4 秒前",    "live": 4, "wait": 1, "attention": { "waiting": 1, "human": 1, "background": 2 }, "tokens": "41.8M", "sessions": 7 },
+    { "id": "mini", "name": "Mac mini",    "short": "Mini", "role": "HOST · HUB", "ok": 1, "seen": "2 秒前",    "live": 2, "wait": 1, "attention": { "waiting": 1, "human": 1, "background": 0 }, "tokens": "27.3M", "sessions": 5 },
+    { "id": "win",  "name": "Windows",     "short": "Win",  "role": "HOST · WIN", "ok": 0, "seen": "16 分钟前", "live": 0, "wait": 0, "attention": { "waiting": 0, "human": 0, "background": 0 }, "tokens": "8.9M",  "sessions": 3 }
   ],
   "subs": [
     { "id": "claude-yx", "tool": "Claude Max", "label": "Claude Max · 一笑 · 3 机共享", "source": "local", "scope": "", "kind": "quota", "windows": [

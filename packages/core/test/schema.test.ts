@@ -1,9 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  INGEST_SCHEMA,
   buildMockIngest,
   buildMockSnapshot,
+  countAttention,
   folderLabel,
+  formatAttention,
   formatDurationAgo,
   mergeReports,
   snapshotToViewModel,
@@ -16,7 +19,7 @@ import {
 describe('snapshot schema', () => {
   it('validates mock snapshot', () => {
     const snap = buildMockSnapshot();
-    assert.equal(snap.schema, 'aindle.snapshot.v1');
+    assert.equal(snap.schema, 'aindle.snapshot.v2');
     validateSnapshot(snap);
   });
 
@@ -122,6 +125,9 @@ describe('view lanes', () => {
       state: 'active',
       lastActivityAt: new Date().toISOString(),
       spawned: true,
+      initiator: 'agent',
+      initiatorConfidence: 'direct',
+      stateConfidence: 'derived',
     });
     snap.runs.push({
       id: 'r-cli-orphan',
@@ -132,12 +138,124 @@ describe('view lanes', () => {
       state: 'active',
       lastActivityAt: new Date().toISOString(),
       spawned: true,
+      initiator: 'agent',
+      initiatorConfidence: 'direct',
+      stateConfidence: 'derived',
     });
     const vm = snapshotToViewModel(snap);
     assert.equal(vm.nowMain, 2);
     assert.equal(vm.nowTotal, 4);
+    assert.deepEqual(vm.attention, { waiting: 1, human: 1, background: 2 });
     assert.equal(vm.now.some((r) => r.title === 'Task: fold spawned'), false);
     assert.equal(vm.now.some((r) => r.title === 'headless only project'), false);
+    assert.equal(vm.now.some((r) => r.title === '后台 · 2'), true);
     assert.equal(vm.now.some((r) => r.title === 'Aindle Stage 1'), true);
+  });
+});
+
+describe('v2 ingest and attention', () => {
+  it('rejects v1 ingest with an explicit schema error', () => {
+    const v1 = { ...buildMockIngest(), schema: 'aindle.ingest.v1' };
+    assert.throws(() => validateIngest(v1), /schema error: expected aindle\.ingest\.v2, got aindle\.ingest\.v1/);
+  });
+
+  it('does not default missing initiator fields to human or 0', () => {
+    const raw = buildMockIngest();
+    const broken = {
+      ...raw,
+      schema: INGEST_SCHEMA,
+      runs: raw.runs.map(({ initiator: _i, initiatorConfidence: _c, stateConfidence: _s, waitReason: _w, ...rest }) => rest),
+    };
+    assert.throws(() => validateIngest(broken));
+  });
+
+  it('counts three buckets on the full run set before list slice and ignores stale hosts', () => {
+    const now = new Date();
+    const iso = now.toISOString();
+    const snap = buildMockSnapshot();
+    snap.hosts.push({
+      id: 'mini',
+      label: 'Mac mini',
+      os: 'darwin',
+      seenAt: new Date(now.getTime() - 10 * 60_000).toISOString(),
+      status: 'stale',
+    });
+    snap.freshness.staleHosts = ['mini'];
+    snap.runs = [
+      {
+        id: 'human-wait',
+        hostId: 'mbp',
+        tool: 'Claude',
+        title: 'Ask',
+        project: 'Aindle',
+        state: 'wait',
+        lastActivityAt: iso,
+        initiator: 'human',
+        initiatorConfidence: 'direct',
+        stateConfidence: 'direct',
+        waitReason: 'needs_input',
+      },
+      {
+        id: 'human-active',
+        hostId: 'mbp',
+        tool: 'Claude',
+        title: 'Main',
+        project: 'Aindle',
+        state: 'active',
+        lastActivityAt: iso,
+        initiator: 'human',
+        initiatorConfidence: 'direct',
+        stateConfidence: 'derived',
+      },
+      ...[1, 2, 3].map((n) => ({
+        id: `bg-${n}`,
+        hostId: 'mbp',
+        tool: 'Claude',
+        title: `Side ${n}`,
+        project: 'Aindle',
+        state: 'active' as const,
+        lastActivityAt: iso,
+        initiator: 'agent' as const,
+        initiatorConfidence: 'direct' as const,
+        stateConfidence: 'derived' as const,
+      })),
+      ...Array.from({ length: 30 }, (_, i) => ({
+        id: `old-${i}`,
+        hostId: 'mbp',
+        tool: 'Claude',
+        title: `Old ${i}`,
+        project: 'Aindle',
+        state: 'done' as const,
+        lastActivityAt: new Date(now.getTime() - 20 * 60_000).toISOString(),
+        initiator: 'human' as const,
+        initiatorConfidence: 'derived' as const,
+        stateConfidence: 'derived' as const,
+      })),
+      {
+        id: 'stale-wait',
+        hostId: 'mini',
+        tool: 'Codex',
+        title: 'Stale wait',
+        state: 'wait',
+        lastActivityAt: iso,
+        initiator: 'human',
+        initiatorConfidence: 'direct',
+        stateConfidence: 'direct',
+        waitReason: 'needs_input' as const,
+      },
+    ];
+    const before = countAttention(snap.runs.filter((r) => r.hostId === 'mbp'));
+    const vm = snapshotToViewModel(snap, now);
+    assert.deepEqual(before, { waiting: 1, human: 1, background: 3 });
+    assert.deepEqual(vm.attention, { waiting: 1, human: 1, background: 3 });
+    assert.equal(formatAttention(vm.attention), '等你 1 · 人手 1 · 后台 3');
+    assert.equal(vm.now.length <= 12, true);
+    assert.equal(vm.now.some((r) => r.title.startsWith('Old ')), false);
+    assert.equal(vm.now.some((r) => r.title === 'Side 1'), false);
+    assert.equal(vm.now.some((r) => r.title === '后台 · 3'), true);
+    const staleHost = vm.hosts.find((h) => h.id === 'mini');
+    assert.equal(staleHost?.ok, 0);
+    assert.deepEqual(staleHost?.attention, { waiting: 1, human: 0, background: 0 });
+    assert.equal(formatAttention(staleHost!.attention, true), '上次 等你 1 · 人手 0 · 后台 0');
   });
 });

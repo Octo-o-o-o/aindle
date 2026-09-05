@@ -1,7 +1,16 @@
 import { z } from 'zod';
 
-export const SNAPSHOT_SCHEMA = 'aindle.snapshot.v1' as const;
-export const INGEST_SCHEMA = 'aindle.ingest.v1' as const;
+export const SNAPSHOT_SCHEMA = 'aindle.snapshot.v2' as const;
+export const INGEST_SCHEMA = 'aindle.ingest.v2' as const;
+
+export const Initiator = z.enum(['human', 'agent', 'machine']);
+export type Initiator = z.infer<typeof Initiator>;
+
+export const SignalConfidence = z.enum(['direct', 'derived']);
+export type SignalConfidence = z.infer<typeof SignalConfidence>;
+
+export const WaitReason = z.enum(['needs_input']);
+export type WaitReason = z.infer<typeof WaitReason>;
 
 export const Confidence = z.enum(['live', 'cached', 'stale', 'error', 'none']);
 export type Confidence = z.infer<typeof Confidence>;
@@ -86,19 +95,33 @@ export const Host = z.object({
 });
 export type Host = z.infer<typeof Host>;
 
-export const Run = z.object({
-  id: z.string().min(1),
-  hostId: z.string().min(1),
-  subscriptionId: z.string().optional(),
-  tool: z.string().min(1),
-  title: z.string().min(1),
-  project: z.string().optional(),
-  state: RunState,
-  startedAt: z.string().datetime({ offset: true }).optional(),
-  lastActivityAt: z.string().datetime({ offset: true }).optional(),
-  detail: z.string().optional(),
-  spawned: z.boolean().optional(),
-});
+export const Run = z
+  .object({
+    id: z.string().min(1),
+    hostId: z.string().min(1),
+    subscriptionId: z.string().optional(),
+    tool: z.string().min(1),
+    title: z.string().min(1),
+    project: z.string().optional(),
+    state: RunState,
+    startedAt: z.string().datetime({ offset: true }).optional(),
+    lastActivityAt: z.string().datetime({ offset: true }).optional(),
+    detail: z.string().optional(),
+    spawned: z.boolean().optional(),
+    initiator: Initiator,
+    initiatorConfidence: SignalConfidence,
+    stateConfidence: SignalConfidence,
+    waitReason: WaitReason.optional(),
+  })
+  .refine(
+    (run) => {
+      if (run.state === 'wait') {
+        return run.stateConfidence === 'direct' && run.waitReason === 'needs_input';
+      }
+      return run.waitReason === undefined;
+    },
+    { message: 'state=wait requires stateConfidence=direct and waitReason=needs_input' },
+  );
 export type Run = z.infer<typeof Run>;
 
 export const Snapshot = z.object({

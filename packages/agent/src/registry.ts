@@ -19,6 +19,8 @@ export interface RegistrySubscription {
   adminKeyFile?: string;
   jwtFile?: string;
   keyFile?: string;
+  /** Balance-style providers: spend budget for the period (provider currency), drives the 预算 bar. */
+  budget?: number;
 }
 
 export interface RegistryHost {

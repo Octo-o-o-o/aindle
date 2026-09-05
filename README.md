@@ -1,6 +1,6 @@
 # Aindle
 
-把已越狱的 Kindle Oasis 做成书桌旁的 **AI Monitor**：同时看多台机器、多份订阅上的 Claude Code / Codex / Cursor / Grok Build 用量，以及正在进行和刚完成的任务。
+把已越狱的 Kindle Oasis 做成书桌旁的 **AI Monitor**：同时看多台机器、多份订阅上的 Claude Code / Codex / Cursor / Grok Build / ZCode (GLM Coding Plan) / Gemini / Copilot / Kiro / DeepSeek 用量，以及正在进行和刚完成的任务。
 
 > **Stage 1 已落地**：Hub + Agent + 快照合同 + Kindle 兼容实时 UI。Oasis 1 主路径是 `/dash.png` + `kindle/oasis1/`。
 
@@ -54,9 +54,11 @@ python3 demo/serve.py
 
 ## 包结构
 
+`wait` 第一刀仅 Claude `AskUserQuestion` 与 Codex `request_user_input`。Cursor / Grok / Kimi / GLM 暂无直接等人信号，只走年龄档。屏上三口径是「等你 N · 人手 M · 后台 K」。
+
 | 包 | 说明 |
 |---|---|
-| `packages/core` | `aindle.snapshot.v1` / ingest 合同、合并、校验 |
+| `packages/core` | `aindle.snapshot.v2` / ingest 合同、合并、校验 |
 | `packages/hub` | HTTP：`/snapshot.json`、`/dash.png`、`/eink.html`、`/monitor.html` |
 | `kindle/oasis1` | Oasis 1 拉图循环、KUAL 菜单 |
 | `packages/agent` | 读本机注册表 → 采集 → POST hub |

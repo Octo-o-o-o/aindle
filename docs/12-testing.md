@@ -32,7 +32,7 @@ Default `0.0.0.0:8787`. First start seeds a **mock** snapshot so the UI is not e
 | URL | What |
 |---|---|
 | http://127.0.0.1:8787/health | Liveness + registered hosts |
-| http://127.0.0.1:8787/snapshot.json | Redacted snapshot (`aindle.snapshot.v1`) |
+| http://127.0.0.1:8787/snapshot.json | Redacted snapshot (`aindle.snapshot.v2`) |
 | http://127.0.0.1:8787/view.json | View-model for `monitor.html` |
 | http://127.0.0.1:8787/monitor.html?mode=panels&device=oasis1&kindle=1 | 本机面板 |
 | http://127.0.0.1:8787/monitor.html?view=relay&scope=admin | 中转 · 全站 |
@@ -84,9 +84,21 @@ export AINDLE_REGISTRY=config/registry.yaml
 
 **Kimi**: `~/.kimi-code` credentials → Kimi usages.
 
-**GLM / ZCode**: local sessions only today; no official 5h/7d bar (`confidence: none`).
+**ZCode (GLM Coding Plan)**: `~/.zcode/v2/credentials.json`（AES-256-GCM，密钥按 ZCode 应用的机器派生规则本地解密，可用 `ZCODE_CREDENTIAL_SECRET` 覆盖）→ `api.z.ai /api/monitor/usage/quota/limit`。画 `5h`（TOKENS_LIMIT unit=3）、`7d`（unit=6）与 `月`（TIME_LIMIT unit=5）；`level` → plan（如 Lite）。凭据缺失/过期 → `stale`/`error`；保持 ZCode 应用登录即可自动续期。会话来自 `~/.zcode/cli/db/db.sqlite` 的 `session` 表（标题 / 项目 / 活动时间）。
 
-**Sessions**: Claude projects, Codex jsonl, Grok sessions, Cursor chats. Activity in the last 2 minutes → `active`.
+**Gemini**: `~/.gemini/oauth_creds.json`（token 只读刷新，不回写）→ `loadCodeAssist` 识别档位；付费档远程 `retrieveUserQuota`；免费档 2026-06 起远程配额已关，需 Antigravity IDE 运行中（本地 language server 探针，未运行 → `error` 卡片）。
+
+**Copilot（个人）**: `api.github.com/copilot_internal/user` → premium_interactions 剩余%。token 用 `AINDLE_COPILOT_TOKEN`/`keyFile`；钥匙串读取需 `AINDLE_COPILOT_KEYCHAIN=1`（首次弹授权框）。
+
+**Kiro**: `~/Library/Application Support/kiro-cli/data.sqlite3` token → CodeWhisperer `GetUsageLimits`；token 由 kiro-cli 负责刷新（过期 → error 提示跑一次 CLI）。
+
+**DeepSeek**: 官方 `/user/balance` 余额（kind `spend`）；key 顺序 `DEEPSEEK_API_KEY` → `keyFile` → `~/.qwen/settings.json`；`budget` 配置后画「预算」条。
+
+**GLM**（`~/.claude-glm`）: local sessions only; no official 5h/7d bar (`confidence: none`).
+
+**Qwen / iFlow**: 源码核对无配额 API（429 被动感知），不做假实现——见 `docs/06-data-sources.md` §15–16。
+
+**Sessions**: Claude projects, Codex jsonl, Grok sessions, Cursor chats, ZCode sqlite. Activity in the last 2 minutes → `active`。`wait` 第一刀仅 Claude `AskUserQuestion` + Codex `request_user_input`。
 
 **Sub2API**: `mode: admin` vs `mode: user`. See [13-sub2api.md](13-sub2api.md).
 

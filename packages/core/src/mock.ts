@@ -123,6 +123,9 @@ export function buildMockIngest(hostId = 'mbp'): IngestReport {
         startedAt: iso(16),
         lastActivityAt: iso(0),
         detail: 'Claude · Home · MBP · 16 min',
+        initiator: 'human',
+        initiatorConfidence: 'direct',
+        stateConfidence: 'derived',
       },
       {
         id: 'r-wait-1',
@@ -131,7 +134,11 @@ export function buildMockIngest(hostId = 'mbp'): IngestReport {
         title: 'Windows agent 骨架',
         state: 'wait',
         lastActivityAt: iso(3),
-        detail: 'Codex 个人 · MBP · 待批准 · 3 分钟',
+        detail: '等待提问',
+        initiator: 'human',
+        initiatorConfidence: 'direct',
+        stateConfidence: 'direct',
+        waitReason: 'needs_input',
       },
       {
         id: 'r-done-1',
@@ -141,6 +148,9 @@ export function buildMockIngest(hostId = 'mbp'): IngestReport {
         state: 'done',
         lastActivityAt: iso(8),
         detail: 'Claude · Home · MBP · 8 min ago',
+        initiator: 'human',
+        initiatorConfidence: 'direct',
+        stateConfidence: 'derived',
       },
     ],
   };

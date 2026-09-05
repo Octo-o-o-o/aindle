@@ -5,6 +5,7 @@
 - **本机目录**：2026-09-03 在这台 MacBook Pro 上看到的路径名
 - **参考实现**：TokenTracker / kindle-dashboard / OctoMonitor 源码
 - **社区/非官方**：Cursor `usage-summary`、Claude `CLAUDE_CONFIG_DIR` 文章等，未在本会话打过真实 API
+- **2026-09-05 增补**：ZCode / Gemini / Copilot / Kiro / DeepSeek / Qwen / iFlow 的调研在本机实测或源码核对（见 §10–§16）
 
 ## 1. 先把三个概念拆开
 
@@ -156,24 +157,17 @@ subscriptions:
 
 ## 7. 「当前任务」最小可靠算法
 
-不要读进程表当 SoT（Windows 服务名、GUI、远程 SSH 都对不齐）。沿用 OctoMonitor：
+不要读进程表当 SoT。`wait` 第一刀仅 Claude `AskUserQuestion` 与 Codex `request_user_input` 的未闭合结构事件（按 `tool_use.id` / `call_id` 配对，60 分钟有序窗口）。Cursor / Grok / Kimi / GLM 没有直接等人信号，只走年龄档。年龄启发式永远不能产 `wait`。
 
 ```
 state =
-  pendingApproval ? waiting
+  open AskUserQuestion / request_user_input (direct) ? wait
   : age(lastActivity) < activeWindow ? active
   : age(lastActivity) < idleWindow   ? idle
   : completed
 ```
 
-窗口按工具分（Claude 60s/5min，Codex 2min/10min）。
-屏上：
-
-- `waiting` / `active` 永远列出（最多 N 条，按最近活动）
-- `idle` 可标「可能还开着」
-- `completed` 只保留最近 `monitorPeriod`（建议默认 1h，可 30m/2h）
-
-每条任务必带：`hostId`、`subscriptionId`、`tool`、短标题、相对时间、状态。标题只来自会话元数据或目录名，不来自 prompt 正文。
+采集按逐 session，不按项目折叠。三口径在完整 `snapshot.runs` 上先算：等你 = human∧wait∧direct；人手 = human∧{active,idle}；后台 = agent|machine∧{active,idle,wait}。stale 主机不计入全局。标题只来自正式 metadata 或 `Tool · projectLeaf`，不来自 prompt / session_summary。
 
 ## 8. 跨机限额去重
 
@@ -190,3 +184,49 @@ state =
 - Hub 快照只含百分比、重置时间、短标题、机器名。
 - 不要为了刷新 Grok/Codex token 写回用户 `auth.json`，除非你明确授权「可写凭证」。只读 refresh 失败就标 `reauth`。
 - TokenTracker 已开云同步。Aindle 默认不读、不写他们的云。
+
+## 10. ZCode（z.ai GLM Coding Plan）——已接入
+
+- 凭证：`~/.zcode/v2/credentials.json`，`enc:v1:<iv>.<tag>.<data>`（base64url）AES-256-GCM；密钥 = sha256(`zcode-credential-fallback:<platform>:<homedir>:<用户名>` 或 `ZCODE_CREDENTIAL_SECRET`)——与 ZCode 应用一致，本机可解密（2026-09-05 实测）。
+- 限额：`GET https://api.z.ai/api/monitor/usage/quota/limit`，Bearer `oauth:zai:access_token`。`limits[]`：`TOKENS_LIMIT unit=3`→5h、`unit=6`→周、`TIME_LIMIT unit=5`→月（unit 语义对照 ZCode 渲染层）；`level`→plan（lite→Lite）。
+- 会话：`~/.zcode/cli/db/db.sqlite` 的 `session` 表（title/directory/task_type/time_*），只读 + WAL 兼容。
+- 套餐名可另从 `/api/biz/subscription/list` 拿（未接入，一个端点够用）。
+
+## 11. Gemini CLI / Antigravity——已接入（分档）
+
+- 凭证：`~/.gemini/oauth_creds.json`（access/refresh/expiry_date ms）。刷新用 gemini-cli 公开 client（只读刷新，**不回写文件**）。
+- 档位：`POST cloudcode-pa.googleapis.com/v1internal:loadCodeAssist`（`ideType: ANTIGRAVITY`）→ currentTier/paidTier/cloudaicompanionProject。免费档 2026-06 起 consumer 远程配额 API 已 403（`retrieveUserQuota`/`fetchAvailableModels`/`retrieveUserQuotaSummary` 全 PERMISSION_DENIED，本机实测）。
+- 付费档（Code Assist Standard）：`retrieveUserQuota`/`fetchAvailableModels` → `buckets[].remainingFraction` + `resetTime`，used% = 1−fraction（同模型取最小）。
+- 免费档唯一实时来源：**Antigravity IDE 本地 language server**（`https://127.0.0.1:<port>/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary`，端口/CSRF 从进程参数 `--extension_server_port`/`--extension_server_csrf_token` 取，自签证书仅 loopback）。应用未运行 → 明确标不可用，不猜数。
+- 禁止调用 `onboardUser`（写操作）。
+
+## 12. GitHub Copilot（个人 premium requests）——已接入
+
+- 端点：`GET https://api.github.com/copilot_internal/user`（VS Code/Zed/CodexBar 同款，未文档化）；`quota_snapshots.premium_interactions.percent_remaining` → used% = 100−remaining；`quota_reset_date_utc`；`copilot_plan`。
+- 官方替代：`GET /users/{user}/settings/billing/premium_request/usage`（逐条明细，需自购订阅，百分比要自己按 300/1500 换算）——未接入。
+- Token：Copilot CLI 存 macOS keychain（service `copilot-cli`）；跨进程读取会弹授权框 → **默认关闭**，走 `AINDLE_COPILOT_TOKEN`/`keyFile`，钥匙串路径 `AINDLE_COPILOT_KEYCHAIN=1` 显式开启（首次需点「始终允许」）。
+
+## 13. Kiro（kiro.dev）——已接入（脆弱）
+
+- Token：`~/Library/Application Support/kiro-cli/data.sqlite3` 表 `auth_kv`（key `kirocli:social:token`，旧版 `kirocli:odic:token`；JSON 含 access_token/expires_at/profile_arn）。CLI 负责刷新——过期就跑一次 kiro-cli，本机当前即过期态。
+- 限额：`POST https://codewhisperer.us-east-1.amazonaws.com/`，`X-Amz-Target: AmazonCodeWhispererService.GetUsageLimits`，body `{profileArn}`。计划内用量 = `currentUsage − currentOverages`；plan 上限字段未文档化 → 容错探测多个候选键，拿不到就 label 显示原始 credits，不画假条。重置 `nextDateReset`。
+
+## 14. DeepSeek——已接入（余额型）
+
+- `GET https://api.deepseek.com/user/balance` Bearer API key（官方稳定）。响应 `balance_infos[].total_balance/currency`（字符串）；**没有用量 API**。
+- key 解析顺序：`DEEPSEEK_API_KEY` → `keyFile` → `~/.qwen/settings.json` env.DEEPSEEK_API_KEY（本机 Qwen Code 即此配置）。
+- 类型 `kind: spend`；注册表 `budget`（元）把余额换算成「预算」条（花超充值额会回落），不配则 label-only。
+
+## 15. Qwen Code / Qwen Coding Plan——结论：**无配额 API，不接入**
+
+- 全历史源码（v0.23.0）核对：`chat.qwen.ai` 只有 `oauth2/device/code` 与 `oauth2/token` 两个路径；`/usage` 命令是本地 `~/.qwen/usage/token-usage-YYYY-MM.jsonl` 统计的别名；配额只在 429 错误体文本里出现（`insufficient_quota` / "will reset at"）。
+- Bailian `sk-sp-` Coding Plan（`coding.dashscope.aliyuncs.com`）同样没有用量查询端点。
+- 注意：Qwen OAuth token 刷新失败会导致 CLI **清空凭据**——监控工具切勿触发其刷新。
+
+## 16. iFlow CLI——结论：**无配额 API，不接入**
+
+- npm bundle（0.5.14/0.5.19）反混淆核对：仅 `apis.iflow.cn/v1/chat*` 推理、`iflow.cn/api/oauth/getUserInfo`（无配额字段）等；无任何 usage/quota/plan 端点；配额同样只在 429 文本（gemini-cli 残留文案）。
+
+## 17. 未接入的其余候选
+
+Windsurf / Trae / CodeBuddy / Qoder / Antigravity 独立凭据 / OpenRouter / new-api：本机未安装或数据路径不明；需要时按本文档同套路调研（本地凭据 → 只读探测 → 容错解析）。

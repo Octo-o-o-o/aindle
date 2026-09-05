@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildMockSnapshot, snapshotToViewModel } from '@aindle/core';
-import { einkMeta, parseEinkBattery, parseEinkPage, pickWindows, prettyTool, quotaSourceName, renderEinkHtml } from '../src/eink.js';
+import { buildMockSnapshot, formatAttention, snapshotToViewModel } from '@aindle/core';
+import { einkMeta, fitEinkTaskLists, parseEinkBattery, parseEinkPage, pickWindows, prettyTool, quotaSourceName, renderEinkHtml } from '../src/eink.js';
 import { findChrome, htmlToPng, pngSize } from '../src/png.js';
 
 describe('eink pages', () => {
@@ -23,6 +23,8 @@ describe('eink pages', () => {
     assert.equal(quotaSourceName('Kimi 进阶'), 'Kimi');
     assert.equal(quotaSourceName('Grok Build'), 'Grok');
     assert.equal(quotaSourceName('Grok Builder'), 'Grok');
+    assert.equal(quotaSourceName('ZCode Lite'), 'ZCode');
+    assert.equal(quotaSourceName('ZCode Pro'), 'ZCode');
   });
 
   it('parses lock-screen battery from the pull query', () => {
@@ -57,8 +59,11 @@ describe('eink pages', () => {
     assert.doesNotMatch(local, /Codex Pro/);
     assert.doesNotMatch(local, /限额/);
     assert.match(local, /flex-direction:row/);
-    assert.match(local, /进行中 2 \/ 2/);
-    assert.match(now, /进行中 2 \/ 2/);
+    const attentionLabel = formatAttention(vm.attention ?? { waiting: 0, human: 0, background: 0 });
+    assert.match(local, new RegExp(attentionLabel));
+    assert.match(now, new RegExp(attentionLabel));
+    assert.match(now, />WAIT</);
+    assert.match(local, />WAIT</);
     assert.match(local, /已完成/);
     assert.match(local, /class="telapsed"/);
     assert.match(local, /1[5-7]分(\d{1,2}秒)?前/);
@@ -74,7 +79,10 @@ describe('eink pages', () => {
     assert.match(local, /Aindle Stage 1/);
     assert.match(local, /class="when"/);
     assert.doesNotMatch(local, /过热/);
-    assert.match(local, /class="qrow"/);
+    // 默认 mock 只有 2 份本地限额 → 宽松大卡模式
+    assert.match(local, /class="qbig"/);
+    assert.match(local, /重置 /);
+    assert.doesNotMatch(local, /class="qrow"/);
     assert.match(relay, /3\/3/);
     assert.match(relay, /全站|上游/);
     assert.doesNotMatch(lock, /翻页/);
@@ -109,7 +117,18 @@ describe('eink pages', () => {
         { key: '5h', pct: 0, reset: '16:34' },
       ],
     });
+    vm.subs.push({
+      id: 'zcode-main',
+      tool: 'ZCode Lite',
+      label: 'ZCode · GLM Coding',
+      source: 'local',
+      scope: '',
+      kind: 'quota',
+      windows: [{ key: '5h', pct: 10, reset: '04:00' }],
+    });
     const html = renderEinkHtml(vm, 'local', { battery: 81 });
+    assert.match(html, />ZCode</);
+    assert.doesNotMatch(html, /ZCode Lite/);
     assert.doesNotMatch(html, /一笑/);
     assert.doesNotMatch(html, /个人/);
     assert.doesNotMatch(html, /过热/);
@@ -118,6 +137,9 @@ describe('eink pages', () => {
     assert.doesNotMatch(html, /Kimi 进阶/);
     assert.match(html, />5h</);
     assert.match(html, />7d</);
+    // 4 份本地限额 → 回到紧凑行模式
+    assert.match(html, /class="qrow"/);
+    assert.doesNotMatch(html, /class="qbig"/);
     assert.doesNotMatch(html, /周一 21:59/);
     assert.match(html, /AINDLE · 本机/);
   });
@@ -170,7 +192,7 @@ describe('eink pages', () => {
     assert.doesNotMatch(html, /账期/);
   });
 
-  it('shows main and actual live counts after 进行中', () => {
+  it('shows three-bucket counts and folds background rows', () => {
     const snap = buildMockSnapshot();
     snap.runs.push({
       id: 'r-cli-1',
@@ -181,11 +203,50 @@ describe('eink pages', () => {
       state: 'active',
       lastActivityAt: new Date().toISOString(),
       spawned: true,
+      initiator: 'agent',
+      initiatorConfidence: 'direct',
+      stateConfidence: 'derived',
     });
-    const html = renderEinkHtml(snapshotToViewModel(snap), 'local');
-    assert.match(html, /进行中 2 \/ 3/);
+    const vm = snapshotToViewModel(snap);
+    const html = renderEinkHtml(vm, 'local');
+    assert.match(html, new RegExp(formatAttention(vm.attention ?? { waiting: 0, human: 0, background: 0 })));
     assert.match(html, /Aindle Stage 1/);
+    assert.match(html, /后台 · 1/);
     assert.doesNotMatch(html, /headless repair/);
+  });
+
+  it('drops completed rows and shortens live list when the canvas is too short', () => {
+    const oasis = fitEinkTaskLists(
+      Array.from({ length: 12 }, (_, i) => ({ id: `l${i}` })),
+      Array.from({ length: 3 }, (_, i) => ({ id: `d${i}` })),
+      6,
+      { w: 1072, h: 1448 },
+    );
+    assert.equal(oasis.done.length, 0);
+    assert.ok(oasis.live.length >= 1);
+    assert.ok(oasis.live.length <= 11);
+
+    const short = fitEinkTaskLists(
+      Array.from({ length: 12 }, (_, i) => ({ id: `l${i}` })),
+      Array.from({ length: 3 }, (_, i) => ({ id: `d${i}` })),
+      6,
+      { w: 1072, h: 900 },
+    );
+    assert.equal(short.done.length, 0);
+    assert.ok(short.live.length < oasis.live.length);
+
+    const vm = snapshotToViewModel(buildMockSnapshot());
+    for (let i = 0; i < 10; i += 1) {
+      vm.now.push({
+        ...vm.now[0]!,
+        title: `extra task ${i}`,
+        folder: 'Aindle',
+      });
+    }
+    const html = renderEinkHtml(vm, 'local', { height: 900 });
+    assert.match(html, new RegExp(formatAttention(vm.attention ?? { waiting: 0, human: 0, background: 0 })));
+    assert.doesNotMatch(html, /已完成/);
+    assert.match(html, /class="foot"/);
   });
 
   it('keeps a failed local Claude quota visible', () => {

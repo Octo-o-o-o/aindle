@@ -153,6 +153,67 @@ export function foldSpawnedRuns<T extends { spawned?: boolean }>(runs: T[]): T[]
   return runs.filter((r) => !r.spawned);
 }
 
+export type Attention = { waiting: number; human: number; background: number };
+
+export function emptyAttention(): Attention {
+  return { waiting: 0, human: 0, background: 0 };
+}
+
+export function runBucket(
+  run: Pick<Run, 'initiator' | 'state' | 'stateConfidence'>,
+): keyof Attention | null {
+  if (run.initiator === 'human' && run.state === 'wait' && run.stateConfidence === 'direct') {
+    return 'waiting';
+  }
+  if (run.initiator === 'human' && (run.state === 'active' || run.state === 'idle')) {
+    return 'human';
+  }
+  if (
+    (run.initiator === 'agent' || run.initiator === 'machine') &&
+    (run.state === 'active' || run.state === 'idle' || run.state === 'wait')
+  ) {
+    return 'background';
+  }
+  return null;
+}
+
+export function countAttention(
+  runs: Array<Pick<Run, 'initiator' | 'state' | 'stateConfidence'>>,
+): Attention {
+  const out = emptyAttention();
+  for (const run of runs) {
+    const bucket = runBucket(run);
+    if (bucket) out[bucket] += 1;
+  }
+  return out;
+}
+
+export function formatAttention(att: Attention, stale = false): string {
+  const body = `等你 ${att.waiting} · 人手 ${att.human} · 后台 ${att.background}`;
+  return stale ? `上次 ${body}` : body;
+}
+
+export function isRefreshBusy(run: Pick<Run, 'initiator' | 'state' | 'stateConfidence'>): boolean {
+  if (run.state === 'wait' && run.stateConfidence === 'direct') return true;
+  if (run.state !== 'active') return false;
+  return run.initiator === 'human' || run.initiator === 'agent' || run.initiator === 'machine';
+}
+
+function liveRank(run: Run): number {
+  if (run.initiator === 'human' && run.state === 'wait' && run.stateConfidence === 'direct') return 0;
+  if (run.initiator === 'human' && run.state === 'active') return 1;
+  if (run.initiator === 'human' && run.state === 'idle') return 2;
+  return 3;
+}
+
+function byLivePriority(a: Run, b: Run): number {
+  const rank = liveRank(a) - liveRank(b);
+  if (rank) return rank;
+  const ta = Date.parse(a.lastActivityAt ?? a.startedAt ?? '') || 0;
+  const tb = Date.parse(b.lastActivityAt ?? b.startedAt ?? '') || 0;
+  return tb - ta;
+}
+
 export function formatResetAt(iso: string | undefined, now = new Date()): string {
   if (!iso) return '—';
   const d = new Date(iso);
@@ -274,11 +335,13 @@ export function snapshotToViewModel(snapshot: Snapshot, now = new Date()) {
 
   const activeStates = new Set(['active', 'wait', 'idle']);
   const recentCutoff = now.getTime() - 60 * 60 * 1000;
+  const staleIds = new Set(snapshot.freshness.staleHosts);
+  const attention = countAttention(snapshot.runs.filter((r) => !staleIds.has(r.hostId)));
+  const refreshBusy = snapshot.runs.some((r) => !staleIds.has(r.hostId) && isRefreshBusy(r));
 
   const hosts = snapshot.hosts.map((h) => {
     const hostRuns = snapshot.runs.filter((r) => r.hostId === h.id);
-    const live = foldSpawnedRuns(hostRuns.filter((r) => activeStates.has(r.state))).length;
-    const wait = hostRuns.filter((r) => r.state === 'wait').length;
+    const hostAttention = countAttention(hostRuns);
     return {
       id: h.id,
       name: h.label,
@@ -286,8 +349,9 @@ export function snapshotToViewModel(snapshot: Snapshot, now = new Date()) {
       role: h.id === snapshot.hub.id ? `HOST · HUB` : `HOST · ${h.id.toUpperCase()}`,
       ok: h.status === 'ok' ? 1 : 0,
       seen: formatSeenAgo(h.seenAt, now),
-      live,
-      wait,
+      live: hostAttention.waiting + hostAttention.human + hostAttention.background,
+      wait: hostAttention.waiting,
+      attention: hostAttention,
       tokens: h.stats?.tokensToday ?? '—',
       sessions: h.stats?.sessionsToday ?? 0,
     };
@@ -372,18 +436,63 @@ export function snapshotToViewModel(snapshot: Snapshot, now = new Date()) {
     detail: r.detail ?? `${r.tool} · ${r.hostId}`,
     elapsed: formatRunElapsed(r, now),
     ended: formatRunEnded(r, now),
+    initiator: r.initiator,
+    initiatorConfidence: r.initiatorConfidence,
+    stateConfidence: r.stateConfidence,
+    waitReason: r.waitReason,
   });
 
+  type ViewRun = ReturnType<typeof toViewRun>;
+
+  const foldBackground = (runs: Run[]): ViewRun[] => {
+    const human = runs
+      .filter((r) => {
+        const bucket = runBucket(r);
+        if (bucket === 'waiting' || bucket === 'human') return true;
+        return r.initiator === 'human' && (r.state === 'done' || r.state === 'fail');
+      })
+      .sort(byLivePriority);
+    const background = runs
+      .filter((r) => {
+        const bucket = runBucket(r);
+        if (bucket === 'background') return true;
+        return (r.initiator === 'agent' || r.initiator === 'machine') && (r.state === 'done' || r.state === 'fail');
+      })
+      .sort(byLivePriority);
+    const out = human.map(toViewRun);
+    if (background.length) {
+      const newest = background[0]!;
+      const tag = background.some((r) => r.state === 'wait')
+        ? 'WAIT'
+        : background.some((r) => r.state === 'active')
+          ? 'ACTIVE'
+          : 'IDLE';
+      out.push({
+        tag,
+        title: `后台 · ${background.length}`,
+        tool: newest.tool,
+        folder: 'No Folder',
+        detail: '后台会话',
+        elapsed: formatRunElapsed(newest, now),
+        ended: formatRunEnded(newest, now),
+        initiator: newest.initiator,
+        initiatorConfidence: newest.initiatorConfidence,
+        stateConfidence: newest.stateConfidence,
+        waitReason: newest.waitReason,
+      });
+    }
+    return out;
+  };
+
   const liveAll = snapshot.runs.filter((r) => activeStates.has(r.state));
-  const liveMain = foldSpawnedRuns(liveAll);
-  const nowRuns = liveMain.slice(0, 12).map(toViewRun);
+  const nowRuns = foldBackground(liveAll).slice(0, 12);
 
   const recentAll = snapshot.runs.filter((r) => {
     if (activeStates.has(r.state)) return false;
     const t = Date.parse(r.lastActivityAt ?? r.startedAt ?? '') || 0;
     return t >= recentCutoff;
   });
-  const recentRuns = foldSpawnedRuns(recentAll).slice(0, 12).map(toViewRun);
+  const recentRuns = foldBackground(recentAll).slice(0, 12);
 
   return {
     time,
@@ -394,8 +503,10 @@ export function snapshotToViewModel(snapshot: Snapshot, now = new Date()) {
     lanes,
     now: nowRuns,
     recent: recentRuns,
-    nowMain: liveMain.length,
-    nowTotal: liveAll.length,
+    nowMain: attention.waiting + attention.human,
+    nowTotal: attention.waiting + attention.human + attention.background,
+    attention,
+    refreshBusy,
     generatedAt: snapshot.generatedAt,
     staleHosts: snapshot.freshness.staleHosts,
   };

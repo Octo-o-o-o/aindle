@@ -49,6 +49,44 @@ subscriptions:
     label: GLM · local sessions
     projectsDir: ~/.claude-glm/projects
 
+  # ZCode (z.ai GLM Coding Plan): reads the local logged-in account.
+  # quota  = decrypt ~/.zcode/v2/credentials.json (machine-derived key) → api.z.ai quota
+  # sessions = ~/.zcode/cli/db/db.sqlite (titles / projects / activity)
+  # Keep the ZCode app logged in; if the token expires the card falls back to cached.
+  # - id: zcode-main
+  #   tool: zcode
+  #   label: ZCode · Home
+  #   home: ~/.zcode
+
+  # Gemini CLI / Antigravity: licensed tiers use cloudcode-pa remotely;
+  # free tier needs the Antigravity IDE running (local language server probe).
+  # - id: gemini-main
+  #   tool: gemini
+  #   label: Gemini · Free
+  #   home: ~/.gemini
+
+  # GitHub Copilot personal premium requests (undocumented editor endpoint).
+  # Token: AINDLE_COPILOT_TOKEN env or keyFile. Keychain (copilot-cli) is
+  # opt-in via AINDLE_COPILOT_KEYCHAIN=1 — first read pops a macOS auth dialog.
+  # - id: copilot-personal
+  #   tool: copilot
+  #   label: Copilot · Personal
+  #   keyFile: ~/.config/aindle/copilot.token
+
+  # Kiro (kiro.dev) usage via its CLI's sqlite token; run kiro-cli once to
+  # refresh an expired token (the CLI owns refresh).
+  # - id: kiro-main
+  #   tool: kiro
+  #   label: Kiro
+
+  # DeepSeek pay-as-you-go balance (official /user/balance). Key resolution:
+  # DEEPSEEK_API_KEY env → keyFile → ~/.qwen/settings.json env.DEEPSEEK_API_KEY.
+  # `budget` (CNY) turns the balance into a 预算 bar; omit it for label-only.
+  # - id: deepseek-api
+  #   tool: deepseek
+  #   label: DeepSeek API
+  #   budget: 500
+
   # Sub2API: admin = every upstream account; user = the logged-in user only.
   # If the public panel is Cloudflare-only, SSH-tunnel to the VPS loopback
   # (usually 127.0.0.1:8080) and point baseUrl at the local tunnel.

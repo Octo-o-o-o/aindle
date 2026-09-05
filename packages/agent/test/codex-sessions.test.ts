@@ -226,7 +226,14 @@ describe('codex nested rollouts', () => {
         ],
       });
       const grok = runs.find((r) => r.tool === 'Grok');
-      assert.equal(runs.filter((r) => !r.spawned).map((r) => `${r.tool}:${r.title}`).sort().join(','), 'Claude:项目优化完善 review,Codex:继续路由呈现维度监督交付');
+      assert.equal(
+        runs
+          .filter((r) => r.initiator === 'human')
+          .map((r) => `${r.tool}:${r.title}`)
+          .sort()
+          .join(','),
+        'Claude:项目优化完善 review,Codex:继续路由呈现维度监督交付',
+      );
       assert.equal(grok?.spawned, true);
       assert.match(grok?.title ?? '', /Local convergence evidence comm/);
       assert.equal(runs.find((r) => r.tool === 'Claude')?.project, 'SayDo');
@@ -407,18 +414,19 @@ describe('codex nested rollouts', () => {
     }
   });
 
-  it('uses the first user prompt when Codex has no thread name', () => {
+  it('falls back to Codex · projectLeaf when there is no thread name', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aindle-codex-prompt-'));
     try {
       const day = path.join(root, 'sessions', '2026', '09', '04');
       fs.mkdirSync(day, { recursive: true });
       const id = '01e06a82-e249-7020-850f-3e33c738459b';
       const file = path.join(day, `rollout-2026-09-04T11-00-00-${id}.jsonl`);
+      const sentinel = 'S2-c2-PROMPT-SENTINEL-零上下文独立 readback';
       fs.writeFileSync(
         file,
         `${JSON.stringify({ type: 'session_meta', payload: { id, cwd: '/Users/me/WorkSpace/Octoooo', thread_source: 'user' } })}\n${JSON.stringify({
           type: 'event_msg',
-          payload: { type: 'user_message', message: '# S2 c2 ordinal 1：零上下文独立 readback\n\n你是全新的零上下文 reviewer' },
+          payload: { type: 'user_message', message: `# ${sentinel}` },
         })}\n`,
       );
       const now = new Date();
@@ -428,7 +436,8 @@ describe('codex nested rollouts', () => {
         subscriptions: [{ id: 'codex-personal', tool: 'codex', label: 'Codex', home: root }],
       });
       assert.equal(runs.length, 1);
-      assert.match(runs[0]?.title ?? '', /零上下文独立 readback/);
+      assert.equal(runs[0]?.title, 'Codex · Octoooo');
+      assert.equal(JSON.stringify(runs).includes(sentinel), false);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }

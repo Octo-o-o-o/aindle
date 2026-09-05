@@ -44,7 +44,7 @@ agent 崩溃不影响上一帧。hub 收不到某台机器时，那台标 `stale
 
 ```json
 {
-  "schema": "aindle.snapshot.v1",
+  "schema": "aindle.snapshot.v2",
   "generatedAt": "2026-09-03T13:26:00+08:00",
   "hub": { "id": "mini", "label": "Mac mini" },
   "freshness": {
@@ -83,6 +83,9 @@ agent 崩溃不影响上一帧。hub 收不到某台机器时，那台标 `stale
       "title": "Aindle 调研落盘",
       "project": "Aindle",
       "state": "active",
+      "initiator": "human",
+      "initiatorConfidence": "direct",
+      "stateConfidence": "derived",
       "startedAt": "2026-09-03T13:10:00+08:00",
       "lastActivityAt": "2026-09-03T13:25:40+08:00"
     }
@@ -147,7 +150,7 @@ Aindle agent                     ── 自己扫文件、自己打限额
 验收：
 
 1. `aindle agent` 不读未注册目录。
-2. `GET /snapshot.json` 符合 `aindle.snapshot.v1`，不含凭证。
+2. `GET /snapshot.json` 符合 `aindle.snapshot.v2`，不含凭证。v1 ingest 返回明确 schema error。
 3. PNG 像素正好是设备档。
 4. 拔掉采集源后，快照 `confidence=stale` 且上一帧数字还在。
 5. 门禁：单测合同校验 + 渲染尺寸断言。

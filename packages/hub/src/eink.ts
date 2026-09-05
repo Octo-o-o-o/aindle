@@ -1,4 +1,4 @@
-import type { ViewModel } from '@aindle/core';
+import { formatAttention, type ViewModel } from '@aindle/core';
 import { agentBrand, agentIcon } from './eink-icons.js';
 
 export const OASIS1 = { w: 1072, h: 1448 } as const;
@@ -38,7 +38,65 @@ function asSubs(vm: ViewModel): Sub[] {
   return vm.subs as Sub[];
 }
 
-export type EinkOpts = { battery?: number; lockScreen?: boolean };
+export type EinkOpts = {
+  battery?: number;
+  lockScreen?: boolean;
+  width?: number;
+  height?: number;
+};
+
+const LAYOUT = {
+  padTop: 30,
+  padBottom: 54,
+  mast: 56,
+  hair: 29,
+  quotaRow: 66,
+  taskRow: 70,
+  sec: 32,
+  secAfterBlock: 58,
+  empty: 64,
+  safety: 24,
+} as const;
+
+export function einkCanvas(opts?: EinkOpts): { w: number; h: number } {
+  return { w: opts?.width ?? OASIS1.w, h: opts?.height ?? OASIS1.h };
+}
+
+function taskBlockHeight(rows: number): number {
+  if (rows <= 0) return LAYOUT.empty;
+  return rows * LAYOUT.taskRow;
+}
+
+function doneBlockHeight(rows: number): number {
+  if (rows <= 0) return 0;
+  return LAYOUT.secAfterBlock + rows * LAYOUT.taskRow;
+}
+
+export function fitEinkTaskLists<T>(
+  live: T[],
+  done: T[],
+  quotaCount: number,
+  canvas: { w: number; h: number } = OASIS1,
+): { live: T[]; done: T[] } {
+  const budget =
+    canvas.h -
+    LAYOUT.padTop -
+    LAYOUT.padBottom -
+    LAYOUT.mast -
+    LAYOUT.hair -
+    LAYOUT.safety -
+    quotaCount * LAYOUT.quotaRow -
+    LAYOUT.sec;
+  if (taskBlockHeight(live.length) + doneBlockHeight(done.length) <= budget) {
+    return { live, done };
+  }
+  const doneMax = Math.floor((budget - taskBlockHeight(live.length) - LAYOUT.secAfterBlock) / LAYOUT.taskRow);
+  if (live.length && done.length && doneMax >= 1) {
+    return { live, done: done.slice(0, doneMax) };
+  }
+  const maxLive = Math.max(live.length ? 1 : 0, Math.floor(budget / LAYOUT.taskRow));
+  return { live: live.slice(0, Math.min(live.length, maxLive)), done: [] };
+}
 
 export function parseEinkPage(raw: string | null | undefined): EinkPage {
   const v = String(raw ?? '').trim().toLowerCase();
@@ -55,7 +113,10 @@ export function parseEinkBattery(raw: string | null | undefined): number | undef
 }
 
 export function einkMeta(vm: ViewModel, page: EinkPage) {
-  const busy = (vm.now ?? []).some((r) => r.tag === 'ACTIVE' || r.tag === 'WAIT');
+  const busy =
+    Boolean(vm.refreshBusy) ||
+    (vm.attention?.waiting ?? 0) > 0 ||
+    (vm.now ?? []).some((r) => r.tag === 'ACTIVE' || r.tag === 'WAIT');
   return {
     device: 'oasis1',
     width: OASIS1.w,
@@ -70,8 +131,13 @@ export function einkMeta(vm: ViewModel, page: EinkPage) {
 }
 
 export function renderEinkHtml(vm: ViewModel, page: EinkPage, opts?: EinkOpts): string {
+  const canvas = einkCanvas(opts);
   const body =
-    page === 'now' ? renderNow(vm) : page === 'relay' ? renderRelay(vm) : renderLocal(vm);
+    page === 'now'
+      ? renderNow(vm, canvas)
+      : page === 'relay'
+        ? renderRelay(vm)
+        : renderLocal(vm, canvas);
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -112,10 +178,23 @@ export function renderEinkHtml(vm: ViewModel, page: EinkPage, opts?: EinkOpts): 
   .mfill { height:100%; background:${INK}; }
   .mfill.soft { background:repeating-linear-gradient(-45deg, ${INK} 0 3px, #fff 3px 7px); }
   .mpct { width:72px; flex-shrink:0; text-align:right; font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .qbig { padding:16px 0 14px; border-bottom:1px solid ${INK}; }
+  .qbig:last-child { border-bottom:0; }
+  .qb-head { display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+  .qb-icon { width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .qb-title { font-size:38px; font-weight:700; line-height:1.1; }
+  .qb-sub { font-size:22px; font-weight:700; }
+  .qb-row { display:flex; align-items:center; gap:14px; padding:7px 0; }
+  .qb-key { width:88px; flex-shrink:0; font-size:24px; font-weight:700; }
+  .qb-pct { width:86px; flex-shrink:0; text-align:right; font-size:30px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .qb-reset { width:170px; flex-shrink:0; text-align:right; font-size:20px; font-weight:700; }
+  .qb-note { font-size:24px; font-weight:700; }
+  .mbar.big { height:22px; }
   .trow { display:flex; align-items:center; padding:14px 0; border-bottom:1px solid ${INK}; }
   .trow:last-child { border-bottom:0; }
   .ticon { width:28px; height:28px; flex-shrink:0; display:flex; align-items:center; justify-content:flex-start; margin-right:10px; }
   .ttitle { flex:1; font-size:30px; font-weight:700; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .twait { flex-shrink:0; margin-right:10px; font-size:18px; font-weight:700; letter-spacing:1px; border:2px solid ${INK}; padding:2px 8px; }
   .tmeta { display:flex; align-items:baseline; flex-shrink:0; gap:14px; padding-left:16px; }
   .telapsed { width:7.5em; text-align:right; font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
   .tsource { width:8em; text-align:right; font-size:22px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -181,19 +260,32 @@ function renderFooter(vm: ViewModel, page: EinkPage, opts?: EinkOpts): string {
   return `<div class="foot"><div>${left}</div><div>${esc(right)}</div></div>`;
 }
 
-function renderLocal(vm: ViewModel): string {
+// 本地限额 ≤2 份时改用宽松大卡：每个窗口独占一行、加粗的条、显示重置时间，
+// 把少量订阅省下的纵向空间用掉，页面不至于单薄。
+const EXPANDED_QUOTA_MAX = 2;
+
+function quotaUnits(subs: Sub[], expanded: boolean): number {
+  if (!expanded) return subs.length;
+  let units = 0;
+  for (const s of subs) {
+    const rows = Math.max(1, Math.min(uniqWindows(s.windows ?? []).length, 3));
+    units += Math.ceil((30 + 54 + rows * 36) / LAYOUT.quotaRow);
+  }
+  return units;
+}
+
+function renderLocal(vm: ViewModel, canvas: { w: number; h: number } = OASIS1): string {
   const quotas = localSubs(vm);
-  const live = vm.now ?? [];
-  const tasks = live;
-  const done = (vm.recent ?? []).slice(0, 3);
+  const expanded = quotas.length > 0 && quotas.length <= EXPANDED_QUOTA_MAX;
+  const fitted = fitEinkTaskLists(vm.now ?? [], (vm.recent ?? []).slice(0, 3), quotaUnits(quotas, expanded), canvas);
   const rows = quotas.length
-    ? `<div class="block">${quotas.map((s) => quotaRow(s)).join('')}</div>`
+    ? `<div class="block">${quotas.map((s) => (expanded ? quotaBig(s) : quotaRow(s))).join('')}</div>`
     : `<div class="empty">还没有本机限额。</div>`;
-  const taskBlock = tasks.length
-    ? `<div class="block">${tasks.map((r) => runRow(r)).join('')}</div>`
+  const taskBlock = fitted.live.length
+    ? `<div class="block">${fitted.live.map((r) => runRow(r)).join('')}</div>`
     : `<div class="empty">这一小时没有进行中的会话。</div>`;
-  const doneBlock = done.length
-    ? `<div class="sec">已完成</div><div class="block">${done.map((r) => runRow(r)).join('')}</div>`
+  const doneBlock = fitted.done.length
+    ? `<div class="sec">已完成</div><div class="block">${fitted.done.map((r) => runRow(r)).join('')}</div>`
     : '';
   return `
     ${rows}
@@ -202,20 +294,18 @@ function renderLocal(vm: ViewModel): string {
     ${doneBlock}`;
 }
 
-function renderNow(vm: ViewModel): string {
-  const live = vm.now ?? [];
-  const recent = vm.recent ?? [];
-  const liveBlock = live.length
-    ? `<div class="block">${live.map((r) => runRow(r)).join('')}</div>`
+function renderNow(vm: ViewModel, canvas: { w: number; h: number } = OASIS1): string {
+  const fitted = fitEinkTaskLists(vm.now ?? [], (vm.recent ?? []).slice(0, 3), 0, canvas);
+  const liveBlock = fitted.live.length
+    ? `<div class="block">${fitted.live.map((r) => runRow(r)).join('')}</div>`
     : `<div class="empty">现在没有进行中或刚停下来的会话。</div>`;
-  const shownRecent = recent.slice(0, 3);
-  const recentBlock = shownRecent.length
-    ? `<div class="block">${shownRecent.map((r) => runRow(r)).join('')}</div>`
+  const recentBlock = fitted.done.length
+    ? `<div class="block">${fitted.done.map((r) => runRow(r)).join('')}</div>`
     : '';
   return `
     <div class="sec">${esc(nowCountLabel(vm))}</div>
     ${liveBlock}
-    ${recentBlock ? `<div class="sec">刚结束 ${recent.length}</div>${recentBlock}` : ''}`;
+    ${recentBlock ? `<div class="sec">刚结束 ${fitted.done.length}</div>${recentBlock}` : ''}`;
 }
 
 function renderRelay(vm: ViewModel): string {
@@ -246,7 +336,9 @@ function renderRelay(vm: ViewModel): string {
     : '';
 
   const acct = accounts.length
-    ? `<div class="block">${accounts.map((s) => quotaRow(s)).join('')}</div>`
+    ? `<div class="block">${accounts
+        .map((s) => (accounts.length <= EXPANDED_QUOTA_MAX ? quotaBig(s) : quotaRow(s)))
+        .join('')}</div>`
     : `<div class="empty">上游账号还没有读数。</div>`;
 
   return `
@@ -306,11 +398,57 @@ function quotaMeter(w: Win): string {
     </div>`;
 }
 
+function uniqWindows(windows: Win[]): Win[] {
+  const out: Win[] = [];
+  const seen = new Set<string>();
+  for (const w of windows) {
+    if (seen.has(w.key)) continue;
+    seen.add(w.key);
+    out.push(w);
+  }
+  return out;
+}
+
+function quotaBigLabel(sub: Sub): string {
+  let label = cardSub(sub);
+  const title = quotaSourceName(sub.tool);
+  if (title && label.startsWith(`${title} · `)) label = label.slice(title.length + 3);
+  return label === title ? '' : label;
+}
+
+function quotaBig(sub: Sub): string {
+  const title = quotaSourceName(sub.tool);
+  const subLabel = clip(quotaBigLabel(sub), 22);
+  const wins = uniqWindows(sub.windows ?? []).slice(0, 3);
+  const meters = wins.length
+    ? wins.map((w) => quotaBigMeter(w)).join('')
+    : `<div class="qb-row"><div class="qb-note">${sub.error ? '暂时读不到' : '还没有读数'}</div></div>`;
+  return `
+    <div class="qbig">
+      <div class="qb-head">
+        <div class="qb-icon">${agentIcon(sub.tool, 34)}</div>
+        <div class="qb-title">${esc(title)}</div>
+        ${subLabel ? `<div class="qb-sub">${esc(subLabel)}</div>` : ''}
+      </div>
+      ${meters}
+    </div>`;
+}
+
+function quotaBigMeter(w: Win): string {
+  const pct = clampPct(w.pct);
+  const fillClass = pct >= 90 ? 'mfill' : 'mfill soft';
+  const reset = w.reset && w.reset !== '—' ? `重置 ${w.reset}` : '';
+  return `
+    <div class="qb-row">
+      <div class="qb-key">${esc(prettyWinKey(w.key))}</div>
+      <div class="mbar big"><div class="${fillClass}" style="width:${pct}%"></div></div>
+      <div class="qb-pct">${pct}%</div>
+      <div class="qb-reset">${esc(reset)}</div>
+    </div>`;
+}
+
 function nowCountLabel(vm: ViewModel): string {
-  const listed = (vm.now ?? []).length;
-  const main = Number.isFinite(vm.nowMain) ? vm.nowMain : listed;
-  const total = Number.isFinite(vm.nowTotal) ? Math.max(vm.nowTotal, main) : main;
-  return `进行中 ${listed} / ${total}`;
+  return formatAttention(vm.attention ?? { waiting: 0, human: 0, background: 0 });
 }
 
 function runProject(run: Run): string {
@@ -326,9 +464,11 @@ function runWhen(run: Run): string {
 }
 
 function runRow(run: Run): string {
+  const waitMark = run.tag === 'WAIT' ? `<div class="twait">WAIT</div>` : '';
   return `
     <div class="trow">
       <div class="ticon">${agentIcon(run.tool, 24)}</div>
+      ${waitMark}
       <div class="ttitle">${esc(run.title)}</div>
       <div class="tmeta">
         <div class="telapsed">${esc(runWhen(run))}</div>
@@ -337,13 +477,21 @@ function runRow(run: Run): string {
     </div>`;
 }
 
+// The fixed-height e-ink page fits about eight quota cards; keep errors
+// (re-login hints) and the most-burned windows when there are more sources.
+const LOCAL_CARD_MAX = 8;
+
 function localSubs(vm: ViewModel): Sub[] {
-  return asSubs(vm).filter((s) => {
+  const subs = asSubs(vm).filter((s) => {
     if (s.source !== 'local') return false;
     if (s.error) return true;
     if (s.none) return false;
     return (s.windows?.length ?? 0) > 0;
   });
+  if (subs.length <= LOCAL_CARD_MAX) return subs;
+  return subs
+    .sort((a, b) => Number(Boolean(b.error)) - Number(Boolean(a.error)) || maxPct(b) - maxPct(a))
+    .slice(0, LOCAL_CARD_MAX);
 }
 
 function prettyWinKey(key: string): string {
@@ -418,9 +566,10 @@ const SOURCE_NAMES: Record<string, string> = {
 
 export function quotaSourceName(raw: string): string {
   const s = prettyTool(raw);
+  if (/zcode/i.test(s)) return 'ZCode';
   const brand = agentBrand(s);
   if (brand !== 'other' && SOURCE_NAMES[brand]) return SOURCE_NAMES[brand];
-  const stripped = s.replace(/\s+(Max|Pro|Plus|Ultra|Build|Builder|Team|Free|进阶|基础|企业)$/i, '').trim();
+  const stripped = s.replace(/\s+(Max|Pro|Plus|Ultra|Build|Builder|Team|Lite|Free|进阶|基础|企业)$/i, '').trim();
   return stripped || s;
 }
 

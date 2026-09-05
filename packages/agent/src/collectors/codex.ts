@@ -168,74 +168,11 @@ export function readRolloutMeta(file: string): RolloutMeta {
   }
 }
 
-function isEnvDump(text: string): boolean {
-  const t = text.trim();
-  if (!t) return true;
-  if (t.startsWith('<recommended_plugins>') || t.startsWith('<environment')) return true;
-  if (/^You are (Grok|Claude|Codex|Cursor)/i.test(t)) return true;
-  return false;
-}
-
 export function clipSessionTitle(raw: string, max = 32): string {
   let t = String(raw ?? '').replace(/\s+/g, ' ').trim();
   t = t.replace(/^#+\s*/, '');
   if (!t) return '';
   return t.length > max ? `${[...t].slice(0, max - 1).join('')}…` : t;
-}
-
-export function readCodexUserTitle(file: string): string | undefined {
-  try {
-    const fd = fs.openSync(file, 'r');
-    let text = '';
-    const buf = Buffer.alloc(8192);
-    let offset = 0;
-    while (text.length < 512_000) {
-      const n = fs.readSync(fd, buf, 0, buf.length, offset);
-      if (n <= 0) break;
-      offset += n;
-      text += buf.toString('utf8', 0, n);
-      if ((text.match(/\n/g) ?? []).length >= 80) break;
-    }
-    fs.closeSync(fd);
-    for (const line of text.split('\n')) {
-      if (!line.trim()) continue;
-      let row: Record<string, unknown>;
-      try {
-        row = JSON.parse(line) as Record<string, unknown>;
-      } catch {
-        continue;
-      }
-      const payload = asRecord(row.payload) ?? row;
-      if (row.type === 'event_msg' && payload?.type === 'user_message') {
-        const msg = typeof payload.message === 'string' ? payload.message : '';
-        if (!isEnvDump(msg)) {
-          const title = clipSessionTitle(msg);
-          if (title) return title;
-        }
-      }
-      if (payload?.role === 'user') {
-        const content = payload.content;
-        let msg = '';
-        if (typeof content === 'string') msg = content;
-        else if (Array.isArray(content)) {
-          for (const part of content) {
-            const rec = asRecord(part);
-            if (rec && rec.type === 'input_text' && typeof rec.text === 'string') {
-              msg = rec.text;
-              break;
-            }
-          }
-        }
-        if (!isEnvDump(msg)) {
-          const title = clipSessionTitle(msg);
-          if (title) return title;
-        }
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-  return undefined;
 }
 
 export function loadCodexThreadNames(home: string): Map<string, string> {
