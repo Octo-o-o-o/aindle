@@ -266,6 +266,19 @@ describe('eink pages', () => {
     assert.doesNotMatch(html, /Claude Max/);
     assert.match(html, /暂时读不到/);
   });
+
+  it('shows 24h/7d usage and billing glyph on expanded quota cards', () => {
+    const vm = snapshotToViewModel(buildMockSnapshot());
+    const claude = vm.subs.find((s) => String(s.tool).includes('Claude'));
+    assert.ok(claude);
+    claude.billing = 'subscription';
+    claude.usage = { h24Tokens: '1.2M', h24Cost: '$3.20', d7Tokens: '8.4M', d7Cost: '$21' };
+    // 默认 mock 只有 2 份本地限额 → 宽松大卡模式（quotaBig）
+    const html = renderEinkHtml(vm, 'local');
+    assert.match(html, /class="qbig"/);
+    assert.match(html, /24h 1\.2M tok ≈\$3\.20 · 7d 8\.4M tok ≈\$21/);
+    assert.match(html, />订</);
+  });
 });
 
 describe('dash png', () => {

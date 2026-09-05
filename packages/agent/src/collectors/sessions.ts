@@ -244,7 +244,7 @@ function applyWait(
   return { state: ageState, stateConfidence: 'derived' };
 }
 
-function listJsonlSessions(root: string): Array<{ file: string; project: string; stem: string }> {
+export function listJsonlSessions(root: string): Array<{ file: string; project: string; stem: string }> {
   const out: Array<{ file: string; project: string; stem: string }> = [];
   if (!fs.existsSync(root)) return out;
   let projects: fs.Dirent[];

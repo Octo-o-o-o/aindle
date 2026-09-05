@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
-import type { Confidence, Subscription } from '@aindle/core';
+import type { BillingMode, Confidence, Subscription } from '@aindle/core';
 
 export interface RegistrySubscription {
   id: string;
@@ -21,6 +21,8 @@ export interface RegistrySubscription {
   keyFile?: string;
   /** Balance-style providers: spend budget for the period (provider currency), drives the 预算 bar. */
   budget?: number;
+  /** Billing override; default: sub2api / budget-bearing entries are metered, others subscription. */
+  billing?: BillingMode;
 }
 
 export interface RegistryHost {
@@ -83,6 +85,10 @@ export function codexHomePath(home?: string): string {
   return expandHome(home ?? '~/.codex');
 }
 
+export function defaultBilling(entry: RegistrySubscription): BillingMode {
+  return entry.billing ?? (entry.tool === 'sub2api' || entry.budget != null ? 'metered' : 'subscription');
+}
+
 export function stubSubscription(entry: RegistrySubscription, confidence: Confidence): Subscription {
   const relay = entry.tool === 'sub2api';
   return {
@@ -94,6 +100,7 @@ export function stubSubscription(entry: RegistrySubscription, confidence: Confid
     source: relay ? 'relay' : 'local',
     scope: relay ? (entry.mode === 'admin' ? 'admin' : 'user') : undefined,
     kind: relay ? (entry.mode === 'admin' ? 'site' : 'member') : 'quota',
+    billing: defaultBilling(entry),
     windows: [],
     confidence,
   };

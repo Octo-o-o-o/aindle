@@ -4,11 +4,12 @@
 [`../scripts/build-demo.mjs`](../scripts/build-demo.mjs) 生成，请勿手改**。
 
 - 改样式 / 布局 / 交互 → 编辑 `packages/hub/public/monitor.html`
-- 改演示数据 → 编辑 [`mock-view.json`](mock-view.json)（与 hub `/view.json` 同构）
+- 改演示数据 → 编辑 [`mock-view.json`](mock-view.json)（复杂）或
+  [`mock-view-simple.json`](mock-view-simple.json)（单机）
 - 重新生成：
 
 ```bash
-node scripts/build-demo.mjs          # 写回 demo/oasis-monitor.html
+node scripts/build-demo.mjs          # 写回 oasis-monitor.html + oasis-monitor-simple.html
 node scripts/build-demo.mjs --check  # 校验 demo 是否最新（check.sh 会跑）
 ```
 
@@ -61,7 +62,7 @@ URL 参数（可叠加，缺省回退到 hash 里的上次状态）：
 
 时间线以「周四 9月3日 21:26」为锚点且自洽：限额重置时间都在将来；陈旧主机
 （Windows，16 分钟前）名下 attention 归零并以「上次」前缀显示；
-订阅与任务的主机归属一致（Grok 在 MBP、公司 Codex 在 Mini 等）。
+订阅与任务的主机归属一致（Grok 在 MBP、公司 Codex 在 Mini 等）。公开 Demo 里的账号名是 Ada / Ben / Cara，不是真实姓名。
 attention 分桶：等你 2 · 人手 2 · 后台 3，与各机卡片加总一致。
 
 ## 局域网
@@ -70,6 +71,7 @@ attention 分桶：等你 2 · 人手 2 · 后台 3，与各机卡片加总一�
 python3 demo/serve.py
 ```
 
-- 小屏：[http://127.0.0.1:8765/oasis-monitor.html?mode=panels](http://127.0.0.1:8765/oasis-monitor.html?mode=panels)
-- 大屏：[http://127.0.0.1:8765/oasis-monitor.html?mode=full](http://127.0.0.1:8765/oasis-monitor.html?mode=full)
+- 小屏（复杂）：[http://127.0.0.1:8765/oasis-monitor.html?mode=panels](http://127.0.0.1:8765/oasis-monitor.html?mode=panels)
+- 大屏（复杂）：[http://127.0.0.1:8765/oasis-monitor.html?mode=full](http://127.0.0.1:8765/oasis-monitor.html?mode=full)
+- 单机简单场景：[oasis-monitor-simple.html](http://127.0.0.1:8765/oasis-monitor-simple.html?mode=full)
 - Oasis 1 真机档：[?device=oasis1&kindle=1](http://127.0.0.1:8765/oasis-monitor.html?device=oasis1&kindle=1)

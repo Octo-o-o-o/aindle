@@ -4,7 +4,9 @@ import {
   assertNoSecrets,
   type Host,
   type Run,
+  type SourceUsage,
   type Subscription,
+  type UsageAmount,
 } from './schema.js';
 import { SNAPSHOT_SCHEMA } from './schema.js';
 
@@ -35,6 +37,32 @@ function pickBetterSub(a: Subscription, b: Subscription): Subscription {
   return bw > aw ? b : a;
 }
 
+function mergeAmount(a?: UsageAmount, b?: UsageAmount): UsageAmount | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  const cost =
+    a.cost !== undefined && b.cost !== undefined ? a.cost + b.cost : (a.cost ?? b.cost);
+  return { tokens: a.tokens + b.tokens, ...(cost !== undefined ? { cost } : {}) };
+}
+
+function mergeUsage(a?: SourceUsage, b?: SourceUsage): SourceUsage | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  const out: SourceUsage = {};
+  const h24 = mergeAmount(a.h24, b.h24);
+  if (h24) out.h24 = h24;
+  const d7 = mergeAmount(a.d7, b.d7);
+  if (d7) out.d7 = d7;
+  const lastUsedAt =
+    a.lastUsedAt && b.lastUsedAt
+      ? Date.parse(a.lastUsedAt) >= Date.parse(b.lastUsedAt)
+        ? a.lastUsedAt
+        : b.lastUsedAt
+      : (a.lastUsedAt ?? b.lastUsedAt);
+  if (lastUsedAt) out.lastUsedAt = lastUsedAt;
+  return out;
+}
+
 function mergeSubscriptions(reports: IngestReport[]): Subscription[] {
   const byId = new Map<string, Subscription>();
   for (const report of reports) {
@@ -46,7 +74,14 @@ function mergeSubscriptions(reports: IngestReport[]): Subscription[] {
       }
       const merged = pickBetterSub(prev, sub);
       const hostIds = new Set([...(prev.hostIds ?? []), report.host.id]);
-      byId.set(sub.id, { ...merged, hostIds: [...hostIds] });
+      const usage = mergeUsage(prev.usage, sub.usage);
+      const billing = merged.billing ?? prev.billing ?? sub.billing;
+      byId.set(sub.id, {
+        ...merged,
+        hostIds: [...hostIds],
+        ...(usage ? { usage } : {}),
+        ...(billing ? { billing } : {}),
+      });
     }
   }
   return [...byId.values()].sort((a, b) => a.label.localeCompare(b.label, 'zh-CN'));
@@ -129,6 +164,45 @@ export function formatSeenAgo(iso: string, now = new Date()): string {
   if (min < 60) return `${min} 分钟前`;
   const hr = Math.floor(min / 60);
   return `${hr} 小时前`;
+}
+
+function trimDecimal(v: number): string {
+  const s = v.toFixed(1);
+  return s.endsWith('.0') ? s.slice(0, -2) : s;
+}
+
+export function formatTokens(n: number): string {
+  if (n < 1000) return String(Math.round(n));
+  if (n >= 1e6) return `${trimDecimal(n / 1e6)}M`;
+  return `${trimDecimal(n / 1e3)}K`;
+}
+
+export function formatUsageCost(n: number | undefined): string {
+  if (n === undefined) return '—';
+  if (n >= 1000) return `$${Math.round(n)}`;
+  if (n >= 10) return `$${trimDecimal(n)}`;
+  return `$${n.toFixed(2)}`;
+}
+
+function inactive7d(s: Subscription, now: Date): boolean {
+  if (s.confidence === 'error') return false;
+  if (s.windows.some((w) => w.pct !== 0)) return false;
+  if (!s.usage && !s.breakdown) return false;
+  if (s.usage) {
+    const d7 = s.usage.d7;
+    if (d7 && (d7.tokens > 0 || (d7.cost ?? 0) > 0)) return false;
+    const last = s.usage.lastUsedAt;
+    if (last) {
+      const t = Date.parse(last);
+      if (Number.isFinite(t) && t >= now.getTime() - 7 * 86400_000) return false;
+    }
+  }
+  if (s.breakdown) {
+    if ((s.breakdown.todayCount ?? 0) > 0) return false;
+    if ((s.breakdown.today ?? []).length > 0) return false;
+    if ((s.breakdown.days ?? []).some((d) => d.cost !== 0 || d.requests !== 0)) return false;
+  }
+  return true;
 }
 
 export function folderLabel(project?: string): string {
@@ -366,9 +440,49 @@ export function snapshotToViewModel(snapshot: Snapshot, now = new Date()) {
     quota: 5,
   };
 
-  const subs = snapshot.subscriptions
+  const visibleSubs = snapshot.subscriptions.filter((s) => !inactive7d(s, now));
+  const rawById = new Map(snapshot.subscriptions.map((s) => [s.id, s]));
+
+  let anyUsageTotal = false;
+  const usageSum = { h24Tokens: 0, h24Cost: 0, hasH24Cost: false, d7Tokens: 0, d7Cost: 0, hasD7Cost: false };
+  for (const s of visibleSubs) {
+    if (s.source !== 'local' || s.billing !== 'subscription' || !s.usage) continue;
+    anyUsageTotal = true;
+    if (s.usage.h24) {
+      usageSum.h24Tokens += s.usage.h24.tokens;
+      if (s.usage.h24.cost !== undefined) {
+        usageSum.h24Cost += s.usage.h24.cost;
+        usageSum.hasH24Cost = true;
+      }
+    }
+    if (s.usage.d7) {
+      usageSum.d7Tokens += s.usage.d7.tokens;
+      if (s.usage.d7.cost !== undefined) {
+        usageSum.d7Cost += s.usage.d7.cost;
+        usageSum.hasD7Cost = true;
+      }
+    }
+  }
+  const usageTotal = anyUsageTotal
+    ? {
+        h24Tokens: formatTokens(usageSum.h24Tokens),
+        h24Cost: formatUsageCost(usageSum.hasH24Cost ? usageSum.h24Cost : undefined),
+        d7Tokens: formatTokens(usageSum.d7Tokens),
+        d7Cost: formatUsageCost(usageSum.hasD7Cost ? usageSum.d7Cost : undefined),
+      }
+    : undefined;
+
+  const subs = visibleSubs
     .map((s) => {
       const lane = subscriptionLane(s);
+      const usage = s.usage
+        ? {
+            h24Tokens: s.usage.h24 ? formatTokens(s.usage.h24.tokens) : '—',
+            h24Cost: formatUsageCost(s.usage.h24?.cost),
+            d7Tokens: s.usage.d7 ? formatTokens(s.usage.d7.tokens) : '—',
+            d7Cost: formatUsageCost(s.usage.d7?.cost),
+          }
+        : undefined;
       const base = {
         id: s.id,
         tool: displayTool(s, lane),
@@ -376,7 +490,9 @@ export function snapshotToViewModel(snapshot: Snapshot, now = new Date()) {
         source: lane.source,
         scope: lane.scope ?? '',
         kind: lane.kind,
+        billing: s.billing ?? '',
         breakdown: s.breakdown,
+        ...(usage ? { usage } : {}),
       };
       if (s.confidence === 'error') {
         return { ...base, none: 1 as const, error: 1 as const };
@@ -400,14 +516,21 @@ export function snapshotToViewModel(snapshot: Snapshot, now = new Date()) {
       const rb = KIND_RANK[b.kind] ?? 9;
       if (ra !== rb) return ra - rb;
       if (a.scope === 'people' && b.scope === 'people') {
-        const recency = (label: string) => {
+        const recency = (id: string, label: string) => {
+          const lastUsedAt = rawById.get(id)?.usage?.lastUsedAt;
+          if (lastUsedAt) {
+            const age = now.getTime() - (Date.parse(lastUsedAt) || 0);
+            if (age < 86400_000) return 0;
+            if (age < 2 * 86400_000) return 1;
+            return 2;
+          }
           if (/今日 \$[1-9]|今日 \$\d+\.\d*[1-9]/.test(label)) return 0;
           if (/上次 今日/.test(label)) return 1;
           if (/上次 昨天/.test(label)) return 2;
           return 3;
         };
-        const da = recency(a.label);
-        const db = recency(b.label);
+        const da = recency(a.id, a.label);
+        const db = recency(b.id, b.label);
         if (da !== db) return da - db;
       }
       return a.label.localeCompare(b.label, 'zh-CN');
@@ -501,6 +624,7 @@ export function snapshotToViewModel(snapshot: Snapshot, now = new Date()) {
     hosts,
     subs,
     lanes,
+    ...(usageTotal ? { usageTotal } : {}),
     now: nowRuns,
     recent: recentRuns,
     nowMain: attention.waiting + attention.human,

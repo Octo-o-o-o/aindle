@@ -1,0 +1,36 @@
+{
+  "time": "14:08",
+  "date": "周六 9月5日",
+  "hub": "MacBook Pro",
+  "generatedAt": "2026-09-05T14:08:00+08:00",
+  "staleHosts": [],
+  "lanes": { "local": 2, "relayAdmin": 0, "relayUser": 0, "relayPeople": 0 },
+  "attention": { "waiting": 0, "human": 1, "background": 0 },
+  "nowMain": 1,
+  "nowTotal": 1,
+  "refreshBusy": true,
+  "usageTotal": { "h24Tokens": "186K", "h24Cost": "$0.92", "d7Tokens": "1.2M", "d7Cost": "$6.40" },
+  "hosts": [
+    { "id": "mbp", "name": "MacBook Pro", "short": "MBP", "role": "HOST · HUB", "ok": 1, "seen": "3 秒前", "live": 1, "wait": 0, "attention": { "waiting": 0, "human": 1, "background": 0 }, "tokens": "186K", "sessions": 2 }
+  ],
+  "subs": [
+    { "id": "claude-home", "tool": "Claude Max", "label": "Claude Max · Home", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
+      "usage": { "h24Tokens": "142K", "h24Cost": "$0.71", "d7Tokens": "980K", "d7Cost": "$5.10" },
+      "windows": [
+        { "key": "5h", "pct": 18, "reset": "18:40" },
+        { "key": "7d", "pct": 9, "reset": "周五 14:00" }
+      ]},
+    { "id": "codex-personal", "tool": "Codex Plus", "label": "Codex Plus · Personal", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
+      "usage": { "h24Tokens": "44K", "h24Cost": "$0.21", "d7Tokens": "220K", "d7Cost": "$1.30" },
+      "windows": [
+        { "key": "5h", "pct": 11, "reset": "17:15" },
+        { "key": "7d", "pct": 6, "reset": "周四 12:00" }
+      ]}
+  ],
+  "now": [
+    { "tag": "ACTIVE", "title": "Fix the login form", "tool": "Claude", "folder": "my-app", "detail": "Claude · Home · MBP · 8 分钟", "elapsed": "8分前", "ended": "" }
+  ],
+  "recent": [
+    { "tag": "DONE", "title": "Add unit tests", "tool": "Codex", "folder": "my-app", "detail": "Codex · Personal · MBP · 22 分钟前", "elapsed": "", "ended": "13:46" }
+  ]
+}

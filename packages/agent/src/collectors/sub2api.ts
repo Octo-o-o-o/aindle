@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import type { Subscription, UsageBreakdown, UsageEvent, UsageWindow } from '@aindle/core';
+import type { SourceUsage, Subscription, UsageBreakdown, UsageEvent, UsageWindow } from '@aindle/core';
 import { expandHome, type RegistrySubscription } from '../registry.js';
 import { clampPercent, normalizeResetAt } from '../lib/util.js';
 
@@ -381,6 +381,36 @@ function parseTodayEvents(items: unknown): UsageEvent[] {
   return [...groups.values()].sort((a, b) => b.cost - a.cost).slice(0, 8);
 }
 
+function roundUsd(v: number): number {
+  return Math.round(v * 10_000) / 10_000;
+}
+
+/**
+ * Token counts are not available from the panel, so amounts carry tokens=0
+ * plus the USD sums from the breakdown. Returns undefined when there is no
+ * evidence at all (hub then applies "no evidence, don't hide").
+ */
+function usageFromBreakdown(breakdown: UsageBreakdown | undefined): SourceUsage | undefined {
+  if (!breakdown) return undefined;
+  const days = breakdown.days ?? [];
+  const events = breakdown.today ?? [];
+  let lastMs = 0;
+  for (const evt of events) {
+    const t = Date.parse(evt.at);
+    if (Number.isFinite(t) && t > lastMs) lastMs = t;
+  }
+  let lastUsedAt = lastMs ? new Date(lastMs).toISOString() : undefined;
+  if (!lastUsedAt) {
+    const lastCostDay = [...days].reverse().find((d) => d.cost > 0);
+    if (lastCostDay) lastUsedAt = `${lastCostDay.date}T23:59:59+08:00`;
+  }
+  const usage: SourceUsage = {};
+  if (days.length) usage.d7 = { tokens: 0, cost: roundUsd(days.reduce((s, d) => s + d.cost, 0)) };
+  if (events.length) usage.h24 = { tokens: 0, cost: roundUsd(events.reduce((s, e) => s + e.cost, 0)) };
+  if (lastUsedAt) usage.lastUsedAt = lastUsedAt;
+  return usage.d7 || usage.lastUsedAt ? usage : undefined;
+}
+
 async function fetchUserBreakdown(
   base: string,
   headers: Record<string, string>,
@@ -496,6 +526,7 @@ async function collectUser(
       windows,
       confidence: windows.length ? 'live' : 'none',
       breakdown,
+      usage: usageFromBreakdown(breakdown),
     },
   ];
 
@@ -676,6 +707,7 @@ async function collectPeople(
       windows: [],
       confidence: 'none' as const,
       breakdown,
+      usage: usageFromBreakdown(breakdown),
     };
   }).filter((row): row is NonNullable<typeof row> => row != null);
 }

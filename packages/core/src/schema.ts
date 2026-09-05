@@ -61,6 +61,22 @@ export const UsageBreakdown = z.object({
 });
 export type UsageBreakdown = z.infer<typeof UsageBreakdown>;
 
+export const BillingMode = z.enum(['subscription', 'metered']);
+export type BillingMode = z.infer<typeof BillingMode>;
+
+export const UsageAmount = z.object({
+  tokens: z.number().min(0),
+  cost: z.number().min(0).optional(), // USD；缺省 = 无法折算
+});
+export type UsageAmount = z.infer<typeof UsageAmount>;
+
+export const SourceUsage = z.object({
+  h24: UsageAmount.optional(),
+  d7: UsageAmount.optional(),
+  lastUsedAt: z.string().datetime({ offset: true }).optional(),
+});
+export type SourceUsage = z.infer<typeof SourceUsage>;
+
 export const Subscription = z.object({
   id: z.string().min(1),
   tool: z.string().min(1),
@@ -70,6 +86,8 @@ export const Subscription = z.object({
   source: SubscriptionSource.optional(),
   scope: SubscriptionScope.optional(),
   kind: SubscriptionKind.optional(),
+  billing: BillingMode.optional(),
+  usage: SourceUsage.optional(),
   windows: z.array(UsageWindow),
   confidence: Confidence,
   hostIds: z.array(z.string()).optional(),

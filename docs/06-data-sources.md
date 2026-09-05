@@ -230,3 +230,12 @@ state =
 ## 17. 未接入的其余候选
 
 Windsurf / Trae / CodeBuddy / Qoder / Antigravity 独立凭据 / OpenRouter / new-api：本机未安装或数据路径不明；需要时按本文档同套路调研（本地凭据 → 只读探测 → 容错解析）。
+
+## 18. 本地 token 消耗采集（24h / 7d，已接入）
+
+- 采集在 agent 端完成，hub 不落历史库：每次采集时从本地会话 JSONL 现算滚动窗口。
+- 来源：Claude / Kimi / GLM 的 `projects/**/*.jsonl`（`message.usage` 四项 + `message.model`）；Codex 的 `rollout-*.jsonl`（`token_count` 的 `last_token_usage`，模型取 session_meta/turn_context）。只处理 8 天内 mtime 的文件。
+- 增量缓存 `~/.config/aindle/usage-cache.json`：按文件记录已读 offset + 按小时聚合桶，文件只追加时每次只读增量；size 回退（轮换/截断）则全量重解析。
+- 折合美元：agent 内置静态定价表（`lib/pricing.ts`，前缀匹配），cache_read 按 0.1× 输入价、cache_write 按 1.25× 输入价；未知模型只计 token、不出美元。定价是近似值，用于直观感受，不是对账依据。
+- Sub2API（按量中转）没有 token 数，用 `breakdown.days`/`today` 折算 7d/24h 的美元成本。
+- 7 天无使用的来源（有 usage/breakdown 证据且全零、`lastUsedAt` 早于 7 天前）在 hub 视图模型层被过滤，不进限额列表；无采集证据的来源（Cursor / Grok 等）不误杀。

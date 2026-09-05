@@ -410,6 +410,31 @@
     return html + "</table>";
   }
 
+  function billMark(s) {
+    var b = s && s.billing;
+    var t = b === "subscription" ? "订" : b === "metered" ? "量" : "";
+    if (!t) return "";
+    return '<span style="' + F(11) + "border:1px solid " + INK + ";background:#FFFFFF;color:" +
+      INK + ";padding:" + px(1) + "px " + px(4) + 'px;">' + t + "</span>";
+  }
+
+  // 按量来源（sub2api）只有美元没有 token 数：tokens 为 "0" 时只留 ≈$，
+  // 避免 "0 tok ≈$1.20" 这种噪音；两边都缺则整段显示 —。
+  function usageSeg(tokens, cost) {
+    var t = String(tokens || "—"), c = String(cost || "—");
+    if (t === "0" && c !== "—") return "≈" + c;
+    if (c === "—" && t !== "—") return t + " tok";
+    if (c === "—" && t === "—") return "—";
+    return t + " tok ≈" + c;
+  }
+
+  function usageLine(s) {
+    var u = s && s.usage;
+    if (!u) return "";
+    return '<span style="' + F(13) + '">24h ' + esc(usageSeg(u.h24Tokens, u.h24Cost)) +
+      " · 7d " + esc(usageSeg(u.d7Tokens, u.d7Cost)) + "</span>";
+  }
+
   // 订阅 ≤2 份时用宽松卡：大标题 + 加高条，把省下的纵向空间用掉
   function quotaCard(s, tall) {
     var sub = cardSub(s);
@@ -418,14 +443,19 @@
       DETAIL.push(s);
       extra = SP(8) + tbtn("btn-detail-" + (DETAIL.length - 1), "详情");
     }
+    var mark = billMark(s);
     var head = '<span style="' + F(tall ? 26 : 22) + '"><b>' + esc(s.tool) + "</b></span>" +
+      (mark ? "&nbsp;" + mark : "") +
       (sub ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(sub) + "</span>" : "");
+    var usage = usageLine(s);
     if (s.none) {
       var hint = s.error ? "采集失败，保留上次读数。"
         : (s.source || "local") === "local" ? "本地可监控，暂无限额条。" : "";
-      return card(head + (hint ? "<br>" + SP(4) + '<span style="' + F(14) + '">' + hint + "</span>" : "") + extra);
+      return card(head + (hint ? "<br>" + SP(4) + '<span style="' + F(14) + '">' + hint + "</span>" : "") +
+        (usage ? "<br>" + SP(4) + usage : "") + extra);
     }
-    return card(head + "<br>" + SP(6) + winRows(s.windows, tall) + extra);
+    return card(head + "<br>" + SP(6) + winRows(s.windows, tall) +
+      (usage ? SP(4) + usage : "") + extra);
   }
 
   function quotaCards(subs, emptyText, cols) {
@@ -652,8 +682,10 @@
     document.getElementById("panel-0").innerHTML = panelBody(hostHtml);
 
     var subs = visibleSubs();
+    var quotaExtra = subs.length + " 份";
+    if (MOCK.usageTotal) quotaExtra += " · 24h ≈" + MOCK.usageTotal.h24Cost;
     document.getElementById("panel-1").innerHTML = panelBody(
-      section("限额", subs.length + " 份") +
+      section("限额", quotaExtra) +
       quotaCards(subs, "还没有本机限额。", cols)
     );
     document.getElementById("panel-2").innerHTML = panelBody(
@@ -770,9 +802,19 @@
     return leftCol + rightCol;
   }
 
+  function usageBanner() {
+    var t = MOCK && MOCK.usageTotal;
+    if (!t) return "";
+    return SP(4) + hair() + SP(4) +
+      '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td align="right"><span style="' + F(14) + '">订阅消耗 · 24h ' + esc(t.h24Tokens) +
+      " tok ≈" + esc(t.h24Cost) + " · 7d " + esc(t.d7Tokens) + " tok ≈" + esc(t.d7Cost) +
+      "</span></td></tr></table>" + SP(6);
+  }
+
   function renderFull() {
     var html = masthead() + hostStrip();
-    html += currentView === "relay" ? editionRelay() : editionLocal();
+    html += currentView === "relay" ? editionRelay() : usageBanner() + editionLocal();
     html += editionFooter();
     document.getElementById("view-full").innerHTML =
       '<div style="padding:' + px(14) + "px " + px(18) + "px " + px(16) + "px " + px(18) + 'px;">' +

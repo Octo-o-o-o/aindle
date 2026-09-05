@@ -1,5 +1,5 @@
 import { INGEST_SCHEMA, type IngestReport } from '@aindle/core';
-import { collectSubscriptions } from './collectors/index.js';
+import { applyUsageAndBilling, collectSubscriptions } from './collectors/index.js';
 import { collectHostStats, collectRuns, hostOs } from './collectors/sessions.js';
 import { loadRegistry } from './registry.js';
 
@@ -16,7 +16,7 @@ export async function collectReport(opts: CollectOptions = {}): Promise<IngestRe
 
   const registry = loadRegistry(opts.registryPath);
   const subscriptionLists = await Promise.all(registry.subscriptions.map((s) => collectSubscriptions(s)));
-  const subscriptions = subscriptionLists.flat();
+  const subscriptions = applyUsageAndBilling(registry, subscriptionLists.flat());
   const runs = collectRuns(registry);
   const stats = collectHostStats(runs);
 

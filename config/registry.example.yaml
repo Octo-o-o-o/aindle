@@ -7,6 +7,8 @@ host:
   label: MacBook Pro
 
 subscriptions:
+  # Optional per-entry override: `billing: subscription|metered`
+  # (default: sub2api entries and entries with `budget` are metered, the rest subscription).
   - id: claude-default
     tool: claude
     label: Claude · Home

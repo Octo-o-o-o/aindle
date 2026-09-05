@@ -32,7 +32,15 @@ type Sub = {
   none?: number;
   error?: number;
   windows?: Win[];
+  billing?: string;
+  usage?: { h24Tokens: string; h24Cost: string; d7Tokens: string; d7Cost: string };
 };
+
+function billGlyph(billing?: string): string {
+  if (billing === 'subscription') return '订';
+  if (billing === 'metered') return '量';
+  return '';
+}
 
 function asSubs(vm: ViewModel): Sub[] {
   return vm.subs as Sub[];
@@ -269,7 +277,7 @@ function quotaUnits(subs: Sub[], expanded: boolean): number {
   let units = 0;
   for (const s of subs) {
     const rows = Math.max(1, Math.min(uniqWindows(s.windows ?? []).length, 3));
-    units += Math.ceil((30 + 54 + rows * 36) / LAYOUT.quotaRow);
+    units += Math.ceil((30 + 54 + rows * 36 + (s.usage ? 36 : 0)) / LAYOUT.quotaRow);
   }
   return units;
 }
@@ -371,6 +379,7 @@ function headerStatus(vm: ViewModel): string {
 function quotaRow(sub: Sub): string {
   const wins = pickWindows(sub.windows ?? []);
   const title = quotaSourceName(sub.tool);
+  const glyph = billGlyph(sub.billing);
   const meters = wins.length
     ? wins.map((w) => quotaMeter(w)).join('')
     : `<div class="empty" style="padding:0;">${sub.error ? '暂时读不到' : '还没有读数'}</div>`;
@@ -380,6 +389,7 @@ function quotaRow(sub: Sub): string {
         <div class="qhead">
           <div class="qicon">${agentIcon(sub.tool, 28)}</div>
           <div class="qtitle">${esc(title)}</div>
+          ${glyph ? `<div class="qtitle" style="font-size:18px;border:1px solid ${INK};padding:1px 5px;">${glyph}</div>` : ''}
         </div>
       </div>
       <div class="qdiv"></div>
@@ -419,18 +429,24 @@ function quotaBigLabel(sub: Sub): string {
 function quotaBig(sub: Sub): string {
   const title = quotaSourceName(sub.tool);
   const subLabel = clip(quotaBigLabel(sub), 22);
+  const glyph = billGlyph(sub.billing);
   const wins = uniqWindows(sub.windows ?? []).slice(0, 3);
   const meters = wins.length
     ? wins.map((w) => quotaBigMeter(w)).join('')
     : `<div class="qb-row"><div class="qb-note">${sub.error ? '暂时读不到' : '还没有读数'}</div></div>`;
+  const usage = sub.usage
+    ? `<div class="qb-row"><div class="qb-note" style="font-size:20px;">24h ${esc(sub.usage.h24Tokens)} tok ≈${esc(sub.usage.h24Cost)} · 7d ${esc(sub.usage.d7Tokens)} tok ≈${esc(sub.usage.d7Cost)}</div></div>`
+    : '';
   return `
     <div class="qbig">
       <div class="qb-head">
         <div class="qb-icon">${agentIcon(sub.tool, 34)}</div>
         <div class="qb-title">${esc(title)}</div>
         ${subLabel ? `<div class="qb-sub">${esc(subLabel)}</div>` : ''}
+        ${glyph ? `<div class="qb-sub" style="font-size:18px;border:1px solid ${INK};padding:1px 6px;">${glyph}</div>` : ''}
       </div>
       ${meters}
+      ${usage}
     </div>`;
 }
 

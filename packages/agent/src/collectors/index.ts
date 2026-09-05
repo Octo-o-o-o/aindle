@@ -10,8 +10,9 @@ import { collectCopilot } from './copilot.js';
 import { collectKiro } from './kiro.js';
 import { collectDeepSeek } from './deepseek.js';
 import type { Subscription } from '@aindle/core';
-import type { RegistrySubscription } from '../registry.js';
+import { defaultBilling, type RegistryFile, type RegistrySubscription } from '../registry.js';
 import { quotaDue, quotaPeek, quotaRemember } from '../lib/quota-gate.js';
+import { collectSourceUsage } from './usage.js';
 
 function collectGlm(entry: RegistrySubscription): Subscription {
   return {
@@ -88,6 +89,27 @@ export async function collectSubscriptions(entry: RegistrySubscription): Promise
         },
       ];
   }
+}
+
+/**
+ * Attach local JSONL usage (h24/d7 tokens + USD) and the default billing mode
+ * to freshly collected subscriptions. Collector-set billing/usage win.
+ */
+export function applyUsageAndBilling(registry: RegistryFile, subs: Subscription[]): Subscription[] {
+  const usage = collectSourceUsage(registry);
+  const byId = new Map(registry.subscriptions.map((entry) => [entry.id, entry]));
+  const entryFor = (sub: Subscription): RegistrySubscription | undefined =>
+    byId.get(sub.id) ?? registry.subscriptions.find((entry) => sub.id.startsWith(`${entry.id}-`));
+  return subs.map((sub) => {
+    const entry = entryFor(sub);
+    const billing = sub.billing ?? (entry ? defaultBilling(entry) : undefined);
+    const subUsage = sub.usage ?? usage.get(sub.id);
+    return {
+      ...sub,
+      ...(billing ? { billing } : {}),
+      ...(subUsage ? { usage: subUsage } : {}),
+    };
+  });
 }
 
 export {
