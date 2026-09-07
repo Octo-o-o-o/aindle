@@ -53,7 +53,7 @@ python3 -m http.server 4173 --directory dist/site
 # 也可用 wrangler pages dev dist/site 看真实 Pages headers。
 ```
 
-`site:build` 只用 Node 标准库，输出 `dist/site`。不要把 `config/`、`.env`、Hub、真实 snapshot 或整个仓库拷进去。设备上输入的短地址是 `/oasis` 与 `/scribe`（跳到带 `device=` 的 mock）。电脑上的完整示例仍是 `/demo/oasis-monitor-simple.html?mode=full` 等。公开站还带 `/llms.txt`（给编程 agent）和 `/images/eink-local.png`（当前锁屏 mock）。
+`site:build` 只用 Node 标准库，输出 `dist/site`。不要把 `config/`、`.env`、Hub、真实 snapshot 或整个仓库拷进去。设备上输入的短地址是 `/oasis` 与 `/scribe`：构建时从简单 mock 生成完整 HTML，把设备档写进 `AINDLE_PRESET`，不经过 meta refresh、query string，也不引用 PNG/ICO（Kindle 实验浏览器会把这些当成下载）。电脑上的完整示例仍是 `/demo/oasis-monitor-simple.html?mode=full` 等。公开站还带 `/llms.txt`（给编程 agent）和 `/images/eink-local.png`（当前锁屏 mock）。
 
 ## Cloudflare Pages（Git integration）
 

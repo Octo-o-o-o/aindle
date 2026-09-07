@@ -40,6 +40,10 @@ describe('A6 UI and v1 ingest', () => {
     assert.match(html, /href="favicon\.ico"/);
     assert.match(html, /src="brand\/icon-32\.png"/);
     assert.match(html, /href="brand\/icon-180\.png"/);
+    assert.match(html, /window\.AINDLE_PRESET/);
+    assert.match(html, /function preset\(/);
+    assert.match(html, /isKindleUi\(\)\s*\n\s*\? ""/);
+    assert.match(html, /if \(isKindleUi\(\)\) return;/);
     assert.match(html, /function isScribe\(/);
     assert.match(html, /function editionScribe\(/);
     assert.match(html, /function quotaLedger\(/);
@@ -173,6 +177,12 @@ describe('A6 UI and v1 ingest', () => {
       assert.doesNotMatch(text, /:8790/, rel);
       assert.match(text, /8787/, rel);
     }
+    const loop = fs.readFileSync(path.join(root, 'kindle/oasis1/loop.sh'), 'utf8');
+    const common = fs.readFileSync(path.join(root, 'kindle/oasis1/common.sh'), 'utf8');
+    assert.match(loop, /UNLOCK_RESTORE_RADIO/);
+    assert.match(loop, /remember_radio/);
+    assert.match(loop, /restore_radio/);
+    assert.match(common, /radio_prev_write/);
     const example = fs.readFileSync(path.join(root, 'config', 'registry.example.yaml'), 'utf8');
     assert.match(example, /^host:\n  id: local\n  label: This computer$/m);
     assert.doesNotMatch(example, /^[ \t]*- id:/m);

@@ -126,6 +126,14 @@ window.AINDLE_MOCK = {
 
   /* ---------- 基础工具 ---------- */
 
+  function preset(name) {
+    var p = window.AINDLE_PRESET;
+    if (!p) return "";
+    var v = p[name];
+    if (v == null || v === "") return "";
+    return String(v);
+  }
+
   function qs(name) {
     var s = window.location.search || "";
     if (s.charAt(0) === "?") s = s.substring(1);
@@ -135,7 +143,7 @@ window.AINDLE_MOCK = {
       var kv = parts[i].split("=");
       if (decodeURIComponent(kv[0] || "") === name) return decodeURIComponent(kv[1] || "");
     }
-    return "";
+    return preset(name);
   }
 
   function esc(s) {
@@ -262,6 +270,7 @@ window.AINDLE_MOCK = {
 
   function hashWrite() {
     try {
+      if (isKindleUi()) return;
       var h = "#view=" + currentView + "&scope=" + currentScope + "&page=" + idx +
         (forced ? "&mode=" + forced : "");
       if (String(window.location.hash || "") !== h) window.location.hash = h;
@@ -720,9 +729,12 @@ window.AINDLE_MOCK = {
         inkTab("ink-user", "我的", currentScope === "user") + "&nbsp;&nbsp;&nbsp;" +
         inkTab("ink-people", "用户", currentScope === "people");
     }
+    var brandIcon = isKindleUi()
+      ? ""
+      : '<td valign="middle" style="padding-right:' + px(10) + 'px;">' +
+        '<img src="brand/icon-32.png" width="' + px(36) + '" height="' + px(36) + '" alt=""></td>';
     var brand = '<table cellpadding="0" cellspacing="0" border="0"><tr>' +
-      '<td valign="middle" style="padding-right:' + px(10) + 'px;">' +
-      '<img src="brand/icon-32.png" width="' + px(36) + '" height="' + px(36) + '" alt=""></td>' +
+      brandIcon +
       '<td valign="middle">' +
       '<span id="ink-help" style="cursor:pointer;' + F(38) + ";letter-spacing:" +
       px(2) + 'px;"><b>AINDLE</b></span><br>' +

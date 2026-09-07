@@ -48,6 +48,8 @@ URL 参数（可叠加，缺省回退到 hash 里的上次状态）：
 | `device` | `oasis1` `oasis2` `oasis3` `pw` `basic` `dx` `scribe` | 桌面模拟设备档：套用该档缩放与默认模式（不改窗口大小） |
 | `scale` | 0.4–3 | 直接指定缩放，覆盖其它计算 |
 | `kindle` | `1` | 强制按 Kindle 面板模式 |
+
+无 query 的设备页（官网 `/oasis`、`/scribe`）用 `window.AINDLE_PRESET` 写入同样的键；`location.search` 仍优先。
 | `refresh` | 秒 | 定时拉 `/view.json` 重绘（大屏默认 60s，DEMO 下只重绘） |
 | `debug` | `1` | 顶栏显示视口、内容宽、缩放、设备猜测、UA |
 

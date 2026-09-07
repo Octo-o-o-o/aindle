@@ -238,16 +238,27 @@ if (oasisPrettyCsp.length !== 1) fail(`/oasis CSP count ${oasisPrettyCsp.length}
 if (scribeCsp.length !== 1) fail(`scribe.html CSP count ${scribeCsp.length}, expected 1`);
 if (scribePrettyCsp.length !== 1) fail(`/scribe CSP count ${scribePrettyCsp.length}, expected 1`);
 if (/unsafe-inline/.test(homeCsp[0])) fail('home CSP should stay strict');
-if (/unsafe-inline/.test(oasisCsp[0] + scribeCsp[0])) fail('oasis/scribe CSP should stay strict');
 if (!/unsafe-inline/.test(demoCsp[0])) fail('demo CSP must allow inline script/style');
+if (!/unsafe-inline/.test(oasisCsp[0])) fail('oasis CSP must allow inline script/style');
+if (!/unsafe-inline/.test(scribeCsp[0])) fail('scribe CSP must allow inline script/style');
+if (!/img-src 'none'/.test(oasisCsp[0] + scribeCsp[0])) fail('oasis/scribe CSP should block images');
 const fourHtml = fs.readFileSync(path.join(OUT, '404.html'), 'utf8');
 if (/<style[\s>]|style=|<script[\s>]/i.test(fourHtml)) {
   fail('404.html has inline style/script; keep using /styles.css so strict CSP still paints');
 }
-for (const rel of ['oasis.html', 'scribe.html']) {
+for (const [rel, device] of [
+  ['oasis.html', 'oasis1'],
+  ['scribe.html', 'scribe'],
+]) {
   const html = fs.readFileSync(path.join(OUT, rel), 'utf8');
-  if (/<style[\s>]|style=|<script[\s>]/i.test(html)) fail(`${rel} has inline style/script`);
-  if (!html.includes('http-equiv="refresh"')) fail(`${rel} missing meta refresh`);
+  if (html.includes('http-equiv="refresh"')) fail(`${rel} must not meta-refresh (Kindle treats it as a download)`);
+  if (!html.includes('window.AINDLE_MOCK')) fail(`${rel} missing injected mock`);
+  if (!html.includes('window.AINDLE_PRESET')) fail(`${rel} missing AINDLE_PRESET`);
+  if (!html.includes(`"device":"${device}"`)) fail(`${rel} missing baked device ${device}`);
+  if (/<link[^>]+(?:rel="(?:apple-touch-)?icon"|favicon|\.png|\.ico)/i.test(html)) {
+    fail(`${rel} must not link icons; Kindle downloads PNG/ICO`);
+  }
+  if (/<img\b/i.test(html)) fail(`${rel} must not include img; Kindle downloads PNG`);
 }
 
 const robots = fs.readFileSync(path.join(OUT, 'robots.txt'), 'utf8');
