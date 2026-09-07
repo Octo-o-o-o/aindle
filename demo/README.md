@@ -24,13 +24,14 @@ node scripts/build-demo.mjs --check  # 校验 demo 是否最新（check.sh 会�
 - **小屏面板**：主机 / 限额 / 进行中·待确认·后台任务 / 近 1 小时，一次一页；支持左右滑动、
   键盘 ←/→ 翻页，翻页指示带圆点。
 - **大屏总览**：主机条带 + 竖屏双栏（左限额、右任务）；≥1600px 时限额卡两列。
+- **Scribe 账本**（`?device=scribe` 或 UA 含 Scribe）：同一页单栏全宽表，限额与任务上下铺满 1860×2480，页脚写 `Scribe · 1860×2480`。桌面大窗仍走双栏。
 
 状态（视图 / scope / 页码 / 模式）会写入 `location.hash`，整页刷新后回到原处。
 
 ## 尺寸与设备适配
 
 - 默认不缩放（S=1），布局用百分比表格自适应宽度；`device=` 预设或 e-ink UA 时
-  按 `设备宽 / 1072` 等比缩放（clamp 0.72–1.85）。
+  按 `设备宽 / 1072` 等比缩放（clamp 0.72–1.85；Scribe 字号封顶 1.18，避免按宽度把行撑成海报）。
 - 进度条行是纯百分比列（14/52/14/20），任何宽度下列对齐、条随卡片伸缩。
 - 视口短边 < 720px → 面板模式；< 600px 时 masthead 切换为两行（品牌+时钟 / 标签页），
   任务卡改为单列堆叠。
@@ -75,3 +76,4 @@ python3 demo/serve.py
 - 大屏（复杂）：[http://127.0.0.1:8765/oasis-monitor.html?mode=full](http://127.0.0.1:8765/oasis-monitor.html?mode=full)
 - 单机简单场景：[oasis-monitor-simple.html](http://127.0.0.1:8765/oasis-monitor-simple.html?mode=full)
 - Oasis 1 真机档：[?device=oasis1&kindle=1](http://127.0.0.1:8765/oasis-monitor.html?device=oasis1&kindle=1)
+- Scribe 账本：[?device=scribe&mode=full](http://127.0.0.1:8765/oasis-monitor.html?device=scribe&mode=full)

@@ -215,13 +215,13 @@ window.AINDLE_MOCK = {
   var DETAIL = [];
 
   var DEVICES = {
-    "oasis1": { w: 1072, name: "Oasis 1",       big: 0 },
-    "oasis2": { w: 1264, name: "Oasis 2",       big: 0 },
-    "oasis3": { w: 1264, name: "Oasis 3",       big: 0 },
-    "pw":     { w: 1072, name: "Paperwhite",    big: 0 },
-    "basic":  { w: 1072, name: "Kindle 基础款", big: 0 },
-    "dx":     { w: 824,  name: "Kindle DX",     big: 0 },
-    "scribe": { w: 1860, name: "Scribe",        big: 1 }
+    "oasis1": { w: 1072, h: 1448, name: "Oasis 1",       big: 0 },
+    "oasis2": { w: 1264, h: 1680, name: "Oasis 2",       big: 0 },
+    "oasis3": { w: 1264, h: 1680, name: "Oasis 3",       big: 0 },
+    "pw":     { w: 1072, h: 1448, name: "Paperwhite",    big: 0 },
+    "basic":  { w: 1072, h: 1448, name: "Kindle 基础款", big: 0 },
+    "dx":     { w: 824,  h: 1200, name: "Kindle DX",     big: 0 },
+    "scribe": { w: 1860, h: 2480, name: "Scribe",        big: 1 }
   };
 
   /* ---------- 基础工具 ---------- */
@@ -269,7 +269,23 @@ window.AINDLE_MOCK = {
   function isKindleUi() {
     if (qs("kindle") === "1") return true;
     if (qs("device") === "oasis1") return true;
+    if (isScribe()) return true;
     return isEink();
+  }
+
+  function isScribe() {
+    if (qs("device") === "scribe") return true;
+    var ua = navigator.userAgent || "";
+    return /Scribe/i.test(ua);
+  }
+
+  function canvasLabel() {
+    var dev = DEVICES[qs("device")];
+    if (isScribe()) return "Scribe · 1860×2480";
+    if (dev && dev.h) return dev.name + " · " + dev.w + "×" + dev.h;
+    if (dev) return dev.name + " · " + dev.w;
+    var v = vp();
+    return v.w + "×" + v.h;
   }
 
   function computeScale() {
@@ -279,6 +295,8 @@ window.AINDLE_MOCK = {
     else if (isEink()) s = vp().w / BASE_W;
     if (s < 0.72) s = 0.72;
     if (s > 1.85) s = 1.85;
+    // Scribe 画布很宽，按 1860/1072 放大字号会把账本挤成几张大海报。
+    if (isScribe() && s > 1.18) s = 1.18;
     var o = parseFloat(qs("scale") || "0");
     if (o >= 0.4 && o <= 3) s = o;
     S = s;
@@ -372,7 +390,7 @@ window.AINDLE_MOCK = {
     pct = Math.round(Number(pct) || 0);
     if (pct < 0) pct = 0;
     if (pct > 100) pct = 100;
-    var h = tall ? px(24) : (isKindleUi() ? px(22) : px(16));
+    var h = tall ? px(isScribe() ? 22 : 24) : (isScribe() ? px(14) : (isKindleUi() ? px(22) : px(16)));
     if (h < 10) h = 10;
     var rest = 100 - pct;
     return '<table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="' + INK + '"><tr>' +
@@ -390,11 +408,11 @@ window.AINDLE_MOCK = {
   }
 
   function section(title, extra) {
-    return SP(18) +
+    return (isScribe() ? SP(8) : SP(18)) +
       '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td>' +
-      '<span style="' + F(26) + '"><b>' + esc(title) + "</b></span>" +
+      '<span style="' + F(isScribe() ? 22 : 26) + '"><b>' + esc(title) + "</b></span>" +
       (extra ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(extra) + "</span>" : "") +
-      "</td></tr></table>" + SP(10);
+      "</td></tr></table>" + (isScribe() ? SP(6) : SP(10));
   }
 
   function tbtn(id, label) {
@@ -703,6 +721,54 @@ window.AINDLE_MOCK = {
     return html;
   }
 
+  function quotaLedgerRow(s, tall) {
+    var sub = cardSub(s);
+    var metered = s.billing === "metered";
+    var head = '<span style="' + F(tall ? 24 : 22) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
+      (!metered && sub ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(sub) + "</span>" : "");
+    if (s.none) return head + (usageLine(s) ? "<br>" + SP(4) + usageLine(s) : "");
+    if (metered) return head + "<br>" + SP(4) + meteredRow(s, tall);
+    return head + "<br>" + SP(4) + winRows(s.windows, tall) + (usageLine(s) ? SP(4) + usageLine(s) : "");
+  }
+
+  function quotaLedger(subs, emptyText) {
+    if (!subs.length) return card('<span style="' + F(16) + '">' + esc(emptyText) + "</span>");
+    var tall = subs.length <= 4;
+    var padV = tall ? 12 : 8;
+    var padH = tall ? 16 : 14;
+    var html = '<table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="' + INK + '"><tr><td>';
+    var i;
+    for (i = 0; i < subs.length; i++) {
+      if (i) html += hair();
+      html += '<div style="padding:' + px(padV) + "px " + px(padH) + 'px;">' + quotaLedgerRow(subs[i], tall) + "</div>";
+    }
+    return html + "</td></tr></table>" + SP(8);
+  }
+
+  function runLedger(rows, emptyText) {
+    if (!rows.length) {
+      return emptyText ? card('<span style="' + F(16) + '">' + esc(emptyText) + "</span>") : "";
+    }
+    var html = '<table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="' + INK + '"><tr><td>';
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var folder = runFolder(r);
+      var when = runWhen(r);
+      if (i) html += hair();
+      html += '<div style="padding:' + px(rows.length > 4 ? 7 : 10) + "px " + px(14) + 'px;">' +
+        '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+        '<td valign="top">' + pill(r.tag) + '&nbsp;&nbsp;<span style="' + F(20) + '"><b>' +
+        esc(r.title) + "</b></span><br>" + SP(3) +
+        '<span style="' + F(14) + '">' + esc(r.detail) + "</span></td>" +
+        '<td width="' + LP(160) + '" valign="top" align="right" nowrap="nowrap">' +
+        (folder ? '<span style="' + F(15) + '"><b>' + esc(folder) + "</b></span><br>" : "") +
+        '<span style="' + F(14) + '">' + esc(when) + "</span></td>" +
+        "</tr></table></div>";
+    }
+    return html + "</td></tr></table>" + SP(8);
+  }
+
   function hostDots() {
     var hosts = (MOCK && MOCK.hosts) || [];
     if (!hosts.length) return "";
@@ -717,14 +783,17 @@ window.AINDLE_MOCK = {
   }
 
   function hostCard(h) {
-    return '<table width="100%" cellpadding="' + px(12) + '" cellspacing="0" border="1" bordercolor="' +
+    var meta = isScribe()
+      ? '<span style="' + F(14) + '"><b>' + (h.ok ? "在线" : "陈旧") + "</b> · " + esc(h.seen) + "</span>"
+      : '<span style="' + F(14) + '"><b>' + (h.ok ? "在线" : "陈旧") + "</b> · " + esc(h.seen) +
+        "<br>" + esc(attentionText(h.attention, !h.ok)) +
+        (h.sessions != null ? "<br>会话 " + esc(h.sessions) : "") +
+        (h.tokens ? " · 今日 " + esc(h.tokens) : "") + "</span>";
+    return '<table width="100%" cellpadding="' + px(isScribe() ? 10 : 12) + '" cellspacing="0" border="1" bordercolor="' +
       INK + '"><tr><td>' +
       '<span style="' + F(12) + ";letter-spacing:" + px(1) + 'px;">' + esc(h.role || "HOST") + "</span><br>" + SP(2) +
-      '<span style="' + F(20) + '"><b>' + esc(h.name) + "</b></span><br>" + SP(4) +
-      '<span style="' + F(14) + '"><b>' + (h.ok ? "在线" : "陈旧") + "</b> · " + esc(h.seen) +
-      "<br>" + esc(attentionText(h.attention, !h.ok)) +
-      (h.sessions != null ? "<br>会话 " + esc(h.sessions) : "") +
-      (h.tokens ? " · 今日 " + esc(h.tokens) : "") + "</span>" +
+      '<span style="' + F(isScribe() ? 22 : 20) + '"><b>' + esc(h.name) + "</b></span><br>" + SP(4) +
+      meta +
       "</td></tr></table>";
   }
 
@@ -757,12 +826,15 @@ window.AINDLE_MOCK = {
       '<td valign="middle">' +
       '<span id="ink-help" style="cursor:pointer;' + F(38) + ";letter-spacing:" +
       px(2) + 'px;"><b>AINDLE</b></span><br>' +
-      '<span style="' + F(13) + ";letter-spacing:" + px(2) + 'px;">AI MONITOR · ' + esc(viewTitle()) + "</span>" +
+      '<span style="' + F(13) + ";letter-spacing:" + px(2) + 'px;">AI MONITOR' +
+      (isScribe() ? "" : " · " + esc(viewTitle())) + "</span>" +
       "</td></tr></table>";
+    var clockMeta = isScribe()
+      ? esc(MOCK.date) + " · Hub " + esc(MOCK.hub) + " · " + ((MOCK.hosts || []).length) + " 机"
+      : esc(MOCK.date) + " · Hub " + esc(MOCK.hub) + " · " + esc(globalAttention());
     var clock = '<span id="ink-clock" style="cursor:pointer;' + F(38) + '"><b>' +
       esc(MOCK.time) + "</b></span><br>" +
-      '<span style="' + F(13) + '">' + esc(MOCK.date) + " · Hub " + esc(MOCK.hub) +
-      " · " + esc(globalAttention()) + "</span>";
+      '<span style="' + F(13) + '">' + clockMeta + "</span>";
     if (vp().w < 600) {
       return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
         '<td valign="bottom">' + brand + "</td>" +
@@ -943,17 +1015,33 @@ window.AINDLE_MOCK = {
   function editionFooter() {
     var hosts = MOCK.hosts || [];
     var staleN = (MOCK.staleHosts || []).length;
+    var left = isScribe()
+      ? (window.AINDLE_MOCK ? "MOCK · 非本机实时数据" : ("数据 " + shortTime(MOCK.generatedAt) + " · Hub " + MOCK.hub))
+      : ("数据 " + shortTime(MOCK.generatedAt) +
+        " · Hub " + MOCK.hub + " · " + hosts.length + " 台主机" +
+        (staleN ? " · " + staleN + " 台陈旧" : "") +
+        (window.AINDLE_MOCK ? " · MOCK 演示数据" : ""));
     return SP(6) + hair() + SP(8) +
       '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
-      '<td><span style="' + F(13) + '">数据 ' + esc(shortTime(MOCK.generatedAt)) +
-      " · Hub " + esc(MOCK.hub) + " · " + hosts.length + " 台主机" +
-      (staleN ? " · " + staleN + " 台陈旧" : "") +
-      (window.AINDLE_MOCK ? " · MOCK 演示数据" : "") + "</span></td>" +
-      '<td align="right"><span style="' + F(13) + '">AINDLE · ' + esc(viewTitle()) + "</span></td>" +
+      '<td><span style="' + F(13) + '">' + esc(left) + "</span></td>" +
+      '<td align="right"><span style="' + F(13) + '">' +
+      (isScribe() ? esc(canvasLabel()) : "AINDLE · " + esc(viewTitle())) + "</span></td>" +
       "</tr></table>";
   }
 
+  function editionScribe() {
+    var subs = visibleSubs();
+    var live = MOCK.now || [];
+    var recent = MOCK.recent || [];
+    return section("限额", subs.length + " 份") +
+      quotaLedger(subs, "还没有本机限额。") +
+      section("进行中 · 待确认 · 后台任务", globalAttention()) +
+      runLedger(live, "这一小时没有进行中的会话。") +
+      (recent.length ? section("近 1 小时", recent.length + " 条") + runLedger(recent, "") : "");
+  }
+
   function editionLocal() {
+    if (isScribe()) return editionScribe();
     var subs = visibleSubs();
     var live = MOCK.now || [];
     var recent = MOCK.recent || [];
@@ -981,10 +1069,15 @@ window.AINDLE_MOCK = {
         : "还没有中转全站数据。";
     var emptyRest = currentScope === "user" ? "还没有 Key。" : "上游账号还没有读数。";
     if (currentScope === "people") {
-      return section("用户", subs.length + " 人") + quotaCards(subs, emptyAll, cardCols());
+      return section("用户", subs.length + " 人") +
+        (isScribe() ? quotaLedger(subs, emptyAll) : quotaCards(subs, emptyAll, cardCols()));
     }
     var leftName = currentScope === "user" ? "用量" : "概览";
     var rightName = currentScope === "user" ? "Key" : "上游";
+    if (isScribe()) {
+      return section(leftName, parts.head.length + " 张") + quotaLedger(parts.head, emptyAll) +
+        section(rightName, parts.rest.length + " 张") + quotaLedger(parts.rest, emptyRest);
+    }
     var leftCol = section(leftName, parts.head.length + " 张") + quotaCards(parts.head, emptyAll, 1);
     var rightCol = section(rightName, parts.rest.length + " 张") + quotaCards(parts.rest, emptyRest, 1);
     if (vp().w >= 1000) {
@@ -1008,11 +1101,29 @@ window.AINDLE_MOCK = {
 
   function renderFull() {
     var html = masthead() + hostStrip();
-    html += currentView === "relay" ? editionRelay() : usageBanner() + editionLocal();
+    html += currentView === "relay" ? editionRelay() : ((isScribe() ? "" : usageBanner()) + editionLocal());
     html += editionFooter();
+    var pad = px(18);
     document.getElementById("view-full").innerHTML =
-      '<div style="padding:' + px(14) + "px " + px(18) + "px " + px(16) + "px " + px(18) + 'px;">' +
+      '<div style="padding:' + px(isScribe() ? 10 : 14) + "px " + pad + "px " +
+      px(isScribe() ? 12 : 16) + "px " + pad + 'px;">' +
       html + "</div>";
+  }
+
+  function fitScribeCanvas() {
+    if (!isScribe()) return;
+    var box = document.getElementById("view-full");
+    if (!box) return;
+    var need = box.scrollHeight || 0;
+    var room = vp().h;
+    if (need < 80 || room < 80 || need <= room + 6) return;
+    var next = S * (room / need) * 0.96;
+    if (next < 0.88) next = 0.88;
+    if (next >= S - 0.01) return;
+    S = next;
+    renderTop();
+    renderFull();
+    applyMode();
   }
 
   /* ---------- 浮层（说明 / 详情） ---------- */
@@ -1243,6 +1354,7 @@ window.AINDLE_MOCK = {
     }
     renderFull();
     applyMode();
+    fitScribeCanvas();
     bind();
   }
 

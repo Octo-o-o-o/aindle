@@ -21,7 +21,7 @@ The hub board on a small Kindle (Oasis) and a large one (Scribe). One host, Clau
 
 | Kindle Oasis | Kindle Scribe |
 | --- | --- |
-| <img src="docs/screenshots/simple-oasis.png" alt="Simple mock on a Kindle Oasis: Claude, Codex, Cursor, Grok" width="280"> | <img src="docs/screenshots/simple-scribe.png" alt="Simple mock on a Kindle Scribe: one card per agent, tasks on the right" width="360"> |
+| <img src="docs/screenshots/simple-oasis.png" alt="Simple mock on a Kindle Oasis: Claude, Codex, Cursor, Grok" width="280"> | <img src="docs/screenshots/simple-scribe.png" alt="Simple mock on a Kindle Scribe: full-width quota ledger and task list" width="360"> |
 
 Three hosts and many seats: [complex Scribe](docs/screenshots/complex-scribe.png) · [complex Oasis](docs/screenshots/complex-oasis.png). Static copies of those pages: `python3 demo/serve.py`.
 

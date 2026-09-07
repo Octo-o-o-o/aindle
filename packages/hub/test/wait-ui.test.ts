@@ -40,6 +40,14 @@ describe('A6 UI and v1 ingest', () => {
     assert.match(html, /href="favicon\.ico"/);
     assert.match(html, /src="brand\/icon-32\.png"/);
     assert.match(html, /href="brand\/icon-180\.png"/);
+    assert.match(html, /function isScribe\(/);
+    assert.match(html, /function editionScribe\(/);
+    assert.match(html, /function quotaLedger\(/);
+    assert.match(html, /function runLedger\(/);
+    assert.match(html, /Scribe · 1860×2480/);
+    assert.match(html, /if \(isScribe\(\) && s > 1\.18\)/);
+    assert.match(html, /function fitScribeCanvas\(/);
+    assert.match(html, /MOCK · 非本机实时数据/);
   });
 
   it('hub serves the brand favicon and masthead PNG', async () => {
