@@ -214,6 +214,24 @@ node --import tsx scripts/capture-readme-screenshots.mjs
 - First-class Oasis 2 / 3 / Scribe device profiles (the canvas is still Oasis 1)
 - Official, guaranteed-stable vendor APIs — several quota endpoints are the same undocumented ones the CLIs use. The product must go `stale`, not crash.
 
+## Try it on a Kindle
+
+No Hub needed. Connect the Kindle Oasis or Scribe to Wi-Fi, open **Experimental Browser**, type the matching line, and press Go.
+
+```
+https://aindle.octoooo.com/oasis
+```
+
+Kindle Oasis uses that one.
+
+```
+https://aindle.octoooo.com/scribe
+```
+
+Kindle Scribe uses that one. A computer browser opening the same URL previews that device’s canvas. The page is mock data, not a live machine.
+
+A lock-screen loop still needs a jailbreak and the steps under [Optional: Kindle Oasis 1](#optional-kindle-oasis-1).
+
 ## License
 
 [MIT](LICENSE) © 2026 Octo

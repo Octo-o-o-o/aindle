@@ -214,6 +214,24 @@ node --import tsx scripts/capture-readme-screenshots.mjs
 - Oasis 2 / 3 / Scribe 的独立设备档（画板仍按 Oasis 1）
 - 官方稳定、零维护的厂商 API——若干限额接口就是各家 CLI 自己在用的未文档化端点。产品要能 `stale`，不要能崩。
 
+## 在自己的 Kindle 上看模拟效果
+
+不用先装 Hub。把 Kindle Oasis 或 Kindle Scribe 连上 Wi-Fi，打开**实验浏览器**，在地址栏输入对应设备的这一条，回车即可。
+
+```
+https://aindle.octoooo.com/oasis
+```
+
+Kindle Oasis 用上面这一条。
+
+```
+https://aindle.octoooo.com/scribe
+```
+
+Kindle Scribe 用这一条。电脑浏览器打开同一地址，也能按该设备的画布预览。页里是示例数据，不是某台真机的额度。
+
+锁屏常驻仍要越狱，见上面的「可选：Kindle Oasis 1」。
+
 ## 许可证
 
 [MIT](LICENSE) © 2026 Octo
