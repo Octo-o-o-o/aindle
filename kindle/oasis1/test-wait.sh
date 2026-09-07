@@ -27,6 +27,22 @@ check "$(deadline_left 1000 1600)" 600 "remaining to deadline"
 check "$(deadline_left 1600 1600)" 0 "exactly due"
 check "$(deadline_left 1700 1600)" 0 "past deadline stays zero"
 
+tmp="${TMPDIR:-/tmp}/aindle-radio-prev-$$"
+rm -f "$tmp"
+radio_prev_write "$tmp" x
+check "$(radio_prev_read "$tmp")" 1 "unknown radio snapshot becomes 1"
+radio_prev_write "$tmp" 0
+check "$(radio_prev_read "$tmp")" 1 "second snapshot does not overwrite"
+radio_prev_clear "$tmp"
+radio_prev_write "$tmp" 0
+check "$(radio_prev_read "$tmp")" 0 "zero radio snapshot sticks"
+radio_prev_clear "$tmp"
+if radio_prev_read "$tmp" >/dev/null 2>&1; then
+  echo "FAIL radio_prev_read missing file"
+  fail=$((fail + 1))
+fi
+rm -f "$tmp"
+
 # find_wakealarm must not crash when /sys/class/rtc is missing (host).
 if find_wakealarm >/dev/null 2>&1; then
   alarm=$(find_wakealarm)

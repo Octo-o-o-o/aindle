@@ -26,7 +26,7 @@
   <link rel="apple-touch-icon" href="/brand/icon-180.png">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#111111">
-  <link rel="preload" as="image" href="/images/eink-local.png" fetchpriority="high">
+  <link rel="preload" as="image" href="/images/hero-desk.jpg" fetchpriority="high">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -41,9 +41,7 @@
         <a href="#intro">介绍</a>
         <a href="#capabilities">能力</a>
         <a href="#look">看屏</a>
-        <a href="#kindle">Kindle</a>
         <a href="#start">开始</a>
-        <a href="#kindle">示例</a>
         <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub</a>
       </nav>
     </div>
@@ -57,46 +55,22 @@
         <p class="lede">把分散在不同机器上的 AI 额度、用量和任务，收在一块安静的屏幕里。抬眼掌握进展，安心回到手边的事。</p>
         <p class="fine">A private, read-only board for AI quotas and tasks. Self-hosted. Mock data on this page.</p>
         <p class="actions">
-          <a class="btn" href="#kindle">在 Kindle 上看</a>
-          <a class="text-btn" href="#start">开始使用</a>
+          <a class="btn" href="#start">开始使用</a>
+          <a class="text-btn" href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub</a>
         </p>
         <p class="fine">开源 · 自托管 · 为电子墨水屏而生</p>
       </div>
-      <figure class="hero-device rise">
-        <div class="hero-device-frame">
-          <img
-            id="hero-device-photo"
-            src="/images/eink-local.png"
-            width="1072"
-            height="1448"
-            alt="Kindle Oasis 1 锁屏 mock：每种 Agent 一份限额"
-            fetchpriority="high"
-            decoding="async"
-          >
-        </div>
-        <figcaption id="hero-device-caption">Kindle Oasis 1 锁屏 · 1072×1448 · Mock 数据</figcaption>
-        <div class="hero-device-switch" role="group" aria-label="设备示意图">
-          <button
-            type="button"
-            data-device="oasis"
-            data-src="/images/eink-local.png"
-            data-width="1072"
-            data-height="1448"
-            data-alt="Kindle Oasis 1 锁屏 mock：每种 Agent 一份限额"
-            data-caption="Kindle Oasis 1 锁屏 · 1072×1448 · Mock 数据"
-            aria-pressed="true"
-          >Kindle Oasis</button>
-          <button
-            type="button"
-            data-device="scribe"
-            data-src="/images/hero-scribe.png"
-            data-width="1860"
-            data-height="2480"
-            data-alt="Kindle Scribe 看板 mock：每种 Agent 一份限额"
-            data-caption="Kindle Scribe 看板 · 1860×2480 · Mock 数据"
-            aria-pressed="false"
-          >Kindle Scribe</button>
-        </div>
+      <figure class="hero-scene rise">
+        <img
+          id="hero-photo"
+          src="/images/hero-desk.jpg"
+          width="1024"
+          height="576"
+          alt="木桌上，手持小屏电子墨水设备和一台大屏设备，两块屏都显示 Aindle 看板示例"
+          fetchpriority="high"
+          decoding="async"
+        >
+        <figcaption>小屏与大屏 · 场景示意 · 示例数据</figcaption>
       </figure>
     </section>
 
@@ -139,34 +113,14 @@
         </figure>
         <div>
           <p class="lede">限额还剩多少，哪些在进行中、待确认或后台跑，刚结束的也写在下面。图里是示例数据，不是某台真机。</p>
-          <p>想在自己的目标设备上看模拟效果：把 Kindle Oasis 或 Kindle Scribe 连上 Wi-Fi，打开<strong>实验浏览器</strong>，在地址栏输入下面<a href="#kindle">这一条</a>。</p>
+          <p>锁屏上看看板，需要越狱后的 Kindle Oasis 1，再按下面的「开始」把 Hub 开在私网里。解锁之后，还是原来的阅读器。</p>
         </div>
       </div>
     </section>
 
-    <section id="kindle" class="sheet" aria-labelledby="scene-title">
-      <header class="sheet-head">
-        <p class="kicker">03 · On a Kindle</p>
-        <h2 id="scene-title">在自己的 Kindle 上看模拟效果</h2>
-      </header>
-      <p class="lede">不用先装 Hub。把 Kindle 连上 Wi-Fi，打开<strong>实验浏览器</strong>，在地址栏输入对应设备的这一条，回车即可。</p>
-      <div class="cmd">
-        <pre><code id="cmd-oasis">https://aindle.octoooo.com/oasis</code></pre>
-        <button type="button" data-copy="#cmd-oasis">复制</button>
-      </div>
-      <p class="note">Kindle Oasis 用上面这一条。</p>
-      <div class="cmd">
-        <pre><code id="cmd-scribe">https://aindle.octoooo.com/scribe</code></pre>
-        <button type="button" data-copy="#cmd-scribe">复制</button>
-      </div>
-      <p class="note">Kindle Scribe 用这一条。电脑浏览器打开同一地址，也能按该设备的画布预览。图中和页里都是示例数据，不是某台真机的额度。</p>
-      <p class="lede">若要把它做成锁屏常驻，需要越狱，再按下面的「开始」把 Hub 开在私网里。解锁之后，还是原来的阅读器。</p>
-      <p class="note">真实额度来自你自己机器上的 agent；Hub 只跑在你的私网里。安装与原理见 <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub README</a>。</p>
-    </section>
-
     <section id="start" class="sheet" aria-labelledby="start-title">
       <header class="sheet-head">
-        <p class="kicker">04 · Start</p>
+        <p class="kicker">03 · Start</p>
         <h2 id="start-title">克隆之后就能看见示例</h2>
       </header>
       <ol class="steps">
@@ -206,12 +160,6 @@ npx aindle agent --loop 60</code></pre>
       <p class="more">
         源码与说明在
         <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub</a>
-        。设备上输入：
-        <a href="/oasis">Oasis</a>
-        ·
-        <a href="/scribe">Scribe</a>
-        。电脑也可打开
-        <a href="/demo/oasis-monitor-simple.html?mode=full">桌面示例</a>
         。
       </p>
     </section>
@@ -223,7 +171,7 @@ npx aindle agent --loop 60</code></pre>
     <p>
       <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub</a>
       ·
-      <a href="#kindle">在 Kindle 上看</a>
+      <a href="#start">开始使用</a>
     </p>
   </footer>
   <script src="/site.js"></script>

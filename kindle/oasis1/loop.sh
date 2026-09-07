@@ -4,6 +4,7 @@
 # Sleep protocol (Online Screensaver / KindleCron / KOReader):
 #   readyToSuspend → lipc -i rtcWakeup, then Wi-Fi off
 #   wakeupFromSuspend / goingToScreenSaver → Wi-Fi on → fetch → Wi-Fi off
+#   confirmed outOfScreenSaver → restore wirelessEnable from before this lock
 #   abortSuspend only while a fetch is in progress
 # Do not use deferSuspend: in readyToSuspend it can bounce powerd back to active.
 # Start via start.sh so KUAL can exit. Stop: sh /mnt/us/aindle/stop.sh
@@ -46,6 +47,9 @@ LOCK_HEARTBEAT_SEC="${LOCK_HEARTBEAT_SEC:-600}"
 # you want the radio on during the ~1 min screensaver-awake window.
 LOCK_HOLD_WIFI="${LOCK_HOLD_WIFI:-0}"
 LOCK_WIFI_WAIT_SEC="${LOCK_WIFI_WAIT_SEC:-30}"
+# Unlock puts wirelessEnable back to the value from before this lock.
+# 0 = leave the radio as the lock path left it (often airplane).
+UNLOCK_RESTORE_RADIO="${UNLOCK_RESTORE_RADIO:-1}"
 arg=${1:-start}
 case "$arg" in
   local|now|relay) PAGE=$arg ;;
@@ -88,7 +92,7 @@ fi
 echo $$ > "$PIDFILE"
 rm -f "$STOP" "$FETCHING"
 clear_saver_flags
-echo "[aindle] start $(date) pid=$$ hub=$HUB page=$PAGE mode=screensaver lock=${LOCK_SEC}s busy=${LOCK_BUSY_SEC}s hb=${LOCK_HEARTBEAT_SEC}s wifi_hold=${LOCK_HOLD_WIFI} wifi_wait=${LOCK_WIFI_WAIT_SEC}" | tee -a "$LOG"
+echo "[aindle] start $(date) pid=$$ hub=$HUB page=$PAGE mode=screensaver lock=${LOCK_SEC}s busy=${LOCK_BUSY_SEC}s hb=${LOCK_HEARTBEAT_SEC}s wifi_hold=${LOCK_HOLD_WIFI} wifi_wait=${LOCK_WIFI_WAIT_SEC} restore=${UNLOCK_RESTORE_RADIO}" | tee -a "$LOG"
 
 LOCK_PID=""
 UNLOCK_PID=""
@@ -101,6 +105,7 @@ cleanup() {
   [ -n "$READY_PID" ] && kill "$READY_PID" 2>/dev/null
   [ -n "$WAKE_PID" ] && kill "$WAKE_PID" 2>/dev/null
   [ -n "$KEYS_PID" ] && kill "$KEYS_PID" 2>/dev/null
+  restore_radio
   rm -f "$PIDFILE" "$IMG.tmp" "$KICK" "$LOCKING" "$UNLOCKING" "$WAKING" "$FETCHING" "$ROOT/saver_miss"
 }
 trap cleanup EXIT INT TERM
@@ -311,6 +316,7 @@ lock_watch() {
   while [ ! -f "$STOP" ]; do
     if lipc-wait-event com.lab126.powerd goingToScreenSaver >/dev/null 2>&1; then
       mark_locked
+      remember_radio
       : > "$LOCKING"
       : > "$KICK"
     else
@@ -398,7 +404,10 @@ last_page=$PAGE
 # Unlocked start must not cover Home / the book, and must not spin the radio.
 if in_screensaver; then
   mark_locked
+  remember_radio
   paint_cache || true
+else
+  restore_radio
 fi
 
 need_stop() {
@@ -420,6 +429,7 @@ poll_saver() {
     rm -f "$ROOT/saver_miss"
     if [ ! -f "$ROOT/locked.flag" ]; then
       mark_locked
+      remember_radio
       : > "$LOCKING"
       return 0
     fi
@@ -428,7 +438,10 @@ poll_saver() {
       rm -f "$ROOT/saver_miss"
       return 1
     fi
-    n=$(tr -d ' \n\r' < "$ROOT/saver_miss" 2>/dev/null || echo 0)
+    n=0
+    if [ -r "$ROOT/saver_miss" ]; then
+      n=$(tr -d ' \n\r' < "$ROOT/saver_miss")
+    fi
     case "$n" in ''|*[!0-9]*) n=0 ;; esac
     n=$((n + 1))
     echo "$n" > "$ROOT/saver_miss"
@@ -541,6 +554,7 @@ while [ ! -f "$STOP" ]; do
     # keep the RTC. A 1s check was too short on Oasis.
     n=0
     kept=0
+    restored=0
     while [ "$n" -lt 5 ]; do
       sleep 1
       if in_screensaver || powerd_asleep; then
@@ -549,6 +563,10 @@ while [ ! -f "$STOP" ]; do
         kept=1
         break
       fi
+      if [ "$restored" = 0 ]; then
+        restore_radio 1
+        restored=1
+      fi
       n=$((n + 1))
     done
     if [ "$kept" = 1 ]; then
@@ -556,6 +574,7 @@ while [ ! -f "$STOP" ]; do
     fi
     mark_unlocked
     clear_wake
+    restore_radio
     rm -f "$ROOT/saver_miss"
     echo "[aindle] unlocked $(date)" >> "$LOG"
     idle_wait 3600 5
@@ -590,7 +609,7 @@ while [ ! -f "$STOP" ]; do
     continue
   fi
 
-  # Unlocked: do not pull frames or hold Wi-Fi. Wait for the next lock.
+  # Unlocked: do not pull frames. Radio already restored to the pre-lock switch.
   idle_wait 3600 5
 done
 

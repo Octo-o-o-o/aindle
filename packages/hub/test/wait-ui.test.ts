@@ -45,13 +45,48 @@ describe('A6 UI and v1 ingest', () => {
     assert.match(html, /isKindleUi\(\)\s*\n\s*\? ""/);
     assert.match(html, /if \(isKindleUi\(\)\) return;/);
     assert.match(html, /function isScribe\(/);
+    assert.match(html, /function isWideBoard\(/);
+    assert.match(html, /Kindle Build/);
+    assert.match(html, /function einkUa\(/);
+    assert.match(html, /function cssLong\(/);
+    assert.match(html, /function rawScreenLong\(/);
+    assert.match(html, /function isScribeCssCanvas\(/);
+    assert.match(html, /if \(isWideBoard\(\)\) return false;/);
+    assert.match(html, /function wantSplitBoard\(/);
+    assert.match(html, /return isWideBoard\(\);/);
+    assert.match(html, /function boardColumns\(/);
+    assert.match(html, /section\("进行中"/);
+    assert.match(html, /section\("已完成"/);
+    assert.match(html, /width="50%" valign="top"/);
     assert.match(html, /function editionScribe\(/);
     assert.match(html, /function quotaLedger\(/);
     assert.match(html, /function runLedger\(/);
     assert.match(html, /Scribe · 1860×2480/);
-    assert.match(html, /if \(isScribe\(\) && s > 1\.18\)/);
+    assert.match(html, /if \(isScribe\(\) && s > 1\.5\)/);
     assert.match(html, /function fitScribeCanvas\(/);
     assert.match(html, /MOCK · 非本机实时数据/);
+    // Scribe 大屏版式：衬线报头、品牌图标、三档灰、细线账本、detail 不上屏
+    assert.match(html, /function scribeMasthead\(/);
+    assert.match(html, /function scribeQuotaRow\(/);
+    assert.match(html, /function scribeRunRows\(/);
+    assert.match(html, /function brandIcon\(/);
+    assert.match(html, /function hairSoft\(/);
+    assert.match(html, /Iowan Old Style/);
+    assert.match(html, /#CFC8BA/);
+    assert.match(html, /另有 ' \+\s*more \+ " 项/);
+    // 小屏账本：单页滚动、锁屏语言的软斜纹胶囊条、车道选窗、钉底页脚
+    assert.match(html, /function renderPocket\(/);
+    assert.match(html, /function pocketBar\(/);
+    assert.match(html, /function pocketQuotaRowWide\(/);
+    assert.match(html, /function pocketQuotaRowNarrow\(/);
+    assert.match(html, /function pickWindows\(/);
+    assert.match(html, /repeating-linear-gradient/);
+    assert.match(html, /function pocketEmpty\(/);
+    assert.match(html, /function pinPocketFooter\(/);
+    assert.match(html, /Kindle 档（含真机 Oasis 浏览器）优先小屏账本/);
+    assert.doesNotMatch(html, /function showPanel\(/);
+    assert.doesNotMatch(html, /function renderPager\(/);
+    assert.doesNotMatch(html, /btn-prev/);
   });
 
   it('clone CLI entrypoints exist so npx aindle works without a prior bundle', () => {

@@ -40,7 +40,7 @@ copy_local() {
     "$dest/aindle/just_locked" "$dest/aindle/just_unlocked" \
     "$dest/aindle/locked.flag" "$dest/aindle/unlocked.flag" \
     "$dest/aindle/next_paint_at" "$dest/aindle/loop.stop" "$dest/aindle/fetching" \
-    "$dest/aindle/saver_miss"
+    "$dest/aindle/saver_miss" "$dest/aindle/radio.prev"
   echo "copied scripts to $dest"
 }
 

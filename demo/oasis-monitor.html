@@ -22,14 +22,7 @@
 
 <div id="topbar"></div>
 
-<div id="view-panels" style="display:none;">
-  <div id="panels-head"></div>
-  <div id="panel-0"></div>
-  <div id="panel-1"></div>
-  <div id="panel-2"></div>
-  <div id="panel-3"></div>
-  <div id="pager"></div>
-</div>
+<div id="view-panels" style="display:none;"></div>
 
 <div id="view-full" style="display:none;"></div>
 <div id="float" style="display:none;"></div>
@@ -201,6 +194,11 @@ window.AINDLE_MOCK = {
   var INK = "#111111";
   var PAPER = "#F4EFE4";
   var SOFT = "#DDD6C8";
+  // Scribe 账本的三档灰与细线：Scribe 有 16 级灰，次级信息用灰而不是更小的黑字。
+  var INK2 = "#57524A";
+  var INK3 = "#8A8378";
+  var LINE = "#CFC8BA";
+  var SERIF = '"Iowan Old Style","Palatino Linotype","Book Antiqua","Songti SC","STSong",serif';
   var TAG_ZH = { ACTIVE: "进行中", WAIT: "WAIT", IDLE: "空闲", DONE: "已完成", FAIL: "失败" };
 
   var MOCK = null;
@@ -208,7 +206,6 @@ window.AINDLE_MOCK = {
 
   var currentView = "local";
   var currentScope = "admin";
-  var idx = 1;
   var forced = "";
   var floatOpen = "";
   var refreshSec = 0;
@@ -223,6 +220,46 @@ window.AINDLE_MOCK = {
     "dx":     { w: 824,  h: 1200, name: "Kindle DX",     big: 0 },
     "scribe": { w: 1860, h: 2480, name: "Scribe",        big: 1 }
   };
+
+  /* ---------- 品牌图标（与 packages/hub/src/eink-icons.ts 同源，ES5 内联） ---------- */
+
+  var BRAND_PATHS = {
+    claude:
+      'm4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z',
+    codex:
+      'M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.4855 4.4855 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 0-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.504 4.504 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z',
+    cursor:
+      'M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0-.42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23',
+    kimi: 'M21.765.351C22.998.351 24 1.353 24 2.586S22.998 4.82 21.765 4.82h-1.974c-.15 0-.26-.12-.26-.26V2.586A2.237 2.237 0 0 1 21.765.35M9.41 13.388l8.447-8.377c.16-.16.07-.471-.14-.471h-4.55s-.1.02-.14.06l-9.099 9.029c-.14.14-.35.02-.35-.21V4.81c0-.15-.1-.27-.221-.27H.22c-.12 0-.22.12-.22.27v18.57c0 .15.1.27.22.27h3.137c.12 0 .22-.12.22-.27v-3.79c0-.08.03-.16.08-.21l2.826-2.796c.07-.07.16-.08.241-.03l7.546 5.551a8.9 8.9 0 0 0 4.018 1.493c.12.01.23-.11.23-.27V19.76c0-.14-.08-.25-.19-.26a5.8 5.8 0 0 1-2.355-.942l-6.533-4.73c-.14-.09-.15-.32-.03-.441',
+    grok: 'M9.27 15.29l7.978-5.897c.391-.29.95-.177 1.137.272.98 2.369.542 5.215-1.41 7.169-1.951 1.954-4.667 2.382-7.149 1.406l-2.711 1.257c3.889 2.661 8.611 2.003 11.562-.953 2.341-2.344 3.066-5.539 2.388-8.42l.006.007c-.983-4.232.242-5.924 2.75-9.383.06-.082.12-.164.179-.248l-3.301 3.305v-.01L9.267 15.292M7.623 16.723c-2.792-2.67-2.31-6.801.071-9.184 1.761-1.763 4.647-2.483 7.166-1.425l2.705-1.25a7.808 7.808 0 00-1.829-1A8.975 8.975 0 005.984 5.83c-2.533 2.536-3.33 6.436-1.962 9.764 1.022 2.487-.653 4.246-2.34 6.022-.599.63-1.199 1.259-1.682 1.925l7.62-6.815'
+  };
+
+  function brandKey(raw) {
+    var s = String(raw == null ? "" : raw).toLowerCase();
+    if (/claude|anthropic/.test(s)) return "claude";
+    if (/codex|openai|chatgpt/.test(s)) return "codex";
+    if (/cursor/.test(s)) return "cursor";
+    if (/kimi|moonshot/.test(s)) return "kimi";
+    if (/grok|xai/.test(s)) return "grok";
+    return "";
+  }
+
+  function brandIcon(tool, size) {
+    size = size || px(24);
+    var key = brandKey(tool);
+    if (key) {
+      var inner = key === "kimi"
+        ? '<g transform="translate(1.15 0.95) scale(0.92)"><path fill="' + INK + '" d="' + BRAND_PATHS[key] + '"/></g>'
+        : '<path fill="' + INK + '"' + (key === "grok" ? ' fill-rule="evenodd"' : "") + ' d="' + BRAND_PATHS[key] + '"/>';
+      return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24">' + inner + "</svg>";
+    }
+    var ch = String(tool == null ? "" : tool).replace(/[^A-Za-z\u4e00-\u9fff]/g, "");
+    ch = ch ? ch.substring(0, 1).toUpperCase() : "?";
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24">' +
+      '<rect x="1" y="1" width="22" height="22" rx="5" fill="' + INK + '"/>' +
+      '<text x="12" y="16.8" text-anchor="middle" font-size="13" font-weight="800" fill="' + PAPER +
+      '" font-family="Iowan Old Style, PMingLiU, serif">' + ch + "</text></svg>";
+  }
 
   /* ---------- 基础工具 ---------- */
 
@@ -269,9 +306,29 @@ window.AINDLE_MOCK = {
     return { w: w, h: h };
   }
 
+  function einkUa() {
+    return navigator.userAgent || "";
+  }
+
   function isEink() {
-    var ua = navigator.userAgent || "";
-    return /Kindle\/[0-9]/.test(ua) && !/Silk/.test(ua);
+    var ua = einkUa();
+    if (/Scribe/i.test(ua)) return true;
+    // Scribe 5.16+：`Kindle Build/1.0` + Silk，不是旧的 `Kindle/3.0`。
+    if (/Kindle Build/i.test(ua)) return true;
+    return /Kindle\//.test(ua) && !/Silk/.test(ua);
+  }
+
+  function cssLong() {
+    var sw = (window.screen && screen.width) || 0;
+    var sh = (window.screen && screen.height) || 0;
+    var v = vp();
+    return Math.max(sw, sh, v.w, v.h);
+  }
+
+  function rawScreenLong() {
+    var sw = (window.screen && screen.width) || 0;
+    var sh = (window.screen && screen.height) || 0;
+    return Math.max(sw, sh);
   }
 
   function isKindleUi() {
@@ -283,8 +340,32 @@ window.AINDLE_MOCK = {
 
   function isScribe() {
     if (qs("device") === "scribe") return true;
-    var ua = navigator.userAgent || "";
-    return /Scribe/i.test(ua);
+    var ua = einkUa();
+    if (/Scribe/i.test(ua)) return true;
+    if (isScribeCssCanvas(ua)) return true;
+    // 旧实验浏览器有时直接报 1860×2480，UA 只有 Kindle/3，没有 Scribe / Silk。
+    return isEink() && rawScreenLong() >= 1800;
+  }
+
+  function isScribeCssCanvas(ua) {
+    ua = ua || einkUa();
+    if (cssLong() < 900) return false;
+    if (/Kindle Build/i.test(ua)) return true;
+    return /Silk/i.test(ua) && /Kindle/i.test(ua);
+  }
+
+  function isWideBoard() {
+    if (isScribe()) return true;
+    if (vp().w >= 1000) return true;
+    return isEink() && rawScreenLong() >= 1800;
+  }
+
+  function liveNow() {
+    return (MOCK && MOCK.now) || [];
+  }
+
+  function wantSplitBoard() {
+    return isWideBoard();
   }
 
   function canvasLabel() {
@@ -303,8 +384,8 @@ window.AINDLE_MOCK = {
     else if (isEink()) s = vp().w / BASE_W;
     if (s < 0.72) s = 0.72;
     if (s > 1.85) s = 1.85;
-    // Scribe 画布很宽，按 1860/1072 放大字号会把账本挤成几张大海报。
-    if (isScribe() && s > 1.18) s = 1.18;
+    // Scribe 画布很宽：1.5 让账本有「一臂距离」的字号，溢出由 fitScribeCanvas 兜底收缩。
+    if (isScribe() && s > 1.5) s = 1.5;
     var o = parseFloat(qs("scale") || "0");
     if (o >= 0.4 && o <= 3) s = o;
     S = s;
@@ -318,11 +399,9 @@ window.AINDLE_MOCK = {
   function SP(n) { return '<div style="height:' + px(n) + 'px;font-size:1px;line-height:1px;">&nbsp;</div>'; }
 
   function isBigCanvas() {
-    if (qs("device") === "scribe") return true;
+    if (isScribe()) return true;
     var dev = DEVICES[qs("device")];
     if (dev && dev.big) return true;
-    var ua = navigator.userAgent || "";
-    if (/Scribe/i.test(ua)) return true;
     var v = vp();
     return Math.max(v.w, v.h) >= 1700 && Math.min(v.w, v.h) >= 1000;
   }
@@ -331,7 +410,9 @@ window.AINDLE_MOCK = {
     var mode = forced || qs("mode");
     if (mode === "full") return false;
     if (mode === "panels") return true;
+    if (isScribe()) return false;
     if (isBigCanvas()) return false;
+    // Kindle 档（含真机 Oasis 浏览器）优先小屏账本：整页卡片看板在 e-ink 上不如账本。
     if (qs("kindle") === "1") return true;
     var dev = DEVICES[qs("device")];
     if (dev) return !dev.big;
@@ -339,6 +420,7 @@ window.AINDLE_MOCK = {
     if (isEink()) {
       return !(Math.max(v.w, v.h) >= 1700 && Math.min(v.w, v.h) >= 1000);
     }
+    if (isWideBoard()) return false;
     return Math.min(v.w, v.h) < 720;
   }
 
@@ -346,8 +428,14 @@ window.AINDLE_MOCK = {
     if (qs("debug") !== "1") return "";
     var v = vp();
     var dev = DEVICES[qs("device")];
-    var guess = dev ? dev.name + "(预设)" : (isEink() ? "Kindle e-ink" : "桌面/其它");
+    var sw = (window.screen && screen.width) || 0;
+    var sh = (window.screen && screen.height) || 0;
+    var guess = dev ? dev.name + "(预设)" : (isScribe() ? "Scribe" : (isEink() ? "Kindle e-ink" : "桌面/其它"));
     return '<br><span style="' + F(11) + '">debug · 视口 ' + v.w + "x" + v.h +
+      " · 屏 " + sw + "x" + sh +
+      " · dpr " + (window.devicePixelRatio || 1) +
+      " · wide=" + (isWideBoard() ? "1" : "0") +
+      " · split=" + (wantSplitBoard() ? "1" : "0") +
       " · 内容宽 " + (document.body ? document.body.scrollWidth : "?") +
       " · 缩放 x" + (Math.round(S * 100) / 100) + " · " + esc(guess) +
       " · " + esc(navigator.userAgent || "?") + "</span>";
@@ -371,7 +459,7 @@ window.AINDLE_MOCK = {
   function hashWrite() {
     try {
       if (isKindleUi()) return;
-      var h = "#view=" + currentView + "&scope=" + currentScope + "&page=" + idx +
+      var h = "#view=" + currentView + "&scope=" + currentScope +
         (forced ? "&mode=" + forced : "");
       if (String(window.location.hash || "") !== h) window.location.hash = h;
     } catch (e) { /* 老浏览器忽略 */ }
@@ -385,6 +473,11 @@ window.AINDLE_MOCK = {
 
   function hair() {
     return '<div style="height:1px;background:' + INK + ';font-size:1px;line-height:1px;">&nbsp;</div>';
+  }
+
+  // Scribe 账本的行分隔用浅灰细线，黑色只留给报头粗线。
+  function hairSoft() {
+    return '<div style="height:1px;background:' + LINE + ';font-size:1px;line-height:1px;">&nbsp;</div>';
   }
 
   function pill(tag) {
@@ -416,12 +509,21 @@ window.AINDLE_MOCK = {
       INK + '" bgcolor="' + PAPER + '"><tr><td>' + inner + "</td></tr></table>" + SP(12);
   }
 
-  function section(title, extra) {
-    return (isScribe() ? SP(8) : SP(18)) +
+  function section(title, extra, right) {
+    if (isScribe()) {
+      return SP(32) +
+        '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+        '<td><span style="' + F(17) + 'font-weight:700;letter-spacing:' + px(3) + 'px;">' + esc(title) + "</span>" +
+        (extra ? '&nbsp;&nbsp;<span style="' + F(14) + 'color:' + INK3 + ';">' + esc(extra) + "</span>" : "") +
+        "</td>" +
+        (right ? '<td align="right" nowrap="nowrap"><span style="' + F(13) + 'color:' + INK3 + ';">' + esc(right) + "</span></td>" : "") +
+        "</tr></table>" + SP(8) + hairSoft() + SP(2);
+    }
+    return SP(18) +
       '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td>' +
-      '<span style="' + F(isScribe() ? 22 : 26) + '"><b>' + esc(title) + "</b></span>" +
+      '<span style="' + F(26) + '"><b>' + esc(title) + "</b></span>" +
       (extra ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(extra) + "</span>" : "") +
-      "</td></tr></table>" + (isScribe() ? SP(6) : SP(10));
+      "</td></tr></table>" + SP(10);
   }
 
   function tbtn(id, label) {
@@ -483,21 +585,6 @@ window.AINDLE_MOCK = {
       if (currentScope === "user" && userN === 0 && adminN > 0) currentScope = "admin";
       if (currentScope === "people" && peopleN === 0 && adminN > 0) currentScope = "admin";
     }
-  }
-
-  function pageNames() {
-    if (currentView === "relay") {
-      if (isKindleUi()) {
-        if (currentScope === "user") return ["我的"];
-        if (currentScope === "people") return ["用户"];
-        return ["中转"];
-      }
-      if (currentScope === "user") return ["用量", "Key"];
-      if (currentScope === "people") return ["用户"];
-      return ["概览", "上游"];
-    }
-    if (isKindleUi()) return ["本机", "进行中"];
-    return ["主机", "限额", "进行中", "近 1 小时"];
   }
 
   function viewTitle() {
@@ -731,64 +818,134 @@ window.AINDLE_MOCK = {
   }
 
   function quotaLedgerRow(s, tall) {
+    if (isScribe()) return scribeQuotaRow(s, tall);
     var sub = cardSub(s);
     var metered = s.billing === "metered";
-    var head = '<span style="' + F(tall ? 24 : 22) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
-      (!metered && sub ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(sub) + "</span>" : "");
-    if (s.none) return head + (usageLine(s) ? "<br>" + SP(4) + usageLine(s) : "");
-    if (metered) return head + "<br>" + SP(4) + meteredRow(s, tall);
-    return head + "<br>" + SP(4) + winRows(s.windows, tall) + (usageLine(s) ? SP(4) + usageLine(s) : "");
+    var name = '<span style="' + F(17) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
+      (!metered && sub ? "<br>" + '<span style="' + F(12) + '">' + esc(sub) + "</span>" : "");
+    var body;
+    if (s.none) {
+      body = usageLine(s) || '<span style="' + F(13) + '">还没有读数。</span>';
+    } else if (metered) {
+      body = meteredRow(s, false);
+    } else {
+      body = winRows(s.windows, false) + (usageLine(s) ? SP(2) + usageLine(s) : "");
+    }
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td width="' + LP(128) + '" valign="middle">' + name + "</td>" +
+      '<td valign="middle">' + body + "</td>" +
+      "</tr></table>";
+  }
+
+  // Scribe 限额行：品牌图标 + 名称套餐 | 细条窗口；不再堆 24h/7d 小字。
+  function scribeQuotaRow(s, tall) {
+    var sub = cardSub(s);
+    var metered = s.billing === "metered";
+    var name = '<table cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td valign="middle" style="padding-right:' + px(12) + 'px;">' + brandIcon(s.tool, px(tall ? 30 : 26)) + "</td>" +
+      '<td valign="middle"><span style="' + F(tall ? 21 : 19) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
+      (!metered && sub ? "<br>" + SP(2) + '<span style="' + F(tall ? 14 : 13) + 'color:' + INK2 + ';">' + esc(sub) + "</span>" : "") +
+      "</td></tr></table>";
+    var body;
+    if (s.none) {
+      body = '<span style="' + F(14) + 'color:' + INK3 + ';">' + esc(sub || "还没有读数。") + "</span>";
+    } else if (metered) {
+      body = '<span style="' + F(tall ? 18 : 16) + '"><b>按量</b></span>&nbsp;&nbsp;&nbsp;<span style="' + F(tall ? 17 : 15) +
+        'color:' + INK2 + ';">' + esc(meteredSpend(s)) + "</span>";
+    } else {
+      body = scribeWinRows(s.windows, tall);
+    }
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td width="' + LP(210) + '" valign="middle">' + name + "</td>" +
+      '<td valign="middle">' + body + "</td>" +
+      "</tr></table>";
   }
 
   function quotaLedger(subs, emptyText) {
-    if (!subs.length) return card('<span style="' + F(16) + '">' + esc(emptyText) + "</span>");
-    var tall = subs.length <= 4;
-    var padV = tall ? 12 : 8;
-    var padH = tall ? 16 : 14;
-    var html = '<table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="' + INK + '"><tr><td>';
+    if (isScribe()) {
+      if (!subs.length) {
+        return '<div style="padding:' + px(14) + 'px 0;"><span style="' + F(15) + 'color:' + INK3 + ';">' +
+          esc(emptyText) + "</span></div>";
+      }
+      var tall = subs.length <= 4;
+      var shtml = "";
+      var si;
+      for (si = 0; si < subs.length; si++) {
+        shtml += '<div style="padding:' + px(tall ? 30 : 20) + 'px 0;">' + quotaLedgerRow(subs[si], tall) + "</div>";
+        if (si < subs.length - 1) shtml += hairSoft();
+      }
+      return shtml;
+    }
+    if (!subs.length) {
+      return '<div style="padding:' + px(8) + 'px 0;"><span style="' + F(15) + '">' + esc(emptyText) + "</span></div>";
+    }
+    var html = hair();
     var i;
     for (i = 0; i < subs.length; i++) {
-      if (i) html += hair();
-      html += '<div style="padding:' + px(padV) + "px " + px(padH) + 'px;">' + quotaLedgerRow(subs[i], tall) + "</div>";
+      html += '<div style="padding:' + px(7) + 'px 0;">' + quotaLedgerRow(subs[i]) + "</div>" + hair();
     }
-    return html + "</td></tr></table>" + SP(8);
+    return html + SP(4);
   }
 
   function runLedger(rows, emptyText) {
+    if (isScribe()) return scribeRunRows(rows, emptyText);
     if (!rows.length) {
-      return emptyText ? card('<span style="' + F(16) + '">' + esc(emptyText) + "</span>") : "";
+      return emptyText
+        ? '<div style="padding:' + px(6) + 'px 0;"><span style="' + F(15) + '">' + esc(emptyText) + "</span></div>"
+        : "";
     }
-    var html = '<table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="' + INK + '"><tr><td>';
+    var html = hair();
     var i;
     for (i = 0; i < rows.length; i++) {
       var r = rows[i];
       var folder = runFolder(r);
       var when = runWhen(r);
-      if (i) html += hair();
-      html += '<div style="padding:' + px(rows.length > 4 ? 7 : 10) + "px " + px(14) + 'px;">' +
+      html += '<div style="padding:' + px(7) + 'px 0;">' +
         '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
-        '<td valign="top">' + pill(r.tag) + '&nbsp;&nbsp;<span style="' + F(20) + '"><b>' +
-        esc(r.title) + "</b></span><br>" + SP(3) +
-        '<span style="' + F(14) + '">' + esc(r.detail) + "</span></td>" +
-        '<td width="' + LP(160) + '" valign="top" align="right" nowrap="nowrap">' +
-        (folder ? '<span style="' + F(15) + '"><b>' + esc(folder) + "</b></span><br>" : "") +
-        '<span style="' + F(14) + '">' + esc(when) + "</span></td>" +
-        "</tr></table></div>";
+        '<td valign="top">' + pill(r.tag) + '&nbsp;&nbsp;<span style="' + F(18) + '"><b>' +
+        esc(r.title) + "</b></span><br>" + SP(2) +
+        '<span style="' + F(13) + '">' + esc(r.detail) + "</span></td>" +
+        '<td width="' + LP(148) + '" valign="top" align="right" nowrap="nowrap">' +
+        (folder ? '<span style="' + F(14) + '"><b>' + esc(folder) + "</b></span><br>" : "") +
+        '<span style="' + F(13) + '">' + esc(when) + "</span></td>" +
+        "</tr></table></div>" + hair();
     }
-    return html + "</td></tr></table>" + SP(8);
+    return html + SP(4);
   }
 
-  function hostDots() {
-    var hosts = (MOCK && MOCK.hosts) || [];
-    if (!hosts.length) return "";
-    var dots = "";
-    var i;
-    for (i = 0; i < hosts.length; i++) {
-      var h = hosts[i];
-      dots += '<span style="' + F(14) + '">' + (h.ok ? "[*]" : "[&nbsp;]") + " " +
-        esc(h.short || h.name) + "</span>&nbsp;&nbsp;&nbsp;";
+  // Scribe 任务行：状态 + 单行标题 | 目录 · 时间；detail 不上屏，最多 8 行。
+  function scribeRunRows(rows, emptyText) {
+    if (!rows.length) {
+      return emptyText
+        ? '<div style="padding:' + px(14) + 'px 0;"><span style="' + F(15) + 'color:' + INK3 + ';">' +
+          esc(emptyText) + "</span></div>"
+        : "";
     }
-    return dots;
+    var MAXR = 8;
+    var more = rows.length > MAXR ? rows.length - MAXR : 0;
+    if (more) rows = rows.slice(0, MAXR);
+    var html = "";
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var folder = runFolder(r);
+      var when = runWhen(r);
+      html += '<div style="padding:' + px(16) + 'px 0;">' +
+        '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="table-layout:fixed;"><tr>' +
+        '<td valign="middle"><div style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' +
+        pill(r.tag) + '&nbsp;&nbsp;<span style="' + F(18) + '"><b>' + esc(r.title) + "</b></span></div></td>" +
+        '<td width="' + LP(230) + '" valign="middle" align="right" nowrap="nowrap">' +
+        (folder ? '<span style="' + F(14) + 'color:' + INK2 + ';">' + esc(folder) + "</span>" : "") +
+        (folder && when ? '<span style="' + F(13) + 'color:' + INK3 + ';"> · </span>' : "") +
+        '<span style="' + F(13) + 'color:' + INK3 + ';">' + esc(when) + "</span></td>" +
+        "</tr></table></div>";
+      if (i < rows.length - 1 || more) html += hairSoft();
+    }
+    if (more) {
+      html += '<div style="padding:' + px(10) + 'px 0;"><span style="' + F(13) + 'color:' + INK3 + ';">另有 ' +
+        more + " 项</span></div>";
+    }
+    return html;
   }
 
   function hostCard(h) {
@@ -809,6 +966,19 @@ window.AINDLE_MOCK = {
   function hostStrip() {
     var hosts = (MOCK && MOCK.hosts) || [];
     if (!hosts.length) return "";
+    if (isWideBoard()) {
+      var bits = [];
+      var i;
+      for (i = 0; i < hosts.length; i++) {
+        var h = hosts[i];
+        var line = esc(h.name) + " · " + (h.ok ? "在线" : "陈旧") + " · " + esc(h.seen);
+        if (h.attention && (h.attention.human || h.attention.waiting || h.attention.background)) {
+          line += " · " + esc(attentionText(h.attention, !h.ok));
+        }
+        bits.push(line);
+      }
+      return '<span style="' + F(14) + '">' + bits.join("&nbsp;&nbsp;&nbsp;") + "</span>" + SP(8);
+    }
     var perRow = hosts.length > 4 ? 4 : hosts.length;
     var html = '<table width="100%" cellpadding="0" cellspacing="' + px(8) + '" border="0">';
     var i;
@@ -821,6 +991,7 @@ window.AINDLE_MOCK = {
   }
 
   function masthead() {
+    if (isScribe()) return scribeMasthead();
     var tabs = inkTab("ink-local", "本机", currentView === "local") + "&nbsp;&nbsp;&nbsp;" +
       inkTab("ink-relay", "中转", currentView === "relay");
     if (currentView === "relay") {
@@ -860,6 +1031,473 @@ window.AINDLE_MOCK = {
       "</tr></table>" + SP(10) + rule(px(3)) + SP(6);
   }
 
+  /* ---------- Scribe 大屏版式（优雅优先：大留白、衬线报头、三档灰、细线账本） ---------- */
+
+  function scribeMasthead() {
+    var tabs = inkTab("ink-local", "本机", currentView === "local") + "&nbsp;&nbsp;&nbsp;" +
+      inkTab("ink-relay", "中转", currentView === "relay");
+    if (currentView === "relay") {
+      tabs += "&nbsp;&nbsp;&nbsp;&nbsp;" +
+        inkTab("ink-admin", "全站", currentScope === "admin") + "&nbsp;&nbsp;&nbsp;" +
+        inkTab("ink-user", "我的", currentScope === "user") + "&nbsp;&nbsp;&nbsp;" +
+        inkTab("ink-people", "用户", currentScope === "people");
+    }
+    var dateStr = String(MOCK.date || "");
+    var dm = dateStr.match(/^(周\S{1,3})\s*(\d{1,2}月\d{1,2}日)$/);
+    if (dm) dateStr = dm[2] + "  " + dm[1];
+    var wordmark =
+      '<span id="ink-help" style="cursor:pointer;' + F(15) + "font-weight:700;letter-spacing:" + px(4) +
+      'px;">AINDLE</span>&nbsp;&nbsp;<span style="' + F(14) + "color:" + INK3 + ";letter-spacing:" + px(2) +
+      'px;">' + esc(viewTitle()) + "</span>";
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td valign="bottom"><span style="' + F(46) + "font-family:" + SERIF + ';">' + esc(dateStr) + "</span></td>" +
+      '<td valign="bottom" align="right" nowrap="nowrap">' + wordmark + "<br>" + SP(4) +
+      '<span id="ink-clock" style="cursor:pointer;' + F(52) + "font-family:" + SERIF +
+      ';font-variant-numeric:tabular-nums;">' + esc(MOCK.time) + "</span></td>" +
+      "</tr></table>" + SP(14) + tabs + SP(12) + rule(px(2));
+  }
+
+  function scribeBar(pct, tall) {
+    pct = Math.round(Number(pct) || 0);
+    if (pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+    var rest = 100 - pct;
+    var h = tall ? px(13) : px(10);
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="1" bordercolor="' + INK + '"><tr>' +
+      '<td width="' + pct + '%"' + (pct > 0 ? ' bgcolor="' + INK + '"' : "") + ' height="' + h +
+      '"><span style="font-size:1px;">&nbsp;</span></td>' +
+      (rest > 0
+        ? '<td width="' + rest + '%" bgcolor="#FFFFFF" height="' + h + '"><span style="font-size:1px;">&nbsp;</span></td>'
+        : "") +
+      "</tr></table>";
+  }
+
+  function scribeWinRows(windows, tall) {
+    if (!windows || !windows.length) {
+      return '<span style="' + F(14) + 'color:' + INK3 + ';">还没有读数。</span>';
+    }
+    var html = '<table width="100%" cellpadding="' + px(4) + '" cellspacing="0" border="0">';
+    var i;
+    for (i = 0; i < windows.length; i++) {
+      var w = windows[i];
+      html += "<tr>" +
+        '<td width="12%"><span style="' + F(tall ? 17 : 15) + '"><b>' + esc(w.key) + "</b></span></td>" +
+        '<td width="55%">' + scribeBar(w.pct, tall) + "</td>" +
+        '<td width="13%" align="right" nowrap="nowrap"><span style="' + F(tall ? 17 : 15) +
+        ';font-variant-numeric:tabular-nums;"><b>' + esc(w.pct) + "%</b></span></td>" +
+        '<td width="20%" align="right" nowrap="nowrap"><span style="' + F(tall ? 14 : 13) + 'color:' + INK3 + ';">' +
+        esc(w.reset || "") + "</span></td>" +
+        "</tr>";
+    }
+    return html + "</table>";
+  }
+
+  /* ---------- 小屏账本（pocket）：锁屏设计语言的 web 移植，单页滚动 ---------- */
+
+  function isNarrow() {
+    return vp().w < 700;
+  }
+
+  // 胶囊条：外框圆角 + 内芯；<90% 用斜纹软填充减少墨色，老 WebKit 不认渐变时
+  // bgcolor 兜底为实心黑条，版面不塌。
+  function pocketBar(pct, tall) {
+    pct = Math.round(Number(pct) || 0);
+    if (pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+    var fill = pct >= 90
+      ? '<div style="height:100%;background:' + INK + ';"></div>'
+      : '<div bgcolor="' + INK + '" style="height:100%;background:' + INK +
+        ';background:repeating-linear-gradient(-45deg,' + INK + ' 0 3px,#FFFFFF 3px 7px);"></div>';
+    return '<div style="width:' + pct + '%;height:100%;">' + fill + "</div>";
+  }
+
+  function pocketBarFrame(pct, tall) {
+    var h = tall ? px(14) : px(10);
+    var bw = isNarrow() ? 1 : 2;
+    return '<div style="height:' + h + 'px;border:' + bw + 'px solid ' + INK +
+      ';border-radius:999px;-webkit-border-radius:999px;background:#FFFFFF;overflow:hidden;">' +
+      pocketBar(pct, tall) + "</div>";
+  }
+
+  /* pickWindows：与 eink.ts 同源的「车道」选择——burst/free/week/cycle 各取最热一条，最多 2 条 */
+  function prettyWinKey(key) {
+    if (/^api$/i.test(key)) return "三方";
+    if (/^(auto|自由)$/i.test(key)) return "自有";
+    return key;
+  }
+
+  function windowLane(key) {
+    var k = String(key || "").toLowerCase();
+    if (/fable|opus|sonnet|5h|三方|api|session/.test(k)) return "burst";
+    if (/自由|自有|auto/.test(k)) return "free";
+    if (/7d|本周|week/.test(k)) return "week";
+    if (/账期|月|billing|cycle/.test(k)) return "cycle";
+    return "other";
+  }
+
+  function bestInLane(windows, lane) {
+    var best = null;
+    var i;
+    for (i = 0; i < windows.length; i++) {
+      var w = windows[i];
+      if (windowLane(w.key) !== lane) continue;
+      if (!best || w.pct > best.pct || (w.pct === best.pct && String(w.key) < String(best.key))) best = w;
+    }
+    return best;
+  }
+
+  function pickWindows(windows) {
+    if (!windows) return [];
+    if (windows.length <= 1) return windows;
+    var unique = [];
+    var seen = {};
+    var i;
+    for (i = 0; i < windows.length; i++) {
+      var k = String(windows[i].key);
+      if (seen[k]) continue;
+      seen[k] = 1;
+      unique.push(windows[i]);
+    }
+    var burst = bestInLane(unique, "burst");
+    var free = bestInLane(unique, "free");
+    var week = bestInLane(unique, "week");
+    var cycle = bestInLane(unique, "cycle");
+    if (burst && free) return [burst, free];
+    if (burst && week) return [burst, week];
+    if (free && week) return [free, week];
+    if (burst && cycle) return [burst, cycle];
+    if (week && cycle) return [week, cycle];
+    return unique.sort(function (a, b) { return b.pct - a.pct; }).slice(0, 2);
+  }
+
+  function pocketMeter(w, tall) {
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td width="' + px(tall ? 64 : 48) + '"><span style="' + F(tall ? 16 : 14) + '"><b>' +
+      esc(prettyWinKey(w.key)) + "</b></span></td>" +
+      "<td>" + pocketBarFrame(w.pct, tall) + "</td>" +
+      '<td width="' + px(tall ? 62 : 50) + '" align="right" nowrap="nowrap"><span style="' + F(tall ? 20 : 16) +
+      ';font-variant-numeric:tabular-nums;"><b>' + esc(Math.round(Number(w.pct) || 0)) + "%</b></span></td>" +
+      '<td width="' + px(88) + '" align="right" nowrap="nowrap"><span style="' + F(12) + 'color:' + INK3 + ';">' +
+      esc(w.reset || "") + "</span></td>" +
+      "</tr></table>";
+  }
+
+  // sub 展示策略：紧凑宽行只要名字（防换行），宽松大卡换行展示，窄屏整行宽内联。
+  function pocketNameCell(s, big, inlineSub) {
+    var sub = cardSub(s);
+    var metered = s.billing === "metered";
+    var showSub = !metered && sub && (inlineSub || big);
+    return '<table cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td valign="middle" style="padding-right:' + px(10) + 'px;">' + brandIcon(s.tool, px(big ? 30 : 24)) + "</td>" +
+      '<td valign="middle"><span style="' + F(big ? 24 : 19) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
+      (showSub && inlineSub ? '&nbsp;&nbsp;<span style="' + F(12) + 'color:' + INK2 + ';">' + esc(sub) + "</span>" : "") +
+      (showSub && !inlineSub ? "<br>" + SP(2) + '<span style="' + F(14) + 'color:' + INK2 + ';">' + esc(sub) + "</span>" : "") +
+      "</td></tr></table>";
+  }
+
+  // 宽小屏（≥700px）：锁屏 qrow——名称 │ 竖线 │ 双窗条并排
+  function pocketQuotaRowWide(s) {
+    var metered = s.billing === "metered";
+    var wins = pickWindows(s.windows);
+    var meters;
+    if (s.none) {
+      meters = '<span style="' + F(13) + 'color:' + INK3 + ';">' + esc(cardSub(s) || "还没有读数。") + "</span>";
+    } else if (metered) {
+      meters = '<span style="' + F(15) + '"><b>按量</b></span>&nbsp;&nbsp;<span style="' + F(14) +
+        'color:' + INK2 + ';">' + esc(meteredSpend(s)) + "</span>";
+    } else if (!wins.length) {
+      meters = '<span style="' + F(13) + 'color:' + INK3 + ';">还没有读数。</span>';
+    } else {
+      meters = "<tr>" + pocketMeterCell(wins[0]) + (wins[1] ? pocketMeterCell(wins[1]) : "") + "</tr>";
+      meters = '<table width="100%" cellpadding="0" cellspacing="0" border="0">' + meters + "</table>";
+    }
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td width="' + LP(190) + '" valign="middle">' + pocketNameCell(s, false) + "</td>" +
+      '<td width="' + px(14) + '"></td>' +
+      '<td width="1" bgcolor="' + LINE + '"><span style="font-size:1px;">&nbsp;</span></td>' +
+      '<td width="' + px(14) + '"></td>' +
+      '<td valign="middle">' + meters + "</td>" +
+      "</tr></table>";
+  }
+
+  function pocketMeterCell(w) {
+    return '<td width="50%" style="padding-right:' + px(12) + 'px;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td width="' + px(40) + '"><span style="' + F(14) + '"><b>' + esc(prettyWinKey(w.key)) + "</b></span></td>" +
+      "<td>" + pocketBarFrame(w.pct, false) + "</td>" +
+      '<td width="' + px(48) + '" align="right" nowrap="nowrap"><span style="' + F(16) +
+      ';font-variant-numeric:tabular-nums;"><b>' + esc(Math.round(Number(w.pct) || 0)) + "%</b></span></td>" +
+      "</tr></table></td>";
+  }
+
+  // 窄屏（<700px）：名称一行，窗口各自一行（含 reset）
+  function pocketQuotaRowNarrow(s, tall) {
+    var metered = s.billing === "metered";
+    var wins = tall ? (s.windows || []).slice(0, 3) : pickWindows(s.windows);
+    var body = "";
+    var i;
+    if (s.none) {
+      body = '<div style="padding-top:' + px(6) + 'px;"><span style="' + F(13) + 'color:' + INK3 + ';">' +
+        esc(cardSub(s) || "还没有读数。") + "</span></div>";
+    } else if (metered) {
+      body = '<div style="padding-top:' + px(6) + 'px;"><span style="' + F(15) + '"><b>按量</b></span>&nbsp;&nbsp;' +
+        '<span style="' + F(14) + 'color:' + INK2 + ';">' + esc(meteredSpend(s)) + "</span></div>";
+    } else if (!wins.length) {
+      body = '<div style="padding-top:' + px(6) + 'px;"><span style="' + F(13) + 'color:' + INK3 + ';">还没有读数。</span></div>';
+    } else {
+      for (i = 0; i < wins.length; i++) {
+        body += '<div style="padding-top:' + px(7) + 'px;">' + pocketMeter(wins[i], tall) + "</div>";
+      }
+      if (tall && !metered && s.usage) {
+        body += '<div style="padding-top:' + px(8) + 'px;"><span style="' + F(12) + 'color:' + INK3 + ';">24h ' +
+          esc(usageSeg(s.usage.h24Tokens, s.usage.h24Cost)) + " · 7d " +
+          esc(usageSeg(s.usage.d7Tokens, s.usage.d7Cost)) + "</span></div>";
+      }
+    }
+    return pocketNameCell(s, tall, true) + body;
+  }
+
+  // ≤3 份的宽松行（宽小屏）：大名称 + 每窗口独占一行 + 用量行
+  function pocketQuotaBigWide(s) {
+    var metered = s.billing === "metered";
+    var wins = (s.windows || []).slice(0, 3);
+    var body = "";
+    var i;
+    if (s.none) {
+      body = '<span style="' + F(14) + 'color:' + INK3 + ';">' + esc(cardSub(s) || "还没有读数。") + "</span>";
+    } else if (metered) {
+      body = '<span style="' + F(16) + '"><b>按量</b></span>&nbsp;&nbsp;<span style="' + F(15) +
+        'color:' + INK2 + ';">' + esc(meteredSpend(s)) + "</span>";
+    } else {
+      for (i = 0; i < wins.length; i++) {
+        body += '<div style="padding-top:' + px(8) + 'px;">' + pocketMeter(wins[i], true) + "</div>";
+      }
+      if (!wins.length) body = '<span style="' + F(13) + 'color:' + INK3 + ';">还没有读数。</span>';
+      else if (s.usage) {
+        body += '<div style="padding-top:' + px(8) + 'px;"><span style="' + F(12) + 'color:' + INK3 + ';">24h ' +
+          esc(usageSeg(s.usage.h24Tokens, s.usage.h24Cost)) + " · 7d " +
+          esc(usageSeg(s.usage.d7Tokens, s.usage.d7Cost)) + "</span></div>";
+      }
+    }
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td width="' + LP(230) + '" valign="top">' + pocketNameCell(s, true) + "</td>" +
+      '<td valign="top">' + body + "</td>" +
+      "</tr></table>";
+  }
+
+  function pocketQuotas(subs, emptyText) {
+    if (!subs.length) {
+      return '<div style="padding:' + px(12) + 'px 0;"><span style="' + F(14) + 'color:' + INK3 + ';">' +
+        esc(emptyText) + "</span></div>";
+    }
+    var big = subs.length <= 3;
+    var narrow = isNarrow();
+    var html = "";
+    var i;
+    for (i = 0; i < subs.length; i++) {
+      var row = narrow
+        ? pocketQuotaRowNarrow(subs[i], big)
+        : big ? pocketQuotaBigWide(subs[i]) : pocketQuotaRowWide(subs[i]);
+      html += '<div style="padding:' + px(big ? 14 : 11) + "px 0;\">" + row + "</div>";
+      if (i < subs.length - 1) html += hairSoft();
+    }
+    return html;
+  }
+
+  function pocketRunRow(r) {
+    var folder = runFolder(r);
+    var when = runWhen(r);
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="table-layout:fixed;"><tr>' +
+      '<td valign="middle"><div style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' +
+      '<span style="display:inline-block;vertical-align:-' + px(4) + 'px;">' + brandIcon(r.tool, px(20)) + "</span>" +
+      (r.tag === "WAIT" ? "&nbsp;" + pill("WAIT") : "") +
+      '&nbsp;&nbsp;<span style="' + F(17) + '"><b>' + esc(r.title) + "</b></span></div></td>" +
+      '<td width="' + LP(150) + '" valign="middle" align="right" nowrap="nowrap">' +
+      '<span style="' + F(13) + 'color:' + INK3 + ';">' + esc(when) + "</span>" +
+      (folder && !isNarrow() ? '&nbsp;&nbsp;<span style="' + F(13) + 'color:' + INK2 + ';">' + esc(folder) + "</span>" : "") +
+      "</td></tr></table>";
+  }
+
+  function pocketRuns(rows, emptyText, cap) {
+    if (!rows.length) {
+      return emptyText
+        ? '<div style="padding:' + px(10) + 'px 0;"><span style="' + F(14) + 'color:' + INK3 + ';">' +
+          esc(emptyText) + "</span></div>"
+        : "";
+    }
+    var more = rows.length > cap ? rows.length - cap : 0;
+    if (more) rows = rows.slice(0, cap);
+    var html = "";
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      html += '<div style="padding:' + px(10) + 'px 0;">' + pocketRunRow(rows[i]) + "</div>";
+      if (i < rows.length - 1 || more) html += hairSoft();
+    }
+    if (more) {
+      html += '<div style="padding:' + px(8) + 'px 0;"><span style="' + F(12) + 'color:' + INK3 + ';">另有 ' +
+        more + " 项</span></div>";
+    }
+    return html;
+  }
+
+  function pocketSection(title, extra) {
+    return SP(20) +
+      '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td><span style="' + F(16) + 'font-weight:700;letter-spacing:' + px(3) + 'px;">' + esc(title) + "</span>" +
+      (extra ? '&nbsp;&nbsp;<span style="' + F(13) + 'color:' + INK3 + ';">' + esc(extra) + "</span>" : "") +
+      "</td></tr></table>" + SP(7) + hairSoft() + SP(1);
+  }
+
+  function pocketMasthead() {
+    var tabs = inkTab("ink-local", "本机", currentView === "local") + "&nbsp;&nbsp;&nbsp;" +
+      inkTab("ink-relay", "中转", currentView === "relay");
+    var dateStr = String(MOCK.date || "");
+    var dm = dateStr.match(/^(周\S{1,3})\s*(\d{1,2}月\d{1,2}日)$/);
+    if (dm) dateStr = dm[2] + "  " + dm[1];
+    var narrow = isNarrow();
+    return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td valign="bottom"><span style="' + F(narrow ? 30 : 40) + "font-family:" + SERIF + ';">' +
+      esc(dateStr) + "</span></td>" +
+      '<td valign="bottom" align="right" nowrap="nowrap">' +
+      '<span id="ink-help" style="cursor:pointer;' + F(13) + "font-weight:700;letter-spacing:" + px(3) +
+      'px;">AINDLE</span>&nbsp;&nbsp;<span style="' + F(13) + 'color:' + INK3 + ';">' + esc(viewTitle()) + "</span>" +
+      "</td></tr></table>" + SP(10) + tabs + SP(8) + rule(px(2));
+  }
+
+  // 什么数据都没有时的整块空页，而不是三条空态的堆叠。
+  function pocketEmpty() {
+    return '<div style="padding:' + px(70) + 'px 0;text-align:center;">' +
+      '<span style="' + F(24) + "font-weight:700;letter-spacing:" + px(6) + 'px;">AINDLE</span><br>' +
+      SP(18) + '<span style="' + F(16) + 'color:' + INK2 + ';">现在没有任务在跑，也没有限额读数。</span><br>' +
+      SP(8) + '<span style="' + F(13) + 'color:' + INK3 + ';">数据 ' + esc(shortTime(MOCK.generatedAt)) +
+      " · Hub " + esc(MOCK.hub) + "</span></div>";
+  }
+
+  function maxSubPct(s) {
+    var m = 0;
+    var ws = s.windows || [];
+    var i;
+    for (i = 0; i < ws.length; i++) if (ws[i].pct > m) m = ws[i].pct;
+    return m;
+  }
+
+  function pocketLocal() {
+    var subs = visibleSubs();
+    var live = liveNow();
+    var recent = (MOCK && MOCK.recent) || [];
+    if (!subs.length && !live.length && !recent.length) return pocketEmpty();
+    var moreSubs = 0;
+    if (subs.length > 8) {
+      subs = subs.sort(function (a, b) { return maxSubPct(b) - maxSubPct(a); });
+      moreSubs = subs.length - 8;
+      subs = subs.slice(0, 8);
+    }
+    var html = pocketSection("限额", subs.length + " 份") + pocketQuotas(subs, "还没有本机限额。");
+    if (moreSubs) {
+      html += '<div style="padding:' + px(8) + 'px 0;"><span style="' + F(12) + 'color:' + INK3 + ';">另有 ' +
+        moreSubs + " 份</span></div>";
+    }
+    html += pocketSection("进行中", liveAttention(live)) +
+      pocketRuns(live, "这一小时没有进行中的会话。", 10);
+    if (recent.length) {
+      html += pocketSection("已完成", recent.length + " 条") + pocketRuns(recent, "", 6);
+    }
+    return html;
+  }
+
+  // 进行中段标题右侧：总数 + 待确认/后台拆分（不与标题重字）。
+  function liveAttention(live) {
+    var att = (MOCK && MOCK.attention) || {};
+    var extra = live.length + " 项";
+    var parts = [];
+    if (att.waiting) parts.push("待确认 " + att.waiting);
+    if (att.background) parts.push("后台 " + att.background);
+    if (parts.length) extra += " · " + parts.join(" · ");
+    return extra;
+  }
+
+  function todaySpend(label) {
+    var m = String(label || "").match(/今日 \$[0-9.]+/);
+    return m ? m[0] : "";
+  }
+
+  function pocketRelay() {
+    var subs = MOCK.subs || [];
+    var site = null, mine = null;
+    var accounts = [], people = [];
+    var i;
+    for (i = 0; i < subs.length; i++) {
+      var s = subs[i];
+      if (s.source !== "relay") continue;
+      if (s.kind === "site") site = s;
+      if (s.scope === "user" && s.kind === "member") mine = s;
+      if (s.scope === "admin" && s.kind === "account" && !s.none && (s.windows || []).length) accounts.push(s);
+      if (s.scope === "people" && /今日 \$[1-9]|今日 \$\d+\.\d*[1-9]/.test(s.label || "")) people.push(s);
+    }
+    accounts = accounts.sort(function (a, b) { return maxSubPct(b) - maxSubPct(a); })
+      .filter(function (s) { return maxSubPct(s) >= 5; }).slice(0, 6);
+    people = people.slice(0, 3);
+    var html = "";
+    if (site) {
+      html += '<div style="padding:' + px(10) + 'px 0;"><span style="' + F(13) + 'color:' + INK3 + ';">全站</span>&nbsp;&nbsp;' +
+        '<span style="' + F(15) + '"><b>' + esc(cardSub(site)) + "</b></span></div>";
+    }
+    if (people.length) {
+      var bits = [];
+      for (i = 0; i < people.length; i++) {
+        bits.push(esc(quotaToolName(people[i].tool)) + " " + esc(todaySpend(people[i].label)));
+      }
+      html += '<div style="padding:0 0 ' + px(8) + 'px;"><span style="' + F(13) + 'color:' + INK2 +
+        ';">今日活跃：' + bits.join(" · ") + "</span></div>";
+    }
+    if (mine) {
+      html += '<div style="padding:0 0 ' + px(8) + 'px;"><span style="' + F(13) + 'color:' + INK2 +
+        ';">我的 · ' + esc(cardSub(mine)) + "</span></div>";
+    }
+    if (!site && !accounts.length && !mine) return pocketEmpty();
+    html += pocketSection("上游", accounts.length + " 张") +
+      pocketQuotas(accounts, "上游账号还没有读数。");
+    return html;
+  }
+
+  function pocketFooter() {
+    var hosts = MOCK.hosts || [];
+    var staleN = (MOCK.staleHosts || []).length;
+    var left = window.AINDLE_MOCK
+      ? "MOCK · 非本机实时数据"
+      : "数据 " + shortTime(MOCK.generatedAt) + " · Hub " + MOCK.hub + " · " + hosts.length + " 机" +
+        (staleN ? " · " + staleN + " 陈旧" : "");
+    return SP(16) + '<div id="pocket-foot" style="margin-top:0;">' + hairSoft() + SP(8) +
+      '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td><span style="' + F(12) + 'color:' + INK3 + ';">' + esc(left) + "</span></td>" +
+      '<td align="right"><span style="' + F(12) + 'color:' + INK3 + ';">' + esc(canvasLabel()) + "</span></td>" +
+      "</tr></table></div>";
+  }
+
+  function renderPocket() {
+    var html = pocketMasthead();
+    html += currentView === "relay" ? pocketRelay() : pocketLocal();
+    html += pocketFooter();
+    var pad = px(isNarrow() ? 20 : 30);
+    document.getElementById("view-panels").innerHTML =
+      '<div style="padding:' + px(12) + "px " + pad + "px " + px(20) + "px " + pad + 'px;">' + html + "</div>";
+  }
+
+  // 内容不足一屏时把页脚压到屏底（扣除 topbar 高度）。
+  function pinPocketFooter() {
+    if (!wantPanels()) return;
+    var box = document.getElementById("view-panels");
+    var foot = document.getElementById("pocket-foot");
+    if (!box || !foot || box.style.display === "none") return;
+    foot.style.marginTop = "0px";
+    var top = document.getElementById("topbar");
+    var topH = (top && top.style.display !== "none" && top.offsetHeight) || 0;
+    var slack = vp().h - topH - (box.scrollHeight || 0);
+    if (slack > 0) foot.style.marginTop = slack + "px";
+  }
+
+
+
   /* ---------- 顶栏 ---------- */
 
   function renderTop() {
@@ -884,142 +1522,17 @@ window.AINDLE_MOCK = {
       return;
     }
     var narrow = vp().w < 600;
+    var metaNarrow = "<b>" + badge + "</b> · " + esc(shortTime(LIVE_UPDATED)) +
+      (refreshSec > 0 ? " · " + refreshSec + "s" : "");
     var btns = tbtn("btn-refresh", "刷新") +
       (narrow ? "" : "&nbsp;" + tbtn("btn-help", "说明")) +
       "&nbsp;" + tbtn("btn-mode", wantPanels() ? (narrow ? "总览" : "大屏总览") : (narrow ? "面板" : "小屏面板"));
     top.innerHTML =
       '<table width="100%" bgcolor="' + SOFT + '" cellpadding="' + px(8) + '" cellspacing="0" border="0" style="border-bottom:1px solid ' + INK + ';">' +
       "<tr>" +
-      '<td><span style="' + F(14) + '">' + meta + diag() + "</span></td>" +
+      '<td><span style="' + F(14) + '">' + (narrow ? metaNarrow : meta) + diag() + "</span></td>" +
       '<td width="1%" align="right" nowrap="nowrap">' + btns + "</td>" +
       "</tr></table>";
-  }
-
-  /* ---------- 面板模式 ---------- */
-
-  function renderPanelHead() {
-    var dots = currentView === "local" ? hostDots() : "";
-    document.getElementById("panels-head").innerHTML =
-      '<div style="padding:' + px(14) + "px " + px(18) + "px 0 " + px(18) + 'px;">' +
-      masthead() +
-      (dots ? dots + SP(6) : "") +
-      "</div>";
-  }
-
-  function renderPager() {
-    var h = px(56);
-    if (h < 44) h = 44;
-    var style = "width:100%;height:" + h + "px;" + F(19) + "border:1px solid " + INK +
-      ";background:#FFFFFF;color:" + INK + ";";
-    document.getElementById("pager").innerHTML =
-      '<div style="padding:0 ' + px(18) + "px " + px(14) + 'px ' + px(18) + 'px;">' +
-      '<table width="100%" cellpadding="0" cellspacing="' + px(8) + '" border="0"><tr>' +
-      '<td width="36%"><input type="button" class="button" id="btn-prev" value="上一页" style="' + style + '"></td>' +
-      '<td width="28%" align="center" valign="middle"><span id="p-indicator" style="' + F(17) + '"></span></td>' +
-      '<td width="36%"><input type="button" class="button" id="btn-next" value="下一页" style="' + style + '"></td>' +
-      "</tr></table></div>";
-  }
-
-  function panelBody(inner) {
-    return '<div style="padding:0 ' + px(18) + "px " + px(8) + 'px ' + px(18) + 'px;">' + inner + "</div>";
-  }
-
-  function renderLocalPanels() {
-    var i;
-    var cols = isKindleUi() ? 1 : cardCols();
-
-    if (isKindleUi()) {
-      var hostLine = "";
-      var hosts = MOCK.hosts || [];
-      for (i = 0; i < hosts.length; i++) {
-        var kh = hosts[i];
-        hostLine += (kh.ok ? "[*]" : "[&nbsp;]") + " <b>" + esc(kh.name) + "</b> · " + esc(kh.seen) +
-          " · " + esc(attentionText(kh.attention, !kh.ok)) + "<br>";
-      }
-      document.getElementById("panel-0").innerHTML = panelBody(
-        section("主机", hosts.length + " 台") +
-        card('<span style="' + F(16) + '">' + hostLine + "</span>") +
-        section("限额", visibleSubs().length + " 份") +
-        quotaCards(visibleSubs(), "还没有本机限额。", 1)
-      );
-      document.getElementById("panel-1").innerHTML = panelBody(
-        section("进行中 · 待确认 · 后台任务", globalAttention()) +
-        runCards(MOCK.now || [], "这一小时没有进行中的会话。") +
-        ((MOCK.recent || []).length
-          ? section("近 1 小时", MOCK.recent.length + " 条") + runCards(MOCK.recent, "")
-          : "")
-      );
-      document.getElementById("panel-2").innerHTML = "";
-      document.getElementById("panel-3").innerHTML = "";
-      return;
-    }
-
-    var hostHtml = section("主机", (MOCK.hosts || []).length + " 台");
-    var hs = MOCK.hosts || [];
-    for (i = 0; i < hs.length; i++) hostHtml += card(hostCardInner(hs[i]));
-    document.getElementById("panel-0").innerHTML = panelBody(hostHtml);
-
-    var subs = visibleSubs();
-    var quotaExtra = subs.length + " 份";
-    if (MOCK.usageTotal) quotaExtra += " · 24h ≈" + MOCK.usageTotal.h24Cost;
-    document.getElementById("panel-1").innerHTML = panelBody(
-      section("限额", quotaExtra) +
-      quotaCards(subs, "还没有本机限额。", cols)
-    );
-    document.getElementById("panel-2").innerHTML = panelBody(
-      section("进行中 · 待确认 · 后台任务", globalAttention()) +
-      runCards(MOCK.now || [], "这一小时没有进行中的会话。")
-    );
-    document.getElementById("panel-3").innerHTML = panelBody(
-      section("近 1 小时", (MOCK.recent || []).length + " 条") +
-      runCards(MOCK.recent || [], "近 1 小时没有结束的会话。")
-    );
-  }
-
-  function hostCardInner(h) {
-    return '<span style="' + F(22) + '"><b>' + esc(h.name) + "</b></span>&nbsp;&nbsp;" +
-      '<span style="' + F(14) + '"><b>' + (h.ok ? "在线" : "陈旧") + "</b> · " + esc(h.seen) + "</span><br>" + SP(4) +
-      '<span style="' + F(14) + '">' + esc(attentionText(h.attention, !h.ok)) +
-      " · 会话 " + esc(h.sessions) + " · 今日 " + esc(h.tokens) + "</span>";
-  }
-
-  function renderRelayPanels() {
-    var subs = visibleSubs();
-    var parts = splitRelay(subs);
-    var names = pageNames();
-    var cols = isKindleUi() ? 1 : cardCols();
-    var emptyAll = currentScope === "user"
-      ? "还没有中转用户数据。"
-      : currentScope === "people"
-        ? "还没有其他用户。"
-        : "还没有中转全站数据。";
-    var emptyRest = currentScope === "user" ? "还没有 Key。" : "上游账号还没有读数。";
-
-    if (isKindleUi() || currentScope === "people") {
-      document.getElementById("panel-0").innerHTML = panelBody(
-        section(names[0], currentScope === "people" ? subs.length + " 人" : (parts.head.length + parts.rest.length) + " 张") +
-        (currentScope === "people"
-          ? quotaCards(subs, emptyAll, cols)
-          : quotaCards(parts.head, emptyAll, 1) + (parts.rest.length ? quotaCards(parts.rest, emptyRest, 1) : ""))
-      );
-      document.getElementById("panel-1").innerHTML = "";
-    } else {
-      document.getElementById("panel-0").innerHTML = panelBody(
-        section(names[0], parts.head.length + " 张") +
-        quotaCards(parts.head, emptyAll, 1)
-      );
-      document.getElementById("panel-1").innerHTML = panelBody(
-        section(names[1], parts.rest.length + " 张") +
-        quotaCards(parts.rest, emptyRest, 1)
-      );
-    }
-    document.getElementById("panel-2").innerHTML = "";
-    document.getElementById("panel-3").innerHTML = "";
-  }
-
-  function renderPanels() {
-    if (currentView === "relay") renderRelayPanels();
-    else renderLocalPanels();
   }
 
   /* ---------- 大屏总览 ---------- */
@@ -1027,48 +1540,87 @@ window.AINDLE_MOCK = {
   function editionFooter() {
     var hosts = MOCK.hosts || [];
     var staleN = (MOCK.staleHosts || []).length;
-    var left = isScribe()
-      ? (window.AINDLE_MOCK ? "MOCK · 非本机实时数据" : ("数据 " + shortTime(MOCK.generatedAt) + " · Hub " + MOCK.hub))
-      : ("数据 " + shortTime(MOCK.generatedAt) +
-        " · Hub " + MOCK.hub + " · " + hosts.length + " 台主机" +
-        (staleN ? " · " + staleN + " 台陈旧" : "") +
-        (window.AINDLE_MOCK ? " · MOCK 演示数据" : ""));
+    if (isScribe()) {
+      var sLeft = window.AINDLE_MOCK
+        ? "MOCK · 非本机实时数据"
+        : "数据 " + shortTime(MOCK.generatedAt) + " · Hub " + MOCK.hub + " · " + hosts.length + " 机" +
+          (staleN ? " · " + staleN + " 陈旧" : "");
+      return SP(18) + '<div id="scribe-foot" style="margin-top:0;">' + hairSoft() + SP(10) +
+        '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+        '<td><span style="' + F(13) + 'color:' + INK3 + ';">' + esc(sLeft) + "</span></td>" +
+        '<td align="right"><span style="' + F(13) + 'color:' + INK3 + ';">' + esc(canvasLabel()) + "</span></td>" +
+        "</tr></table></div>";
+    }
+    var left = "数据 " + shortTime(MOCK.generatedAt) +
+      " · Hub " + MOCK.hub + " · " + hosts.length + " 台主机" +
+      (staleN ? " · " + staleN + " 台陈旧" : "") +
+      (window.AINDLE_MOCK ? " · MOCK 演示数据" : "");
     return SP(6) + hair() + SP(8) +
       '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
       '<td><span style="' + F(13) + '">' + esc(left) + "</span></td>" +
-      '<td align="right"><span style="' + F(13) + '">' +
-      (isScribe() ? esc(canvasLabel()) : "AINDLE · " + esc(viewTitle())) + "</span></td>" +
+      '<td align="right"><span style="' + F(13) + '">AINDLE · ' + esc(viewTitle()) + "</span></td>" +
       "</tr></table>";
   }
 
+  // 进行中栏右上角的小字拆分：待确认 / 后台（进行中本身已在标题里）。
+  function attentionSide() {
+    var att = (MOCK && MOCK.attention) || {};
+    var parts = [];
+    if (att.waiting) parts.push("待确认 " + att.waiting);
+    if (att.background) parts.push("后台 " + att.background);
+    return parts.join(" · ");
+  }
+
+  function boardColumns(subs, live, recent) {
+    if (isScribe()) {
+      var t = MOCK && MOCK.usageTotal;
+      var quota = section("限额", subs.length + " 份",
+          t ? "24h " + t.h24Tokens + " tok ≈" + t.h24Cost + " · 7d " + t.d7Tokens + " tok ≈" + t.d7Cost : "") +
+        quotaLedger(subs, "还没有本机限额。");
+      var liveCol = section("进行中", live.length + " 项", attentionSide()) +
+        runLedger(live, "这一小时没有进行中的会话。");
+      var doneCol = section("已完成", recent.length + " 条") +
+        runLedger(recent, "近 1 小时没有已完成。");
+      return quota +
+        '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
+        '<td width="50%" valign="top"><div style="padding-right:' + px(26) + 'px;">' + liveCol + "</div></td>" +
+        '<td width="50%" valign="top"><div style="padding-left:' + px(26) + 'px;">' + doneCol + "</div></td>" +
+        "</tr></table>";
+    }
+    var quota = section("限额", subs.length + " 份") +
+      quotaLedger(subs, "还没有本机限额。");
+    var liveCol = section("进行中", String(live.length)) +
+      runLedger(live, "这一小时没有进行中的会话。");
+    var doneCol = section("已完成", String(recent.length)) +
+      runLedger(recent, "近 1 小时没有已完成。");
+    if (wantSplitBoard()) {
+      return quota +
+        '<table width="100%" cellpadding="0" cellspacing="' + px(16) + '" border="0"><tr>' +
+        '<td width="50%" valign="top">' + liveCol + "</td>" +
+        '<td width="50%" valign="top">' + doneCol + "</td>" +
+        "</tr></table>";
+    }
+    if (!live.length) {
+      return quota + (recent.length ? doneCol : "");
+    }
+    return quota + liveCol + (recent.length ? doneCol : "");
+  }
+
   function editionScribe() {
-    var subs = visibleSubs();
-    var live = MOCK.now || [];
-    var recent = MOCK.recent || [];
-    return section("限额", subs.length + " 份") +
-      quotaLedger(subs, "还没有本机限额。") +
-      section("进行中 · 待确认 · 后台任务", globalAttention()) +
-      runLedger(live, "这一小时没有进行中的会话。") +
-      (recent.length ? section("近 1 小时", recent.length + " 条") + runLedger(recent, "") : "");
+    return boardColumns(visibleSubs(), liveNow(), (MOCK && MOCK.recent) || []);
   }
 
   function editionLocal() {
-    if (isScribe()) return editionScribe();
+    if (isScribe() || isWideBoard()) return editionScribe();
     var subs = visibleSubs();
-    var live = MOCK.now || [];
-    var recent = MOCK.recent || [];
+    var live = liveNow();
+    var recent = (MOCK && MOCK.recent) || [];
     var leftCol = section("限额", subs.length + " 份") +
       quotaCards(subs, "还没有本机限额。", vp().w >= 1600 ? 2 : 1);
     var rightCol = section("进行中 · 待确认 · 后台任务", globalAttention()) +
       runCards(live, "这一小时没有进行中的会话。") +
       (recent.length ? section("近 1 小时", recent.length + " 条") + runCards(recent, "") : "");
-    if (vp().w >= 1000) {
-      return '<table width="100%" cellpadding="0" cellspacing="' + px(10) + '" border="0"><tr>' +
-        '<td width="55%" valign="top">' + leftCol + "</td>" +
-        '<td width="45%" valign="top">' + rightCol + "</td>" +
-        "</tr></table>";
-    }
-    return leftCol + rightCol;
+    return leftCol + (live.length ? rightCol : (recent.length ? section("近 1 小时", recent.length + " 条") + runCards(recent, "") : ""));
   }
 
   function editionRelay() {
@@ -1112,13 +1664,19 @@ window.AINDLE_MOCK = {
   }
 
   function renderFull() {
-    var html = masthead() + hostStrip();
-    html += currentView === "relay" ? editionRelay() : ((isScribe() ? "" : usageBanner()) + editionLocal());
-    html += editionFooter();
-    var pad = px(18);
+    var html;
+    if (isScribe()) {
+      // Scribe：无主机条、无消耗横幅，报头 + 版面 + 页脚。
+      html = masthead() + (currentView === "relay" ? editionRelay() : editionLocal()) + editionFooter();
+    } else {
+      html = masthead() + hostStrip();
+      html += currentView === "relay" ? editionRelay() : (usageBanner() + editionLocal());
+      html += editionFooter();
+    }
+    var pad = px(isScribe() ? 64 : 18);
     document.getElementById("view-full").innerHTML =
-      '<div style="padding:' + px(isScribe() ? 10 : 14) + "px " + pad + "px " +
-      px(isScribe() ? 12 : 16) + "px " + pad + 'px;">' +
+      '<div style="padding:' + px(isScribe() ? 44 : 14) + "px " + pad + "px " +
+      px(isScribe() ? 36 : 16) + "px " + pad + 'px;">' +
       html + "</div>";
   }
 
@@ -1136,6 +1694,18 @@ window.AINDLE_MOCK = {
     renderTop();
     renderFull();
     applyMode();
+    pinScribeFooter();
+  }
+
+  // 内容不足一屏时把页脚压到版面底部，像印件的版权行。
+  function pinScribeFooter() {
+    if (!isScribe()) return;
+    var box = document.getElementById("view-full");
+    var foot = document.getElementById("scribe-foot");
+    if (!box || !foot) return;
+    foot.style.marginTop = "0px";
+    var slack = vp().h - (box.scrollHeight || 0);
+    if (slack > 0) foot.style.marginTop = slack + "px";
   }
 
   /* ---------- 浮层（说明 / 详情） ---------- */
@@ -1240,43 +1810,7 @@ window.AINDLE_MOCK = {
     showFloat(s.tool || "用户", html);
   }
 
-  /* ---------- 模式 / 翻页 / 绑定 ---------- */
-
-  function showPanel(n) {
-    var names = pageNames();
-    if (n < 0) n = names.length - 1;
-    if (n >= names.length) n = 0;
-    idx = n;
-    var i;
-    for (i = 0; i < 4; i++) {
-      var el = document.getElementById("panel-" + i);
-      if (!el) continue;
-      el.style.display = (i === idx && i < names.length) ? "block" : "none";
-    }
-    var ind = document.getElementById("p-indicator");
-    if (ind) {
-      var dots = "";
-      for (i = 0; i < names.length; i++) dots += (i === idx ? "●" : "○") + "&nbsp;";
-      ind.innerHTML = "<b>" + esc(names[idx]) + "</b>&nbsp;&nbsp;" + (idx + 1) + " / " + names.length +
-        "<br>" + dots;
-    }
-    hashWrite();
-  }
-
-  function oh(id) {
-    var el = document.getElementById(id);
-    return (el && el.offsetHeight) || 0;
-  }
-
-  function sizePanels() {
-    var room = vp().h - oh("topbar") - oh("panels-head") - oh("pager") - px(10);
-    if (room < 200) return;
-    var i;
-    for (i = 0; i < 4; i++) {
-      var el = document.getElementById("panel-" + i);
-      if (el) el.style.minHeight = room + "px";
-    }
-  }
+  /* ---------- 模式 / 绑定 ---------- */
 
   function applyMode() {
     var panels = wantPanels();
@@ -1289,10 +1823,6 @@ window.AINDLE_MOCK = {
     document.getElementById("float").style.display = "none";
     document.getElementById("view-panels").style.display = panels ? "block" : "none";
     document.getElementById("view-full").style.display = panels ? "none" : "block";
-    if (panels) {
-      sizePanels();
-      showPanel(idx);
-    }
   }
 
   function setView(view, scope) {
@@ -1304,17 +1834,12 @@ window.AINDLE_MOCK = {
     currentView = view;
     if (scope) currentScope = scope;
     ensureScope();
-    idx = currentView === "relay" || isKindleUi() ? 0 : 1;
     hashWrite();
     renderAll();
   }
 
   function bind() {
     var el, i;
-    el = document.getElementById("btn-prev");
-    if (el) el.onclick = function () { showPanel(idx - 1); };
-    el = document.getElementById("btn-next");
-    if (el) el.onclick = function () { showPanel(idx + 1); };
     el = document.getElementById("btn-mode");
     if (el) el.onclick = function () {
       forced = wantPanels() ? "full" : "panels";
@@ -1359,14 +1884,12 @@ window.AINDLE_MOCK = {
     ensureScope();
     computeScale();
     renderTop();
-    if (!isBigCanvas()) {
-      renderPanelHead();
-      renderPanels();
-      renderPager();
-    }
+    if (!isBigCanvas()) renderPocket();
     renderFull();
     applyMode();
     fitScribeCanvas();
+    pinScribeFooter();
+    pinPocketFooter();
     bind();
   }
 
@@ -1409,18 +1932,6 @@ window.AINDLE_MOCK = {
     if (qmode === "panels" || qmode === "full") forced = qmode;
     ensureScope();
 
-    var start = qs("page") || hash.page;
-    if (currentView === "relay") {
-      idx = (!isKindleUi() && (start === "1" || start === "accounts" || start === "keys")) ? 1 : 0;
-    } else if (isKindleUi()) {
-      idx = (start === "now" || start === "1" || start === "2") ? 1 : 0;
-    } else {
-      if (start === "hosts" || start === "0") idx = 0;
-      if (start === "quota" || start === "1") idx = 1;
-      if (start === "now" || start === "2") idx = 2;
-      if (start === "recent" || start === "3") idx = 3;
-    }
-
     renderAll();
 
     var timer = null;
@@ -1431,33 +1942,12 @@ window.AINDLE_MOCK = {
     window.onresize = re;
     if (window.addEventListener) {
       window.addEventListener("orientationchange", re, false);
-
-      var tx = 0, ty = 0;
-      document.addEventListener("touchstart", function (e) {
-        if (e.touches && e.touches.length === 1) {
-          tx = e.touches[0].clientX;
-          ty = e.touches[0].clientY;
-        }
-      }, false);
-      document.addEventListener("touchend", function (e) {
-        if (!wantPanels() || floatOpen) return;
-        if (!e.changedTouches || !e.changedTouches.length) return;
-        var dx = e.changedTouches[0].clientX - tx;
-        var dy = e.changedTouches[0].clientY - ty;
-        if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-          if (dx < 0) showPanel(idx + 1);
-          else showPanel(idx - 1);
-        }
-      }, false);
     }
 
     document.onkeydown = function (e) {
       e = e || window.event;
       var k = e.keyCode || e.which;
-      if (k === 27 && floatOpen) { hideFloat(); return; }
-      if (!wantPanels() || floatOpen) return;
-      if (k === 37) showPanel(idx - 1);
-      if (k === 39) showPanel(idx + 1);
+      if (k === 27 && floatOpen) hideFloat();
     };
 
     refreshSec = parseInt(qs("refresh") || "0", 10);

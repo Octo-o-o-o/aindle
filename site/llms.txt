@@ -2,7 +2,7 @@
 
 > A private, read-only AI work board for a desk — or a jailbroken Kindle Oasis 1 lock screen.
 
-Aindle is self-hosted. This website is an introduction plus mock demos. The hub stays on your LAN or Tailscale. It shows quotas, 24h/7d token spend, and in-progress / awaiting-confirmation / background tasks. It does not track productivity, approve work on the Kindle, or display prompts, replies, paths, or secrets.
+Aindle is self-hosted. This website is an introduction. The hub stays on your LAN or Tailscale. It shows quotas, 24h/7d token spend, and in-progress / awaiting-confirmation / background tasks. It does not track productivity, approve work on the Kindle, or display prompts, replies, paths, or secrets.
 
 ## Start
 
@@ -23,8 +23,6 @@ Same commands on macOS and Windows (PowerShell or cmd), from this clone.
 
 The hub seeds mock data on host `mbp`. `init --local` stamps this computer's name and leaves every tool commented, so the first live push does not replace the sample. Uncomment only tools you already use, then `npx aindle agent --loop 60`. Set `AINDLE_SEED_MOCK=0` to hide the sample.
 
-On a Kindle Oasis or Scribe, open the Experimental Browser and type `https://aindle.octoooo.com/oasis` or `https://aindle.octoooo.com/scribe` to see the mock board on that device.
-
 Optional lock-screen loop: copy `hub.env.example` to `hub.env`, then set the LAN URL on port `8787` (same as the hub). Never `127.0.0.1` on the device.
 
 ## Docs
@@ -33,10 +31,6 @@ Optional lock-screen loop: copy `hub.env.example` to `hub.env`, then set the LAN
 - [GitHub README](https://github.com/Octo-o-o-o/aindle/blob/main/README.md)
 - [简体中文 README](https://github.com/Octo-o-o-o/aindle/blob/main/README.zh-CN.md)
 - [AGENTS.md](https://github.com/Octo-o-o-o/aindle/blob/main/AGENTS.md)
-- [Oasis on-device demo](https://aindle.octoooo.com/oasis)
-- [Scribe on-device demo](https://aindle.octoooo.com/scribe)
-- [Simple demo](https://aindle.octoooo.com/demo/oasis-monitor-simple.html?mode=full)
-- [Complex demo](https://aindle.octoooo.com/demo/oasis-monitor.html?mode=full)
 
 ## What it is not
 

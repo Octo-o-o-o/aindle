@@ -1,22 +1,15 @@
-# 官网 Hero 设备摄影
+# 官网 Hero 场景图
 
-首页右侧设备图来自 Codex 内置 imagegen，不是 CSS 壳、也不是用户随拍。屏内是通用 Mock 数据。
+首页右侧是一张小屏与大屏同框的桌面场景图，不再用 Oasis / Scribe 两张示意图切换。屏内是生成图里的示意界面，不是真机截图；准确的锁屏 mock 在「屏上长这样」，用 `docs/screenshots/eink-local.png`。
 
 ## 文件
 
 | 文件 | 尺寸 | 用途 |
 |---|---|---|
-| `hero-oasis-source.png` | 1122×1402 | Oasis 原图，保留在仓库，不发布到 `dist/site` |
-| `hero-scribe-source.png` | 1122×1402 | Scribe 原图，保留在仓库，不发布到 `dist/site` |
-| `hero-oasis.jpg` | 1122×1402 | 官网默认 Hero 图 |
-| `hero-scribe.jpg` | 1122×1402 | 官网手动切换图 |
+| `hero-desk.jpg` | 1024×576 | 当前官网 Hero，发布到 `dist/site/images/hero-desk.jpg` |
+| `hero-oasis-source.png` | 1122×1402 | 早期 Oasis 原图，保留在仓库，不发布 |
+| `hero-scribe-source.png` | 1122×1402 | 早期 Scribe 原图，保留在仓库，不发布 |
+| `hero-oasis.jpg` | 1122×1402 | 早期设备摄影，不再用于 Hero |
+| `hero-scribe.jpg` | 1122×1402 | 早期设备摄影，不再用于 Hero |
 
-## 当前版本（v2，2026-09-05）
-
-v1 的暖墙 + 木桌实景与页面的平面纸张质感割裂。v2 改为**无缝暖纸摄影棚背景**（纯色 #f1ecdf、无墙脚线、无木纹、无道具），两张图共用同一布光与色调，切换时不跳色；设备像印在纸面上的图版，与官网的纸墨编辑风格一体。
-
-生成：Codex CLI `codex exec` 调用内置 imagegen，输出 1024×1536 PNG，居中裁为 4:5 后用 `sips` 重采样到 1122×1402，再转 JPEG（quality 89）。不叠加 UI、不裁设备、不重绘。构建把两张 JPEG 拷到 `dist/site/images/`。
-
-最终 prompt 见 [`docs/plan/hero-device-photography/oasis-prompt-v2.txt`](../../docs/plan/hero-device-photography/oasis-prompt-v2.txt) 与 [`scribe-prompt-v2.txt`](../../docs/plan/hero-device-photography/scribe-prompt-v2.txt)。v1 的实景 prompt 保留在同目录 `oasis-prompt.txt` / `scribe-prompt.txt`。
-
-Scribe 图只是场景示意，不表示已验证 Scribe 锁屏安装。
+`hero-desk.jpg` 是场景示意，不表示已验证 Scribe 锁屏安装，也不代替 `eink-local.png`。

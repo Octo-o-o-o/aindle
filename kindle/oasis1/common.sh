@@ -108,3 +108,72 @@ deadline_left() {
   [ "$left" -lt 0 ] && left=0
   echo "$left"
 }
+
+# Snapshot wirelessEnable before the loop toggles the radio. 1 = on, 0 =
+# airplane / wireless off. Unknown reads count as 1 (user usually wants net).
+# remember only once per lock session so a later radio_off does not overwrite.
+radio_prev_file() {
+  echo "${RADIO_PREV:-$ROOT/radio.prev}"
+}
+
+radio_prev_write() {
+  dest=$1
+  val=$2
+  [ -f "$dest" ] && return 0
+  case "$val" in
+    0|1) echo "$val" > "$dest" ;;
+    *) echo 1 > "$dest" ;;
+  esac
+}
+
+radio_prev_read() {
+  dest=$1
+  [ -f "$dest" ] || return 1
+  tr -d ' \n\r' < "$dest"
+}
+
+radio_prev_clear() {
+  dest=$1
+  rm -f "$dest"
+}
+
+radio_read() {
+  v=$(lipc-get-prop com.lab126.cmd wirelessEnable 2>/dev/null | tr -d ' \n\r')
+  case "$v" in
+    1) echo 1 ;;
+    0) echo 0 ;;
+    *) echo x ;;
+  esac
+}
+
+radio_apply() {
+  case "$1" in
+    1)
+      lipc-set-prop com.lab126.cmd wirelessEnable 1 >/dev/null 2>&1 || true
+      lipc-set-prop com.lab126.wifid enable 1 >/dev/null 2>&1 || true
+      ;;
+    0)
+      lipc-set-prop com.lab126.cmd wirelessEnable 0 >/dev/null 2>&1 || true
+      ;;
+  esac
+}
+
+remember_radio() {
+  [ "${UNLOCK_RESTORE_RADIO:-1}" = 0 ] && return 0
+  radio_prev_write "$(radio_prev_file)" "$(radio_read)"
+}
+
+# Apply the saved switch. keep=1 leaves the file (false unlock / still checking).
+restore_radio() {
+  keep=${1:-0}
+  [ "${UNLOCK_RESTORE_RADIO:-1}" = 0 ] && return 0
+  dest=$(radio_prev_file)
+  prev=$(radio_prev_read "$dest") || return 0
+  radio_apply "$prev"
+  if [ "$keep" != 1 ]; then
+    radio_prev_clear "$dest"
+  fi
+  if [ -n "${LOG:-}" ]; then
+    echo "[aindle] restore radio was=${prev} keep=${keep} $(date)" >> "$LOG"
+  fi
+}

@@ -30,7 +30,7 @@ function findChrome() {
 const SHOTS = [
   {
     file: 'simple-oasis.png',
-    url: `${BASE}/oasis-monitor-simple.html?device=oasis1&kindle=1&page=quota`,
+    url: `${BASE}/oasis-monitor-simple.html?device=oasis1&kindle=1`,
     width: 1072,
     height: 1448,
   },
@@ -42,7 +42,7 @@ const SHOTS = [
   },
   {
     file: 'complex-oasis.png',
-    url: `${BASE}/oasis-monitor.html?device=oasis1&kindle=1&page=quota`,
+    url: `${BASE}/oasis-monitor.html?device=oasis1&kindle=1`,
     width: 1072,
     height: 1448,
   },

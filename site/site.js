@@ -42,29 +42,4 @@
       });
     });
   });
-
-  var photo = document.getElementById('hero-device-photo');
-  var caption = document.getElementById('hero-device-caption');
-  var switches = document.querySelectorAll('.hero-device-switch [data-device]');
-  function selectDevice(btn) {
-    if (!photo || !btn) return;
-    var src = btn.getAttribute('data-src');
-    var alt = btn.getAttribute('data-alt');
-    var cap = btn.getAttribute('data-caption');
-    if (src) photo.setAttribute('src', src);
-    if (alt) photo.setAttribute('alt', alt);
-    var width = btn.getAttribute('data-width');
-    var height = btn.getAttribute('data-height');
-    if (width) photo.setAttribute('width', width);
-    if (height) photo.setAttribute('height', height);
-    if (caption && cap) caption.textContent = cap;
-    switches.forEach(function (item) {
-      item.setAttribute('aria-pressed', item === btn ? 'true' : 'false');
-    });
-  }
-  switches.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      selectDevice(btn);
-    });
-  });
 })();

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 官网浏览器 QA：按 Pages 规则套 _headers，桌面 / 手机 / 320px，复制、Demo、dash.png。
+// 官网浏览器 QA：按 Pages 规则套 _headers，桌面 / 手机 / 320px，复制、Hero 场景图、dash.png。
 // 普通运行只写 .tmp/website-branding/；--update-screenshots 才更新 docs/screenshots。
 import fs from 'node:fs';
 import http from 'node:http';
@@ -173,13 +173,9 @@ async function checkCopy(page, errors) {
 
 async function heroState(page) {
   return page.evaluate(() => {
-    const photo = document.getElementById('hero-device-photo');
-    const cap = document.getElementById('hero-device-caption');
-    const group = document.querySelector('.hero-device-switch');
-    const oasis = document.querySelector('.hero-device-switch [data-device="oasis"]');
-    const scribe = document.querySelector('.hero-device-switch [data-device="scribe"]');
-    const frame = document.querySelector('.hero-device-frame');
-    const figure = document.querySelector('figure.hero-device');
+    const photo = document.getElementById('hero-photo');
+    const figure = document.querySelector('figure.hero-scene');
+    const cap = figure ? figure.querySelector('figcaption') : null;
     return {
       src: photo ? photo.getAttribute('src') : '',
       alt: photo ? photo.getAttribute('alt') : '',
@@ -187,100 +183,27 @@ async function heroState(page) {
       nh: photo ? photo.naturalHeight : 0,
       complete: photo ? photo.complete : false,
       caption: cap ? String(cap.textContent || '').replace(/\s+/g, ' ').trim() : '',
-      groupLabel: group ? group.getAttribute('aria-label') : '',
-      oasisPressed: oasis ? oasis.getAttribute('aria-pressed') : null,
-      scribePressed: scribe ? scribe.getAttribute('aria-pressed') : null,
-      oasisTag: oasis ? oasis.tagName : '',
-      scribeTag: scribe ? scribe.tagName : '',
-      oasisLabel: oasis ? String(oasis.textContent || '').trim() : '',
-      scribeLabel: scribe ? String(scribe.textContent || '').trim() : '',
-      frameH: frame ? Math.round(frame.getBoundingClientRect().height) : 0,
+      switchCount: document.querySelectorAll('.hero-device-switch').length,
       figureH: figure ? Math.round(figure.getBoundingClientRect().height) : 0,
     };
   });
 }
 
-async function waitHeroSrc(page, needle, errors, label) {
-  try {
-    await page.waitForFunction(
-      (part) => {
-        const photo = document.getElementById('hero-device-photo');
-        return Boolean(
-          photo &&
-          String(photo.getAttribute('src') || '').includes(part) &&
-          photo.complete &&
-          photo.naturalWidth > 0,
-        );
-      },
-      needle,
-      { timeout: 8000 },
-    );
-  } catch {
-    errors.push(`${label} image did not load`);
-  }
-}
-
-async function checkHeroSwitch(page, errors, opts) {
+async function checkHeroPhoto(page, errors) {
   const initial = await heroState(page);
-  if (initial.groupLabel !== '设备示意图') errors.push(`hero group label ${initial.groupLabel}`);
-  if (initial.oasisTag !== 'BUTTON' || initial.scribeTag !== 'BUTTON') {
-    errors.push(`hero controls are not buttons (${initial.oasisTag}/${initial.scribeTag})`);
+  if (!String(initial.src).includes('hero-desk.jpg')) errors.push(`hero src ${initial.src}`);
+  if (initial.nw !== 1024 || initial.nh !== 576) {
+    errors.push(`hero natural size ${initial.nw}x${initial.nh}, expected 1024x576`);
   }
-  if (initial.oasisLabel !== 'Kindle Oasis' || initial.scribeLabel !== 'Kindle Scribe') {
-    errors.push(`hero button labels ${initial.oasisLabel}/${initial.scribeLabel}`);
+  if (!initial.complete) errors.push('hero photo not complete');
+  if (!/场景示意/.test(initial.caption) || !/示例数据/.test(initial.caption)) {
+    errors.push(`hero caption ${initial.caption}`);
   }
-  if (!String(initial.src).includes('eink-local.png')) errors.push(`default hero src ${initial.src}`);
-  if (initial.nw < 1 || initial.nh < 1) errors.push(`hero natural size ${initial.nw}x${initial.nh}`);
-  if (initial.oasisPressed !== 'true' || initial.scribePressed !== 'false') {
-    errors.push(`default pressed oasis=${initial.oasisPressed} scribe=${initial.scribePressed}`);
+  if (!/小屏/.test(initial.alt) || !/大屏/.test(initial.alt)) {
+    errors.push(`hero alt ${initial.alt}`);
   }
-  if (!/Oasis/.test(initial.caption) || !/锁屏/.test(initial.caption) || !/Mock/.test(initial.caption)) {
-    errors.push(`default caption ${initial.caption}`);
-  }
-
-  await page.locator('.hero-device-switch [data-device="scribe"]').click();
-  await waitHeroSrc(page, 'hero-scribe.png', errors, 'scribe');
-  const afterScribe = await heroState(page);
-  if (!String(afterScribe.src).includes('hero-scribe.png')) errors.push(`scribe src ${afterScribe.src}`);
-  if (afterScribe.nw < 1 || afterScribe.nh < 1) errors.push(`scribe natural size ${afterScribe.nw}x${afterScribe.nh}`);
-  if (afterScribe.scribePressed !== 'true' || afterScribe.oasisPressed !== 'false') {
-    errors.push(`scribe pressed oasis=${afterScribe.oasisPressed} scribe=${afterScribe.scribePressed}`);
-  }
-  if (!/Scribe/.test(afterScribe.caption) || !/看板/.test(afterScribe.caption) || !/Mock/.test(afterScribe.caption)) {
-    errors.push(`scribe caption ${afterScribe.caption}`);
-  }
-  if (!/Scribe/.test(afterScribe.alt) || !/Mock/.test(afterScribe.alt)) {
-    errors.push(`scribe alt ${afterScribe.alt}`);
-  }
-
-  let scribeShot = null;
-  if (opts.scribeShot) {
-    fs.mkdirSync(path.dirname(opts.scribeShot), { recursive: true });
-    await page.screenshot({ path: opts.scribeShot, fullPage: false });
-    scribeShot = path.relative(ROOT, opts.scribeShot);
-  }
-
-  await page.locator('.hero-device-switch [data-device="oasis"]').click();
-  await waitHeroSrc(page, 'eink-local.png', errors, 'oasis-roundtrip');
-  const back = await heroState(page);
-  if (!String(back.src).includes('eink-local.png')) errors.push(`roundtrip oasis src ${back.src}`);
-  if (back.nw < 1 || back.nh < 1) errors.push(`roundtrip oasis natural size ${back.nw}x${back.nh}`);
-  if (back.oasisPressed !== 'true' || back.scribePressed !== 'false') {
-    errors.push(`roundtrip pressed oasis=${back.oasisPressed} scribe=${back.scribePressed}`);
-  }
-  if (!/Oasis/.test(back.caption) || !String(back.alt).includes('Oasis')) {
-    errors.push(`roundtrip caption/alt ${back.caption} / ${back.alt}`);
-  }
-  const frameHeights = [initial.frameH, afterScribe.frameH, back.frameH];
-  const figureHeights = [initial.figureH, afterScribe.figureH, back.figureH];
-  if (Math.max(...frameHeights) - Math.min(...frameHeights) > 2) {
-    errors.push(`hero frame height unstable ${frameHeights.join(',')}`);
-  }
-  if (Math.max(...figureHeights) - Math.min(...figureHeights) > 2) {
-    errors.push(`hero figure height unstable ${figureHeights.join(',')}`);
-  }
-
-  return { initial, afterScribe, back, scribeShot };
+  if (initial.switchCount !== 0) errors.push('hero still has device switch');
+  return { initial };
 }
 
 async function checkPage(context, url, opts) {
@@ -326,10 +249,12 @@ async function checkPage(context, url, opts) {
       .filter((img) => !img.complete || img.naturalWidth === 0)
       .map((img) => img.getAttribute('src')),
     copyBtn: Boolean(document.querySelector('[data-copy]')),
-    demo: Boolean(document.querySelector('a[href*="oasis-monitor-simple.html"]')),
+    demo: Boolean(
+      document.querySelector('a[href*="oasis-monitor-simple.html"], a[href="/oasis"], a[href="/scribe"]'),
+    ),
     github: Boolean(document.querySelector('a[href="https://github.com/Octo-o-o-o/aindle"]')),
     heroSize: (() => {
-      const img = document.getElementById('hero-device-photo') || document.querySelector('.hero-device img');
+      const img = document.getElementById('hero-photo') || document.querySelector('.hero-scene img');
       return img
         ? { w: img.naturalWidth, h: img.naturalHeight, src: img.getAttribute('src') }
         : null;
@@ -345,6 +270,7 @@ async function checkPage(context, url, opts) {
   if (metrics.broken.length) errors.push(`broken images: ${metrics.broken.join(', ')}`);
   if (opts.expectCopy && !metrics.copyBtn) errors.push('missing copy button');
   if (opts.expectDemo && !metrics.demo) errors.push('missing demo link');
+  if (opts.forbidDemo && metrics.demo) errors.push('homepage still promotes demo URL');
   if (opts.expectGithub && !metrics.github) errors.push('missing github link');
   if (opts.expectHero && (!metrics.heroSize || metrics.heroSize.w < 1 || metrics.heroSize.h < 1)) {
     errors.push(`hero photo ${JSON.stringify(metrics.heroSize)}, expected loaded natural size`);
@@ -355,30 +281,10 @@ async function checkPage(context, url, opts) {
   }
   let hero = null;
   if (opts.expectHero) {
-    hero = await checkHeroSwitch(page, errors, { scribeShot: opts.scribeShot });
+    hero = await checkHeroPhoto(page, errors);
   }
   let copy = null;
   if (opts.clickCopy) copy = await checkCopy(page, errors);
-  let navigated = null;
-  if (opts.followDemo) {
-    await page.locator('a[href="/oasis"]').first().click();
-    try {
-      await page.waitForURL(/oasis-monitor-simple\.html|\/oasis/, { timeout: 10_000 });
-      await page.waitForFunction(
-        () => /Claude|Codex/.test(document.body.innerText),
-        null,
-        { timeout: 10_000 },
-      );
-      navigated = {
-        url: page.url(),
-        visible: await page.evaluate(() => /Claude|Codex/.test(document.body.innerText)),
-      };
-      if (!navigated.visible) errors.push('demo navigation content not visible');
-    } catch (err) {
-      errors.push(`demo navigation ${err && err.message ? err.message : err}`);
-      navigated = { url: page.url(), visible: false };
-    }
-  }
   for (const rec of consoleLines) {
     if (rec.type !== 'error') continue;
     if (isExpectedMainDocument404Console(rec, url, res, opts.allow404)) continue;
@@ -401,7 +307,6 @@ async function checkPage(context, url, opts) {
     console: consoleLines,
     shot: opts.shot ? path.relative(ROOT, opts.shot) : null,
     copy,
-    navigated,
     hero,
   };
 }
@@ -466,15 +371,15 @@ try {
     fail('X-Frame-Options not applied');
   }
 
-  evidence.headers.heroOasis = await inspectPath('/images/eink-local.png');
-  evidence.headers.heroScribe = await inspectPath('/images/hero-scribe.png');
-  if (evidence.headers.heroOasis.status !== 200) fail(`hero oasis png status ${evidence.headers.heroOasis.status}`);
-  if (evidence.headers.heroScribe.status !== 200) fail(`hero scribe png status ${evidence.headers.heroScribe.status}`);
-  if (!/image\/png/i.test(String(evidence.headers.heroOasis.type || ''))) {
-    fail(`hero oasis type ${evidence.headers.heroOasis.type}`);
+  evidence.headers.heroDesk = await inspectPath('/images/hero-desk.jpg');
+  evidence.headers.lookEink = await inspectPath('/images/eink-local.png');
+  if (evidence.headers.heroDesk.status !== 200) fail(`hero desk jpg status ${evidence.headers.heroDesk.status}`);
+  if (evidence.headers.lookEink.status !== 200) fail(`look eink png status ${evidence.headers.lookEink.status}`);
+  if (!/image\/jpeg/i.test(String(evidence.headers.heroDesk.type || ''))) {
+    fail(`hero desk type ${evidence.headers.heroDesk.type}`);
   }
-  if (!/image\/png/i.test(String(evidence.headers.heroScribe.type || ''))) {
-    fail(`hero scribe type ${evidence.headers.heroScribe.type}`);
+  if (!/image\/png/i.test(String(evidence.headers.lookEink.type || ''))) {
+    fail(`look eink type ${evidence.headers.lookEink.type}`);
   }
 
   const operateHtml = fs.readFileSync(path.join(ROOT, 'kindle/oasis1/operate.html'), 'utf8');
@@ -536,20 +441,18 @@ try {
       width: 1440,
       height: 1000,
       shot: path.join(SHOT, 'desktop.png'),
-      scribeShot: path.join(SHOT, 'desktop-scribe.png'),
       expectCopy: true,
-      expectDemo: true,
+      forbidDemo: true,
       expectGithub: true,
       expectHero: true,
       clickCopy: true,
-      followDemo: true,
     });
     const mobile = await checkPage(context, origin + '/', {
       width: 390,
       height: 844,
       shot: path.join(SHOT, 'mobile.png'),
       expectCopy: true,
-      expectDemo: true,
+      forbidDemo: true,
       expectGithub: true,
       expectHero: true,
     });
@@ -558,7 +461,7 @@ try {
       height: 720,
       shot: path.join(SHOT, 'narrow-320.png'),
       expectCopy: true,
-      expectDemo: true,
+      forbidDemo: true,
       expectHero: true,
     });
     const demo = await checkPage(context, origin + '/demo/oasis-monitor-simple.html?mode=full', {
@@ -583,13 +486,9 @@ try {
     evidence.copy = desktop.copy;
     evidence.hero = {
       jpeg: {
-        oasis: {
-          status: evidence.headers.heroOasis.status,
-          type: evidence.headers.heroOasis.type,
-        },
-        scribe: {
-          status: evidence.headers.heroScribe.status,
-          type: evidence.headers.heroScribe.type,
+        desk: {
+          status: evidence.headers.heroDesk.status,
+          type: evidence.headers.heroDesk.type,
         },
       },
       desktop: desktop.hero,
@@ -599,7 +498,6 @@ try {
     for (const [name, result] of Object.entries(evidence.pages)) {
       for (const err of result.errors || []) fail(`${name}: ${err}`);
     }
-    if (!desktop.navigated || !desktop.navigated.visible) fail('desktop did not navigate into a live demo');
     if (notFound.metrics && !/这一页不在书里/.test(notFound.metrics.h1 || '')) {
       fail('404 heading missing');
     }

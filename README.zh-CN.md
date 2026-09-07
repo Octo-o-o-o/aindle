@@ -96,7 +96,7 @@ npx aindle agent --mock       # 推一次内置样例
 2. 把 `kindle/oasis1/` 拷到设备（`/mnt/us/aindle`）。
 3. 在设备上把 `hub.env.example` 复制成 `hub.env`，再改 `HUB=http://192.168.x.x:8787`（只改 IP，端口保持 `8787`），以及可选 `TOKEN`。
 4. KUAL → 开锁屏监控。锁屏看板。
-5. 翻页键只在锁屏时切 **本机 / 进行中 / 中转**。解锁 = 原厂 Kindle。
+5. 翻页键只在锁屏时切 **本机 / 进行中 / 中转**。解锁 = 原厂 Kindle，并恢复锁屏前的无线状态（不要停在飞行模式）。
 
 PNG 正好 **1072×1448**。出图需要 hub 那台机器上有 Chrome / Chromium / Edge / Brave（不在默认路径就设 `AINDLE_CHROME`）。默认 10 分钟一刷，有进行中任务时 5 分钟。
 

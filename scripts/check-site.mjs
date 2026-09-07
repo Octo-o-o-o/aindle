@@ -39,7 +39,7 @@ const ALLOW = [
   /^site\.js$/,
   /^brand\/icon-(32|48|180|192|512)\.png$/,
   /^brand\/og\.png$/,
-  /^images\/hero-scribe\.png$/,
+  /^images\/hero-desk\.jpg$/,
   /^images\/eink-local\.png$/,
   /^demo\/index\.html$/,
   /^demo\/oasis-monitor\.html$/,
@@ -100,7 +100,7 @@ function mustExist(rel) {
   'brand/icon-192.png',
   'brand/icon-512.png',
   'brand/og.png',
-  'images/hero-scribe.png',
+  'images/hero-desk.jpg',
   'images/eink-local.png',
   'demo/oasis-monitor.html',
   'demo/oasis-monitor-simple.html',
@@ -117,6 +117,29 @@ function pngSize(rel) {
   return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
 }
 
+function jpegSize(rel) {
+  const buf = fs.readFileSync(path.join(OUT, rel));
+  if (buf[0] !== 0xff || buf[1] !== 0xd8) {
+    fail(`${rel} is not a JPEG`);
+    return { w: 0, h: 0 };
+  }
+  let offset = 2;
+  while (offset + 9 < buf.length) {
+    if (buf[offset] !== 0xff) {
+      fail(`${rel} JPEG marker sync lost`);
+      return { w: 0, h: 0 };
+    }
+    const marker = buf[offset + 1];
+    const size = buf.readUInt16BE(offset + 2);
+    if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+      return { w: buf.readUInt16BE(offset + 7), h: buf.readUInt16BE(offset + 5) };
+    }
+    offset += 2 + size;
+  }
+  fail(`${rel} JPEG size not found`);
+  return { w: 0, h: 0 };
+}
+
 for (const size of [32, 48, 180, 192, 512]) {
   const dim = pngSize(`brand/icon-${size}.png`);
   if (dim.w !== size || dim.h !== size) fail(`brand/icon-${size}.png is ${dim.w}x${dim.h}`);
@@ -125,8 +148,8 @@ const og = pngSize('brand/og.png');
 if (og.w !== 1200 || og.h !== 630) fail(`brand/og.png is ${og.w}x${og.h}, expected 1200x630`);
 const eink = pngSize('images/eink-local.png');
 if (eink.w !== 1072 || eink.h !== 1448) fail(`images/eink-local.png is ${eink.w}x${eink.h}, expected 1072x1448`);
-const scribe = pngSize('images/hero-scribe.png');
-if (scribe.w !== 1860 || scribe.h !== 2480) fail(`images/hero-scribe.png is ${scribe.w}x${scribe.h}, expected 1860x2480`);
+const hero = jpegSize('images/hero-desk.jpg');
+if (hero.w !== 1024 || hero.h !== 576) fail(`images/hero-desk.jpg is ${hero.w}x${hero.h}, expected 1024x576`);
 
 const index = fs.readFileSync(path.join(OUT, 'index.html'), 'utf8');
 const requiredMeta = [
@@ -161,18 +184,15 @@ const requiredMeta = [
   'Node.js 22',
   '/images/eink-local.png',
   '/llms.txt',
-  '/images/hero-scribe.png',
+  '/images/hero-desk.jpg',
+  'width="1024"',
+  'height="576"',
   'width="1072"',
   'height="1448"',
-  'aria-label="设备示意图"',
+  'id="hero-photo"',
+  '场景示意',
   '锁屏 · 1072×1448 · Mock 数据',
   'Kindle Oasis',
-  'Kindle Scribe',
-  '/demo/oasis-monitor-simple.html?mode=full',
-  'https://aindle.octoooo.com/oasis',
-  'https://aindle.octoooo.com/scribe',
-  '实验浏览器',
-  '在自己的 Kindle 上看模拟效果',
   'https://github.com/Octo-o-o-o/aindle',
 ];
 for (const needle of requiredMeta) {
@@ -190,6 +210,13 @@ for (const banned of [
   'oasis-shell',
   'oasis-screen',
   'oasis-keys',
+  'hero-device-switch',
+  '设备示意图',
+  '在自己的 Kindle 上看模拟效果',
+  '/demo/oasis-monitor-simple.html?mode=full',
+  'https://aindle.octoooo.com/oasis',
+  'https://aindle.octoooo.com/scribe',
+  '/images/hero-scribe.png',
   '/images/website-eink-demo.png',
 ]) {
   if (index.includes(banned)) fail(`index.html still has internal copy ${banned}`);

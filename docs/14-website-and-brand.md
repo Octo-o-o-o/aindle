@@ -14,14 +14,15 @@
 | `assets/brand/icon-512.png` | 512 | manifest |
 | `assets/brand/favicon.ico` | 16/32/48 | ICO 容器（内嵌 PNG，保留 alpha） |
 | `assets/brand/og.png` | 1200×630 | Open Graph / Twitter 卡 |
+| `assets/website/hero-desk.jpg` | 1024×576 | 官网 Hero 场景图：小屏与大屏同框，场景示意。构建拷到 `dist/site/images/hero-desk.jpg` |
 | `assets/website/hero-oasis-source.png` | 1122×1402 | 内置 imagegen 的 Oasis 摄影原图，不进 dist |
 | `assets/website/hero-scribe-source.png` | 1122×1402 | 内置 imagegen 的 Scribe 摄影原图，不进 dist |
 | `assets/website/hero-oasis.jpg` | 1122×1402 | 早期 imagegen 设备摄影，不再用于 Hero |
 | `assets/website/hero-scribe.jpg` | 1122×1402 | 早期 imagegen 设备摄影，不再用于 Hero |
-| `docs/screenshots/eink-local.png` | 1072×1448 | 当前锁屏 mock（`demo/mock-view.json` → `renderEinkHtml`）。README 主图，官网 Hero 默认图与「屏上长这样」。用 `node --import tsx scripts/capture-readme-screenshots.mjs` 重拍。 |
-| `docs/screenshots/complex-scribe.png` | 1860×2480 | 官网 Hero 切换到 Scribe 时用的 Hub 看板 mock（单栏账本） |
+| `docs/screenshots/eink-local.png` | 1072×1448 | 当前锁屏 mock（`demo/mock-view.json` → `renderEinkHtml`）。README 主图，官网「屏上长这样」。用 `node --import tsx scripts/capture-readme-screenshots.mjs` 重拍。 |
+| `docs/screenshots/complex-scribe.png` | 1860×2480 | README：复杂 mock 的 Scribe 大屏账本 |
 | `docs/screenshots/simple-oasis.png` | 1072×1448 | README：Hub 看板，Oasis 1 画布（`?device=oasis1&kindle=1`） |
-| `docs/screenshots/simple-scribe.png` | 1860×2480 | README：Hub 看板，Scribe 画布（`?device=scribe`）单栏账本 |
+| `docs/screenshots/simple-scribe.png` | 1860×2480 | README：Hub 看板，Scribe 画布（`?device=scribe`）大屏账本 |
 | `docs/screenshots/website-eink-demo.png` | 1072×1448 | 早期 CSS 壳所用的 Hub `/dash.png` mock 记录，不再用于 Hero。不要覆盖 `eink-local.png` |
 
 机械缩放由 [`scripts/export-brand-icons.mjs`](../scripts/export-brand-icons.mjs) 用 Node `sharp` 完成，不重绘 SVG、不用 Python。Cloudflare 构建**不要**跑它。运行时 Hub / Demo 只使用已经拷进 `packages/hub/public/` 与 `demo/` 的副本。eink PNG 用 `packages/hub/src/brand-mark.ts` 里的 data URI，不依赖相对路径。
@@ -53,7 +54,7 @@ python3 -m http.server 4173 --directory dist/site
 # 也可用 wrangler pages dev dist/site 看真实 Pages headers。
 ```
 
-`site:build` 只用 Node 标准库，输出 `dist/site`。不要把 `config/`、`.env`、Hub、真实 snapshot 或整个仓库拷进去。设备上输入的短地址是 `/oasis` 与 `/scribe`：构建时从简单 mock 生成完整 HTML，把设备档写进 `AINDLE_PRESET`，不经过 meta refresh、query string，也不引用 PNG/ICO（Kindle 实验浏览器会把这些当成下载）。电脑上的完整示例仍是 `/demo/oasis-monitor-simple.html?mode=full` 等。公开站还带 `/llms.txt`（给编程 agent）和 `/images/eink-local.png`（当前锁屏 mock）。
+`site:build` 只用 Node 标准库，输出 `dist/site`。不要把 `config/`、`.env`、Hub、真实 snapshot 或整个仓库拷进去。首页不再推广用短地址在设备浏览器里预览 Demo。`/oasis` 与 `/scribe` 仍会生成完整 HTML（设备档写进 `AINDLE_PRESET`，不经过 meta refresh、query string，也不引用 PNG/ICO），给旧链接用，不作为官网入口。公开站还带 `/llms.txt`（给编程 agent）、`/images/hero-desk.jpg`（Hero 场景图）和 `/images/eink-local.png`（锁屏 mock）。
 
 ## Cloudflare Pages（Git integration）
 

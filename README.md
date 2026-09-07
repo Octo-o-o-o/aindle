@@ -96,7 +96,7 @@ Primary path: **`/dash.png` + FBInk**. Scripts live in [`kindle/oasis1/`](kindle
 2. Copy `kindle/oasis1/` to the device (`/mnt/us/aindle`).
 3. Copy `hub.env.example` to `hub.env` on the device, then set `HUB=http://192.168.x.x:8787` (change the IP, keep port `8787`) and optional `TOKEN`.
 4. KUAL → start lock-screen monitor. Lock to see the board.
-5. Page-turn keys switch **local / now / relay** only while locked. Unlock = stock Kindle.
+5. Page-turn keys switch **local / now / relay** only while locked. Unlock = stock Kindle, and the radio goes back to whatever it was before that lock (so you do not stay in airplane mode).
 
 PNG is exactly **1072×1448**. The hub host needs Chrome, Chromium, Edge, or Brave (`AINDLE_CHROME` if it is not in the default path). Default refresh: 10 minutes idle, 5 minutes when a task is busy.
 
