@@ -59,7 +59,7 @@ export function loadRegistry(filePath?: string): RegistryFile {
   const p = resolveRegistryPath(filePath);
   if (!fs.existsSync(p)) {
     throw new Error(
-      `registry not found: ${p}\nRun \`aindle init\` or copy config/registry.example.yaml to ./config/registry.yaml or ~/.config/aindle/registry.yaml`,
+      `registry not found: ${p}\nFrom the repo root: npx aindle init --local\nOr copy config/registry.example.yaml to ./config/registry.yaml (keep only tools you use).`,
     );
   }
   const raw = parseYaml(fs.readFileSync(p, 'utf8')) as RegistryFile;

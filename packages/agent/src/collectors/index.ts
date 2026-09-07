@@ -33,7 +33,29 @@ export async function collectSubscription(entry: RegistrySubscription): Promise<
   return many[0] ?? collectGlm(entry);
 }
 
+export function failedSubscription(entry: RegistrySubscription): Subscription {
+  return {
+    id: entry.id,
+    tool: String(entry.tool || 'unknown'),
+    label: entry.label,
+    plan: entry.plan,
+    shared: entry.shared,
+    source: entry.tool === 'sub2api' ? 'relay' : 'local',
+    kind: 'quota',
+    windows: [],
+    confidence: 'error',
+  };
+}
+
 export async function collectSubscriptions(entry: RegistrySubscription): Promise<Subscription[]> {
+  try {
+    return await collectSubscriptionsInner(entry);
+  } catch {
+    return [failedSubscription(entry)];
+  }
+}
+
+async function collectSubscriptionsInner(entry: RegistrySubscription): Promise<Subscription[]> {
   switch (entry.tool) {
     case 'claude':
       return [await collectClaude(entry)];

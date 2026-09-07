@@ -167,6 +167,7 @@ async function main(): Promise<void> {
   const cmd = argv[0];
   if (!cmd || cmd === 'help' || cmd === '--help' || cmd === '-h') printHelp();
   if (cmd === 'init') {
+    if (argv.includes('--help') || argv.includes('-h')) printHelp();
     runInit(argv.includes('--local'));
     return;
   }

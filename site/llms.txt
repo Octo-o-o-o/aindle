@@ -13,9 +13,13 @@ npm install
 npm run hub
 ```
 
+The package is not on npm. First `npm run hub` compiles `@aindle/core` if needed. No database or extra Aindle service.
+
 Then open http://127.0.0.1:8787/monitor.html and http://127.0.0.1:8787/eink.html?page=local
 
-Live machines: `npx aindle init --local` then `npx aindle agent --loop 60`.
+`/dash.png` needs Chrome or Chromium on the hub machine.
+
+Live machines (local bin in this clone, not a global npm package): `npx aindle init --local` then `npx aindle agent --loop 60`.
 
 ## Docs
 

@@ -9,7 +9,7 @@
 
 它同时看多台机器、多份订阅：Claude Code / Codex / Cursor / Grok Build / Kimi / ZCode（GLM Coding Plan）/ Gemini / Copilot / Kiro / DeepSeek，以及 Sub2API。屏上是 **限额条**、**近 24 小时 / 7 天 token 消耗**，以及 **进行中 / 待确认 / 后台任务**。它不做精力或绩效追踪，不在 Kindle 上审批或回复，也不展示 prompt、回复、绝对路径或 secret。
 
-下面的图全部来自 **mock 数据**。本地执行 `npm run hub` 后，你会看到同一套布局和内置样例。
+下面的图全部来自 **mock 数据**。`npm install` 之后执行 `npm run hub`，就能看到同一套布局和内置样例。不需要再装数据库、Docker，或任何属于 Aindle 的额外服务。
 
 ## 屏上长这样
 
@@ -27,7 +27,7 @@ Hub 看板按小屏 Kindle（Oasis）和大屏 Kindle（Scribe）来排。一台
 
 ## 开始使用
 
-需要 Node.js 20+。
+需要 **Node.js 20+**。请 **clone 本仓库**——包没有发到 npm。第一次 `npm run hub` 若还没有编译产物，会先编 `@aindle/core`（几秒钟）。
 
 ```bash
 git clone https://github.com/Octo-o-o-o/aindle.git
@@ -40,13 +40,15 @@ npm run hub
 
 - 看板：[http://127.0.0.1:8787/monitor.html](http://127.0.0.1:8787/monitor.html)
 - 锁屏 HTML：[http://127.0.0.1:8787/eink.html?page=local](http://127.0.0.1:8787/eink.html?page=local)
-- 锁屏 PNG：[http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local)
+- 锁屏 PNG：[http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local) —— 这台机器上要有 Chrome / Chromium
 
-到这一步已经能看懂界面。Hub 默认灌一份 mock，避免空屏。只想等真 agent 时设 `AINDLE_SEED_MOCK=0`。
+前两个 HTML 就够对照界面。Hub 默认灌一份 mock，避免空屏。只想等真 agent 时设 `AINDLE_SEED_MOCK=0`。状态在内存里：重启 Hub 会重新灌 mock（除非关掉种子）。
+
+没有 Redis、没有数据库、没有第二个 Aindle 守护进程。Hub 是一个 Node 进程，agent 是另一个。
 
 ### 看自己的机器
 
-另开终端：
+另开终端，仍在 **同一个 clone** 里：
 
 ```bash
 npx aindle init --local
@@ -54,13 +56,19 @@ npx aindle init --local
 npx aindle agent --loop 60
 ```
 
-从 [config/registry.example.yaml](config/registry.example.yaml) 抄。Aindle 不会自动扫遍所有 `~/.claude-*`。填好的 `registry.yaml` 不要提交（已在 gitignore）。
+这里的 `npx aindle` 是仓库里的本地 bin（`scripts/aindle.mjs`），不是 npm 全球包。等价写法：`npm run init`，然后 `npm run agent -- --loop 60`。
+
+也可以手抄 [config/registry.example.yaml](config/registry.example.yaml)。Aindle 不会自动扫遍所有 `~/.claude-*`。用不到的条目删掉——读不到的座位会空着或变 `stale`，不应把整个 agent 打崩。填好的 `registry.yaml` 不要提交（已在 gitignore）。
+
+agent 只读这台机器上你已经登录过的工具（本地文件 / 各家 CLI 自己在用的限额接口）。不需要 Aindle 账号。
 
 ```bash
 npx aindle agent --dry-run    # 只打印 JSON，不 POST
 npx aindle agent --once
 npx aindle agent --mock       # 推一次内置样例
 ```
+
+第二台电脑：在那边再 clone（或拷一份），把 `AINDLE_HUB_URL` 指到 Hub 那台机器，再跑 agent。没有单独的同步服务。
 
 | 环境变量 | 含义 |
 | --- | --- |

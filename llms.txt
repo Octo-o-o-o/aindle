@@ -13,13 +13,15 @@ npm install
 npm run hub
 ```
 
+The package is not on npm. First `npm run hub` compiles `@aindle/core` if needed. No database or extra Aindle service.
+
 Then open:
 
 - Board: http://127.0.0.1:8787/monitor.html
 - Lock-screen HTML: http://127.0.0.1:8787/eink.html?page=local
-- Lock-screen PNG: http://127.0.0.1:8787/dash.png?page=local
+- Lock-screen PNG: http://127.0.0.1:8787/dash.png?page=local (needs Chrome/Chromium)
 
-The hub seeds mock data so the screen is not empty. Live machines:
+The hub seeds mock data so the screen is not empty. Live machines (local bin, not a global npm package):
 
 ```bash
 npx aindle init --local

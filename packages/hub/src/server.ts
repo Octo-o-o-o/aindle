@@ -235,7 +235,7 @@ export function startHub(opts: ServerOptions = {}) {
     console.log('  snapshot:      http://127.0.0.1:%s/snapshot.json', port);
     console.log('  monitor (UI):  http://127.0.0.1:%s/monitor.html?mode=panels', port);
     console.log('  eink HTML:     http://127.0.0.1:%s/eink.html?page=local', port);
-    console.log('  dash PNG:      http://127.0.0.1:%s/dash.png?page=local', port);
+    console.log('  dash PNG:      http://127.0.0.1:%s/dash.png?page=local  (needs Chrome/Chromium)', port);
     if (opts.token) console.log('  auth:          ?token=<hidden>');
     for (const ip of lanAddrs()) {
       console.log('  LAN eink:      http://%s:%s/eink.html?page=local', ip, port);

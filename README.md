@@ -9,7 +9,7 @@
 
 It watches several machines and several subscriptions at once: Claude Code, Codex, Cursor, Grok Build, Kimi, ZCode (GLM Coding Plan), Gemini, Copilot, Kiro, DeepSeek, plus Sub2API. The screen shows **quota bars**, **24h / 7d token spend**, and **in progress / awaiting confirmation / background tasks**. It does not track “productivity”, approve anything on the Kindle, or put prompts, replies, paths, or secrets on the screen.
 
-The pictures below are **mock data**. After `npm run hub` you will see the same layout with the built-in sample.
+The pictures below are **mock data**. After `npm install` and `npm run hub` you will see the same layout with the built-in sample. There is no extra Aindle service, database, or Docker.
 
 ## What you see
 
@@ -27,7 +27,7 @@ Three hosts and many seats: [complex Scribe](docs/screenshots/complex-scribe.png
 
 ## Start
 
-Needs Node.js 20+.
+Needs **Node.js 20+**. Clone this repo — the package is **not** on npm. First `npm run hub` compiles `@aindle/core` if needed (a few seconds).
 
 ```bash
 git clone https://github.com/Octo-o-o-o/aindle.git
@@ -40,13 +40,15 @@ Open:
 
 - Board: [http://127.0.0.1:8787/monitor.html](http://127.0.0.1:8787/monitor.html)
 - Lock-screen HTML: [http://127.0.0.1:8787/eink.html?page=local](http://127.0.0.1:8787/eink.html?page=local)
-- Lock-screen PNG: [http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local)
+- Lock-screen PNG: [http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local) — needs Chrome or Chromium on this machine
 
-That is already enough to learn the UI. The hub seeds mock data so the screen is not empty. `AINDLE_SEED_MOCK=0` turns the sample off.
+The two HTML pages are enough to learn the UI. The hub seeds mock data so the screen is not empty. `AINDLE_SEED_MOCK=0` turns the sample off. State is in memory: restarting the hub reseeds the mock unless you turn that off.
+
+No Redis, database, or second Aindle daemon. Hub is one Node process; the agent is another.
 
 ### Watch your own machines
 
-In another terminal:
+In another terminal, from the **same clone**:
 
 ```bash
 npx aindle init --local
@@ -54,13 +56,19 @@ npx aindle init --local
 npx aindle agent --loop 60
 ```
 
-Copy [config/registry.example.yaml](config/registry.example.yaml). Aindle does not auto-scan every `~/.claude-*`. Never commit a filled-in `registry.yaml` (it is gitignored).
+`npx aindle` here is the **local** bin from this repo (`scripts/aindle.mjs`), not a global npm package. Same thing: `npm run init` then `npm run agent -- --loop 60`.
+
+Copy [config/registry.example.yaml](config/registry.example.yaml) if you prefer. Aindle does not auto-scan every `~/.claude-*`. Delete unused entries — leftover seats that cannot be read become empty or `stale`, they should not crash the agent. Never commit a filled-in `registry.yaml` (it is gitignored).
+
+The agent only reads tools you already logged into on that machine (local files / the same unofficial quota endpoints the CLIs use). It does not need an Aindle account.
 
 ```bash
 npx aindle agent --dry-run    # print JSON, do not POST
 npx aindle agent --once
 npx aindle agent --mock       # push the built-in sample once
 ```
+
+A second computer: clone or copy the repo there, point `AINDLE_HUB_URL` at the hub machine, run the agent. There is no sync service.
 
 | Env | Meaning |
 | --- | --- |

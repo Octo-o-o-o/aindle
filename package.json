@@ -5,7 +5,7 @@
   "description": "Kindle-friendly AI usage monitor: hub + agents for Claude, Codex, Cursor, Grok, Kimi, ZCode, Gemini, Copilot, Kiro, DeepSeek, and Sub2API",
   "type": "module",
   "bin": {
-    "aindle": "dist/cli.js"
+    "aindle": "scripts/aindle.mjs"
   },
   "files": [
     "dist",
@@ -30,10 +30,12 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w @aindle/core && npm run build -w @aindle/hub && npm run build -w @aindle/agent",
+    "build": "npm run build -w @aindle/core && npm run build -w @aindle/hub && npm run build -w @aindle/agent && node scripts/build-cli.mjs",
     "test": "npm run test -w @aindle/core",
-    "hub": "node --import tsx packages/hub/src/cli.ts",
-    "agent": "node --import tsx packages/agent/src/cli.ts",
+    "hub": "node scripts/ensure-built.mjs && node --import tsx packages/hub/src/cli.ts",
+    "agent": "node scripts/ensure-built.mjs && node --import tsx packages/agent/src/cli.ts",
+    "init": "node scripts/aindle.mjs init --local",
+    "postinstall": "node scripts/link-local-bin.mjs",
     "check": "bash scripts/check.sh",
     "site:build": "node scripts/build-site.mjs",
     "site:check": "node scripts/check-site.mjs"

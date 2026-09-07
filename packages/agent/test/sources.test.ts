@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { failedSubscription } from '../src/collectors/index.js';
 import {
   bucketsFromAvailableModels,
   bucketsFromRetrieveUserQuota,
@@ -159,5 +160,18 @@ describe('deepseek', () => {
     assert.equal(Math.round(windows[0]!.pct), 19); // (600-487.21)/600
     assert.deepEqual(deepSeekWindows(rows), []); // no budget → no fake bar
     assert.deepEqual(deepSeekBalanceRows({}), []);
+  });
+});
+
+describe('failedSubscription', () => {
+  it('keeps ingest valid when a collector throws', () => {
+    const card = failedSubscription({
+      id: 'cursor-ultra',
+      tool: 'cursor',
+      label: 'Cursor Ultra',
+    });
+    assert.equal(card.confidence, 'error');
+    assert.deepEqual(card.windows, []);
+    assert.equal(card.source, 'local');
   });
 });

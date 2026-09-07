@@ -6,10 +6,10 @@ Private, read-only AI work board. Hub + agents on your LAN (or Tailscale). Optio
 
 ```bash
 npm install
-npm run hub
+npm run hub                      # first run compiles @aindle/core if needed
 # http://127.0.0.1:8787/monitor.html
 # http://127.0.0.1:8787/eink.html?page=local
-# http://127.0.0.1:8787/dash.png?page=local
+# http://127.0.0.1:8787/dash.png?page=local   # needs Chrome/Chromium
 ```
 
 ```bash
@@ -18,6 +18,8 @@ npx aindle agent --loop 60       # live collectors
 npx aindle agent --mock          # push the built-in sample once
 npx aindle agent --dry-run       # print JSON, do not POST
 ```
+
+`npx aindle` is the local bin (`scripts/aindle.mjs`), not an npm-published package. Same: `npm run init` / `npm run agent -- --loop 60`. No database or extra Aindle daemon.
 
 ```bash
 npm run check                    # packages + demo freshness + kindle smoke

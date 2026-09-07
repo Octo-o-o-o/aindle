@@ -161,7 +161,7 @@
       <ol class="steps">
         <li>
           <h3>克隆</h3>
-          <p>需要 Node.js 20 或更高。</p>
+          <p>需要 Node.js 20 或更高。请 clone 仓库：包没有发到 npm。</p>
           <div class="cmd">
             <pre><code id="cmd-clone">git clone https://github.com/Octo-o-o-o/aindle.git
 cd aindle
@@ -171,7 +171,7 @@ npm install</code></pre>
         </li>
         <li>
           <h3>启动 Hub</h3>
-          <p>默认带一份示例数据，避免空屏。打开下面两个地址就能对照 README 里的图。</p>
+          <p>默认带一份示例数据，避免空屏。第一次启动若尚未编译，会先编包装（几秒钟）。打开下面两个地址就能对照 README 里的图。不需要数据库或其它本机服务。</p>
           <div class="cmd">
             <pre><code id="cmd-hub">npm run hub
 # http://127.0.0.1:8787/monitor.html
@@ -181,7 +181,7 @@ npm install</code></pre>
         </li>
         <li>
           <h3>看自己的机器</h3>
-          <p>真实额度从这里来。只开 Hub 的话，屏幕上会一直是示例数据。</p>
+          <p>真实额度从这里来。只开 Hub 的话，屏幕上会一直是示例数据。在<strong>同一个 clone</strong>里另开终端；<code>npx aindle</code> 用的是仓库本地命令，不是 npm 全球包。编辑 registry 时只留你已登录的工具。</p>
           <div class="cmd">
             <pre><code id="cmd-agent">npx aindle init --local
 # 编辑 ./config/registry.yaml，只留你在用的工具
@@ -190,7 +190,7 @@ npx aindle agent --loop 60</code></pre>
           </div>
         </li>
       </ol>
-      <p class="note">可选：把 <code>kindle/oasis1/</code> 拷到已越狱的 Oasis 1，改 <code>hub.env</code> 里的局域网地址，不要写 <code>127.0.0.1</code>。锁屏看图，解锁读书。给编程 agent 的短说明在仓库 <code>AGENTS.md</code> 与 <a href="/llms.txt">/llms.txt</a>。</p>
+      <p class="note">可选：把 <code>kindle/oasis1/</code> 拷到已越狱的 Oasis 1，改 <code>hub.env</code> 里的局域网地址，不要写 <code>127.0.0.1</code>。锁屏 PNG 需要 Hub 那台机器上的 Chrome / Chromium；只看网页看板不必装。锁屏看图，解锁读书。给编程 agent 的短说明在仓库 <code>AGENTS.md</code> 与 <a href="/llms.txt">/llms.txt</a>。</p>
       <p class="more">
         源码与说明在
         <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub</a>

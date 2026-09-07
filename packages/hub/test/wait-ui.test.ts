@@ -50,6 +50,21 @@ describe('A6 UI and v1 ingest', () => {
     assert.match(html, /MOCK · 非本机实时数据/);
   });
 
+  it('clone CLI entrypoints exist so npx aindle works without a prior bundle', () => {
+    const root = path.join(__dirname, '..', '..', '..');
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')) as {
+      bin?: { aindle?: string };
+      scripts?: Record<string, string>;
+    };
+    assert.equal(pkg.bin?.aindle, 'scripts/aindle.mjs');
+    assert.match(String(pkg.scripts?.hub), /ensure-built/);
+    assert.match(String(pkg.scripts?.build), /build-cli\.mjs/);
+    assert.equal(fs.existsSync(path.join(root, 'scripts', 'aindle.mjs')), true);
+    assert.equal(fs.existsSync(path.join(root, 'scripts', 'ensure-built.mjs')), true);
+    assert.equal(fs.existsSync(path.join(root, 'scripts', 'link-local-bin.mjs')), true);
+    assert.match(String(pkg.scripts?.postinstall), /link-local-bin/);
+  });
+
   it('hub serves the brand favicon and masthead PNG', async () => {
     const { server } = createHubServer({ seedMock: false });
     const port = await listen(server);

@@ -10,7 +10,7 @@ npm install
 npm run check
 ```
 
-`check` compiles every package, bundles the `aindle` CLI, runs schema/merge tests, and scans the tree for personal-host / credential markers.
+`check` compiles every package, bundles `dist/cli.js`, runs schema/merge tests, and checks the generated demo. A fresh clone can also run `npm run hub` / `npx aindle` before that bundle exists: `scripts/ensure-built.mjs` compiles `@aindle/core`, and `scripts/aindle.mjs` is the local bin.
 
 ## 1. Gate
 
@@ -24,7 +24,7 @@ Expect `check: ok`.
 
 ```bash
 npx aindle hub
-# or, from a clone: npm run hub
+# same as: npm run hub
 ```
 
 Default `0.0.0.0:8787`. First start seeds a **mock** snapshot so the UI is not empty. Set `AINDLE_SEED_MOCK=0` to wait for a real agent.

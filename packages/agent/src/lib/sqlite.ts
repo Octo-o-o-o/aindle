@@ -103,7 +103,7 @@ export function readSqliteValue(dbPath: string, sql: string, column: string): st
 
 function commandExists(cmd: string): boolean {
   try {
-    execFileSync('which', [cmd], { stdio: 'ignore' });
+    execFileSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
