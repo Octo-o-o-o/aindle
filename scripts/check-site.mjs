@@ -27,6 +27,8 @@ function walk(dir, acc = []) {
 const ALLOW = [
   /^index\.html$/,
   /^404\.html$/,
+  /^oasis\.html$/,
+  /^scribe\.html$/,
   /^robots\.txt$/,
   /^sitemap\.xml$/,
   /^_headers$/,
@@ -82,6 +84,8 @@ function mustExist(rel) {
 [
   'index.html',
   '404.html',
+  'oasis.html',
+  'scribe.html',
   'robots.txt',
   'sitemap.xml',
   '_headers',
@@ -165,6 +169,10 @@ const requiredMeta = [
   'Kindle Oasis',
   'Kindle Scribe',
   '/demo/oasis-monitor-simple.html?mode=full',
+  'https://aindle.octoooo.com/oasis',
+  'https://aindle.octoooo.com/scribe',
+  '实验浏览器',
+  '在自己的 Kindle 上看模拟效果',
   'https://github.com/Octo-o-o-o/aindle',
 ];
 for (const needle of requiredMeta) {
@@ -217,15 +225,29 @@ const homeCsp = cspFor('/');
 const indexCsp = cspFor('/index.html');
 const demoCsp = cspFor('/demo/oasis-monitor-simple.html');
 const fourCsp = cspFor('/404.html');
+const oasisCsp = cspFor('/oasis.html');
+const oasisPrettyCsp = cspFor('/oasis');
+const scribeCsp = cspFor('/scribe.html');
+const scribePrettyCsp = cspFor('/scribe');
 if (homeCsp.length !== 1) fail(`home CSP count ${homeCsp.length}, expected 1`);
 if (indexCsp.length !== 1) fail(`index.html CSP count ${indexCsp.length}, expected 1`);
 if (demoCsp.length !== 1) fail(`demo CSP count ${demoCsp.length}, expected 1 (no stacking)`);
 if (fourCsp.length !== 1) fail(`404.html CSP count ${fourCsp.length}, expected 1`);
+if (oasisCsp.length !== 1) fail(`oasis.html CSP count ${oasisCsp.length}, expected 1`);
+if (oasisPrettyCsp.length !== 1) fail(`/oasis CSP count ${oasisPrettyCsp.length}, expected 1`);
+if (scribeCsp.length !== 1) fail(`scribe.html CSP count ${scribeCsp.length}, expected 1`);
+if (scribePrettyCsp.length !== 1) fail(`/scribe CSP count ${scribePrettyCsp.length}, expected 1`);
 if (/unsafe-inline/.test(homeCsp[0])) fail('home CSP should stay strict');
+if (/unsafe-inline/.test(oasisCsp[0] + scribeCsp[0])) fail('oasis/scribe CSP should stay strict');
 if (!/unsafe-inline/.test(demoCsp[0])) fail('demo CSP must allow inline script/style');
 const fourHtml = fs.readFileSync(path.join(OUT, '404.html'), 'utf8');
 if (/<style[\s>]|style=|<script[\s>]/i.test(fourHtml)) {
   fail('404.html has inline style/script; keep using /styles.css so strict CSP still paints');
+}
+for (const rel of ['oasis.html', 'scribe.html']) {
+  const html = fs.readFileSync(path.join(OUT, rel), 'utf8');
+  if (/<style[\s>]|style=|<script[\s>]/i.test(html)) fail(`${rel} has inline style/script`);
+  if (!html.includes('http-equiv="refresh"')) fail(`${rel} missing meta refresh`);
 }
 
 const robots = fs.readFileSync(path.join(OUT, 'robots.txt'), 'utf8');
@@ -233,11 +255,18 @@ if (!robots.includes(`${ORIGIN}/sitemap.xml`)) fail('robots.txt missing sitemap'
 
 const sitemap = fs.readFileSync(path.join(OUT, 'sitemap.xml'), 'utf8');
 if (!sitemap.includes(`${ORIGIN}/`)) fail('sitemap missing canonical home');
+if (!sitemap.includes(`${ORIGIN}/oasis`)) fail('sitemap missing /oasis');
+if (!sitemap.includes(`${ORIGIN}/scribe`)) fail('sitemap missing /scribe');
 
 const demo = fs.readFileSync(path.join(OUT, 'demo/oasis-monitor-simple.html'), 'utf8');
 if (!demo.includes('brand/icon-32.png')) fail('demo HTML missing brand mark');
 if (!demo.includes('href="favicon.ico"')) fail('demo HTML missing favicon');
 if (!demo.includes('window.AINDLE_MOCK')) fail('demo HTML missing injected mock');
+
+function siteFileExists(rel) {
+  if (!rel) return true;
+  return files.includes(rel) || files.includes(`${rel}.html`) || files.includes(`${rel}/index.html`);
+}
 
 const ATTR = /\b(?:href|src)=["']([^"']+)["']/gi;
 const htmlFiles = files.filter((f) => f.endsWith('.html'));
@@ -252,11 +281,8 @@ for (const rel of htmlFiles) {
     if (raw.startsWith('https://github.com/Octo-o-o-o/aindle')) continue;
     if (raw.startsWith(ORIGIN + '/')) {
       const local = raw.slice(ORIGIN.length + 1).split('?')[0];
-      if (local && !files.includes(local) && local !== '') {
-        // home is index.html
-        if (local !== '' && !files.includes(local) && !files.includes(`${local}index.html`)) {
-          fail(`${rel} points at missing ${raw}`);
-        }
+      if (local && local !== '' && !siteFileExists(local) && !siteFileExists(`${local}index.html`)) {
+        fail(`${rel} points at missing ${raw}`);
       }
       continue;
     }
@@ -270,7 +296,7 @@ for (const rel of htmlFiles) {
       cleaned.startsWith('/') ? cleaned.slice(1) : path.posix.join(dir === '.' ? '' : dir, cleaned),
     );
     if (resolved === '' || resolved === '.' || resolved === 'index.html') continue;
-    if (!files.includes(resolved)) fail(`${rel} missing resource ${raw} -> ${resolved}`);
+    if (!siteFileExists(resolved)) fail(`${rel} missing resource ${raw} -> ${resolved}`);
   }
 }
 

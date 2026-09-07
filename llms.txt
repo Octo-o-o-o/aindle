@@ -33,7 +33,9 @@ npx aindle agent --loop 60
 
 `init` stamps this computer's name (never `mbp`), so the sample stays until you disable it. Every tool in the starter file is commented.
 
-Optional Kindle Oasis 1: copy `kindle/oasis1/` to `/mnt/us/aindle`, copy `hub.env.example` to `hub.env`, set `HUB` to the LAN URL on port `8787` (never `127.0.0.1` on the device), start from KUAL, then lock.
+On a Kindle Oasis or Scribe, open the Experimental Browser and type `https://aindle.octoooo.com/oasis` or `https://aindle.octoooo.com/scribe` to see the mock board on that device.
+
+Optional Kindle Oasis 1 lock screen: copy `kindle/oasis1/` to `/mnt/us/aindle`, copy `hub.env.example` to `hub.env`, set `HUB` to the LAN URL on port `8787` (never `127.0.0.1` on the device), start from KUAL, then lock.
 
 ## Docs
 
@@ -41,6 +43,8 @@ Optional Kindle Oasis 1: copy `kindle/oasis1/` to `/mnt/us/aindle`, copy `hub.en
 - [README (简体中文)](https://github.com/Octo-o-o-o/aindle/blob/main/README.zh-CN.md)
 - [AGENTS.md](https://github.com/Octo-o-o-o/aindle/blob/main/AGENTS.md)
 - [Website](https://aindle.octoooo.com/)
+- [Oasis on-device demo](https://aindle.octoooo.com/oasis)
+- [Scribe on-device demo](https://aindle.octoooo.com/scribe)
 - [Simple demo](https://aindle.octoooo.com/demo/oasis-monitor-simple.html?mode=full)
 - [Complex demo](https://aindle.octoooo.com/demo/oasis-monitor.html?mode=full)
 - [Data sources](https://github.com/Octo-o-o-o/aindle/blob/main/docs/06-data-sources.md)

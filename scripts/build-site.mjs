@@ -30,6 +30,8 @@ fs.mkdirSync(OUT, { recursive: true });
 const siteFiles = [
   'index.html',
   '404.html',
+  'oasis.html',
+  'scribe.html',
   'styles.css',
   'site.js',
   'robots.txt',

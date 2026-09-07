@@ -43,7 +43,7 @@
         <a href="#look">看屏</a>
         <a href="#kindle">Kindle</a>
         <a href="#start">开始</a>
-        <a href="/demo/oasis-monitor-simple.html?mode=full">示例</a>
+        <a href="#kindle">示例</a>
         <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub</a>
       </nav>
     </div>
@@ -57,8 +57,8 @@
         <p class="lede">把分散在不同机器上的 AI 额度、用量和任务，收在一块安静的屏幕里。抬眼掌握进展，安心回到手边的事。</p>
         <p class="fine">A private, read-only board for AI quotas and tasks. Self-hosted. Mock data on this page.</p>
         <p class="actions">
-          <a class="btn" href="#start">开始使用</a>
-          <a class="text-btn" href="/demo/oasis-monitor-simple.html?mode=full">打开在线示例</a>
+          <a class="btn" href="#kindle">在 Kindle 上看</a>
+          <a class="text-btn" href="#start">开始使用</a>
         </p>
         <p class="fine">开源 · 自托管 · 为电子墨水屏而生</p>
       </div>
@@ -139,7 +139,7 @@
         </figure>
         <div>
           <p class="lede">限额还剩多少，哪些在进行中、待确认或后台跑，刚结束的也写在下面。图里是示例数据，不是某台真机。</p>
-          <p>同一块看板也可以按小屏 Oasis 或大屏 Scribe 来看：先开 Hub 的 monitor 页，或直接打开<a href="/demo/oasis-monitor-simple.html?mode=full">在线示例</a>。</p>
+          <p>想在自己的目标设备上看模拟效果：把 Kindle Oasis 或 Kindle Scribe 连上 Wi-Fi，打开<strong>实验浏览器</strong>，在地址栏输入下面<a href="#kindle">这一条</a>。</p>
         </div>
       </div>
     </section>
@@ -147,10 +147,21 @@
     <section id="kindle" class="sheet" aria-labelledby="scene-title">
       <header class="sheet-head">
         <p class="kicker">03 · On a Kindle</p>
-        <h2 id="scene-title">也可以放在 Kindle 锁屏上</h2>
+        <h2 id="scene-title">在自己的 Kindle 上看模拟效果</h2>
       </header>
-      <p class="lede">Kindle Oasis 1 可以把这块看板当作锁屏。这条路需要越狱。解锁之后，还是原来的阅读器。</p>
-      <p class="note">图中和在线示例都是示例数据。真实额度来自你自己机器上的 agent；Hub 只跑在你的私网里。安装与原理见 <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub README</a>。</p>
+      <p class="lede">不用先装 Hub。把 Kindle 连上 Wi-Fi，打开<strong>实验浏览器</strong>，在地址栏输入对应设备的这一条，回车即可。</p>
+      <div class="cmd">
+        <pre><code id="cmd-oasis">https://aindle.octoooo.com/oasis</code></pre>
+        <button type="button" data-copy="#cmd-oasis">复制</button>
+      </div>
+      <p class="note">Kindle Oasis 用上面这一条。</p>
+      <div class="cmd">
+        <pre><code id="cmd-scribe">https://aindle.octoooo.com/scribe</code></pre>
+        <button type="button" data-copy="#cmd-scribe">复制</button>
+      </div>
+      <p class="note">Kindle Scribe 用这一条。电脑浏览器打开同一地址，也能按该设备的画布预览。图中和页里都是示例数据，不是某台真机的额度。</p>
+      <p class="lede">若要把它做成锁屏常驻，需要越狱，再按下面的「开始」把 Hub 开在私网里。解锁之后，还是原来的阅读器。</p>
+      <p class="note">真实额度来自你自己机器上的 agent；Hub 只跑在你的私网里。安装与原理见 <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub README</a>。</p>
     </section>
 
     <section id="start" class="sheet" aria-labelledby="start-title">
@@ -195,10 +206,12 @@ npx aindle agent --loop 60</code></pre>
       <p class="more">
         源码与说明在
         <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub</a>
-        。在线示例：
-        <a href="/demo/oasis-monitor-simple.html?mode=full">简单场景</a>
+        。设备上输入：
+        <a href="/oasis">Oasis</a>
         ·
-        <a href="/demo/oasis-monitor.html?mode=full">复杂场景</a>
+        <a href="/scribe">Scribe</a>
+        。电脑也可打开
+        <a href="/demo/oasis-monitor-simple.html?mode=full">桌面示例</a>
         。
       </p>
     </section>
@@ -210,7 +223,7 @@ npx aindle agent --loop 60</code></pre>
     <p>
       <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub</a>
       ·
-      <a href="/demo/oasis-monitor-simple.html?mode=full">在线示例</a>
+      <a href="#kindle">在 Kindle 上看</a>
     </p>
   </footer>
   <script src="/site.js"></script>

@@ -23,7 +23,7 @@ Hub 看板按小屏 Kindle（Oasis）和大屏 Kindle（Scribe）来排。一台
 | --- | --- |
 | <img src="docs/screenshots/simple-oasis.png" alt="简单 mock，Kindle Oasis：Claude、Codex、Cursor、Grok 各一份" width="280"> | <img src="docs/screenshots/simple-scribe.png" alt="简单 mock，Kindle Scribe：全宽限额表与任务列表" width="360"> |
 
-三台主机、多份座位：[复杂 Scribe](docs/screenshots/complex-scribe.png) · [复杂 Oasis](docs/screenshots/complex-oasis.png)。不连 Hub 的静态页：`python3 demo/serve.py`。
+三台主机、多份座位：[复杂 Scribe](docs/screenshots/complex-scribe.png) · [复杂 Oasis](docs/screenshots/complex-oasis.png)。想在自己的 Kindle 上看：打开实验浏览器，输入 [https://aindle.octoooo.com/oasis](https://aindle.octoooo.com/oasis) 或 [https://aindle.octoooo.com/scribe](https://aindle.octoooo.com/scribe)。不连 Hub 的静态页：`python3 demo/serve.py`。
 
 ## 开始使用
 

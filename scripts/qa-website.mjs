@@ -51,6 +51,17 @@ function serve(dir, rules) {
         res.end();
         return;
       }
+      const prettyHtml = `${filePath}.html`;
+      const prettyOk =
+        !path.extname(rel) &&
+        prettyHtml.startsWith(dir) &&
+        fs.existsSync(prettyHtml) &&
+        fs.statSync(prettyHtml).isFile();
+      if ((!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) && prettyOk) {
+        res.writeHead(200, toNodeHeaders(pageHeaders, { 'Content-Type': contentType(prettyHtml) }));
+        res.end(fs.readFileSync(prettyHtml));
+        return;
+      }
       if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
         const four = path.join(dir, '404.html');
         res.writeHead(404, toNodeHeaders(pageHeaders, { 'Content-Type': 'text/html; charset=utf-8' }));
@@ -350,9 +361,9 @@ async function checkPage(context, url, opts) {
   if (opts.clickCopy) copy = await checkCopy(page, errors);
   let navigated = null;
   if (opts.followDemo) {
-    await page.locator('nav a[href*="oasis-monitor-simple.html"]').first().click();
+    await page.locator('a[href="/oasis"]').first().click();
     try {
-      await page.waitForURL(/oasis-monitor-simple\.html/, { timeout: 10_000 });
+      await page.waitForURL(/oasis-monitor-simple\.html|\/oasis/, { timeout: 10_000 });
       await page.waitForFunction(
         () => /Claude|Codex/.test(document.body.innerText),
         null,

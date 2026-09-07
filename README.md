@@ -23,7 +23,7 @@ The hub board on a small Kindle (Oasis) and a large one (Scribe). One host, Clau
 | --- | --- |
 | <img src="docs/screenshots/simple-oasis.png" alt="Simple mock on a Kindle Oasis: Claude, Codex, Cursor, Grok" width="280"> | <img src="docs/screenshots/simple-scribe.png" alt="Simple mock on a Kindle Scribe: full-width quota ledger and task list" width="360"> |
 
-Three hosts and many seats: [complex Scribe](docs/screenshots/complex-scribe.png) · [complex Oasis](docs/screenshots/complex-oasis.png). Static copies of those pages: `python3 demo/serve.py`.
+Three hosts and many seats: [complex Scribe](docs/screenshots/complex-scribe.png) · [complex Oasis](docs/screenshots/complex-oasis.png). On the Kindle itself, open the Experimental Browser and type [https://aindle.octoooo.com/oasis](https://aindle.octoooo.com/oasis) or [https://aindle.octoooo.com/scribe](https://aindle.octoooo.com/scribe). Static copies: `python3 demo/serve.py`.
 
 ## Start
 
