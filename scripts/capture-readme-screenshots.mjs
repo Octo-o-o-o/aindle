@@ -29,28 +29,28 @@ function findChrome() {
 
 const SHOTS = [
   {
-    file: 'simple-phone.png',
-    url: `${BASE}/oasis-monitor-simple.html?mode=panels&page=quota`,
-    width: 390,
-    height: 1800,
+    file: 'simple-oasis.png',
+    url: `${BASE}/oasis-monitor-simple.html?device=oasis1&kindle=1&page=quota`,
+    width: 1072,
+    height: 1448,
   },
   {
-    file: 'simple-desktop.png',
-    url: `${BASE}/oasis-monitor-simple.html?mode=full`,
-    width: 1600,
-    height: 1400,
+    file: 'simple-scribe.png',
+    url: `${BASE}/oasis-monitor-simple.html?device=scribe&mode=full`,
+    width: 1860,
+    height: 2480,
   },
   {
-    file: 'complex-phone.png',
-    url: `${BASE}/oasis-monitor.html?mode=panels&page=quota`,
-    width: 390,
-    height: 3200,
+    file: 'complex-oasis.png',
+    url: `${BASE}/oasis-monitor.html?device=oasis1&kindle=1&page=quota`,
+    width: 1072,
+    height: 1448,
   },
   {
-    file: 'complex-desktop.png',
-    url: `${BASE}/oasis-monitor.html?mode=full`,
-    width: 1680,
-    height: 2600,
+    file: 'complex-scribe.png',
+    url: `${BASE}/oasis-monitor.html?device=scribe&mode=full`,
+    width: 1860,
+    height: 2480,
   },
 ];
 
@@ -95,7 +95,13 @@ async function screenshotOnce(chrome, dest, shot) {
     throw new Error(`screenshot timed out: ${shot.file}`);
   } finally {
     child.kill('SIGKILL');
-    fs.rmSync(profile, { recursive: true, force: true });
+    try {
+      fs.rmSync(profile, { recursive: true, force: true });
+    } catch {
+      setTimeout(() => {
+        try { fs.rmSync(profile, { recursive: true, force: true }); } catch { /* leftover tmp */ }
+      }, 500);
+    }
   }
 }
 

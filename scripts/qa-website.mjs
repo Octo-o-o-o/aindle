@@ -218,24 +218,24 @@ async function checkHeroSwitch(page, errors, opts) {
   if (initial.oasisLabel !== 'Kindle Oasis' || initial.scribeLabel !== 'Kindle Scribe') {
     errors.push(`hero button labels ${initial.oasisLabel}/${initial.scribeLabel}`);
   }
-  if (!String(initial.src).includes('hero-oasis.jpg')) errors.push(`default hero src ${initial.src}`);
+  if (!String(initial.src).includes('eink-local.png')) errors.push(`default hero src ${initial.src}`);
   if (initial.nw < 1 || initial.nh < 1) errors.push(`hero natural size ${initial.nw}x${initial.nh}`);
   if (initial.oasisPressed !== 'true' || initial.scribePressed !== 'false') {
     errors.push(`default pressed oasis=${initial.oasisPressed} scribe=${initial.scribePressed}`);
   }
-  if (!/Oasis/.test(initial.caption) || !/场景示意/.test(initial.caption) || !/Mock/.test(initial.caption)) {
+  if (!/Oasis/.test(initial.caption) || !/锁屏/.test(initial.caption) || !/Mock/.test(initial.caption)) {
     errors.push(`default caption ${initial.caption}`);
   }
 
   await page.locator('.hero-device-switch [data-device="scribe"]').click();
-  await waitHeroSrc(page, 'hero-scribe.jpg', errors, 'scribe');
+  await waitHeroSrc(page, 'hero-scribe.png', errors, 'scribe');
   const afterScribe = await heroState(page);
-  if (!String(afterScribe.src).includes('hero-scribe.jpg')) errors.push(`scribe src ${afterScribe.src}`);
+  if (!String(afterScribe.src).includes('hero-scribe.png')) errors.push(`scribe src ${afterScribe.src}`);
   if (afterScribe.nw < 1 || afterScribe.nh < 1) errors.push(`scribe natural size ${afterScribe.nw}x${afterScribe.nh}`);
   if (afterScribe.scribePressed !== 'true' || afterScribe.oasisPressed !== 'false') {
     errors.push(`scribe pressed oasis=${afterScribe.oasisPressed} scribe=${afterScribe.scribePressed}`);
   }
-  if (!/Scribe/.test(afterScribe.caption) || !/场景示意/.test(afterScribe.caption) || !/Mock/.test(afterScribe.caption)) {
+  if (!/Scribe/.test(afterScribe.caption) || !/看板/.test(afterScribe.caption) || !/Mock/.test(afterScribe.caption)) {
     errors.push(`scribe caption ${afterScribe.caption}`);
   }
   if (!/Scribe/.test(afterScribe.alt) || !/Mock/.test(afterScribe.alt)) {
@@ -250,9 +250,9 @@ async function checkHeroSwitch(page, errors, opts) {
   }
 
   await page.locator('.hero-device-switch [data-device="oasis"]').click();
-  await waitHeroSrc(page, 'hero-oasis.jpg', errors, 'oasis-roundtrip');
+  await waitHeroSrc(page, 'eink-local.png', errors, 'oasis-roundtrip');
   const back = await heroState(page);
-  if (!String(back.src).includes('hero-oasis.jpg')) errors.push(`roundtrip oasis src ${back.src}`);
+  if (!String(back.src).includes('eink-local.png')) errors.push(`roundtrip oasis src ${back.src}`);
   if (back.nw < 1 || back.nh < 1) errors.push(`roundtrip oasis natural size ${back.nw}x${back.nh}`);
   if (back.oasisPressed !== 'true' || back.scribePressed !== 'false') {
     errors.push(`roundtrip pressed oasis=${back.oasisPressed} scribe=${back.scribePressed}`);
@@ -455,14 +455,14 @@ try {
     fail('X-Frame-Options not applied');
   }
 
-  evidence.headers.heroOasis = await inspectPath('/images/hero-oasis.jpg');
-  evidence.headers.heroScribe = await inspectPath('/images/hero-scribe.jpg');
-  if (evidence.headers.heroOasis.status !== 200) fail(`hero oasis jpeg status ${evidence.headers.heroOasis.status}`);
-  if (evidence.headers.heroScribe.status !== 200) fail(`hero scribe jpeg status ${evidence.headers.heroScribe.status}`);
-  if (!/image\/jpeg/i.test(String(evidence.headers.heroOasis.type || ''))) {
+  evidence.headers.heroOasis = await inspectPath('/images/eink-local.png');
+  evidence.headers.heroScribe = await inspectPath('/images/hero-scribe.png');
+  if (evidence.headers.heroOasis.status !== 200) fail(`hero oasis png status ${evidence.headers.heroOasis.status}`);
+  if (evidence.headers.heroScribe.status !== 200) fail(`hero scribe png status ${evidence.headers.heroScribe.status}`);
+  if (!/image\/png/i.test(String(evidence.headers.heroOasis.type || ''))) {
     fail(`hero oasis type ${evidence.headers.heroOasis.type}`);
   }
-  if (!/image\/jpeg/i.test(String(evidence.headers.heroScribe.type || ''))) {
+  if (!/image\/png/i.test(String(evidence.headers.heroScribe.type || ''))) {
     fail(`hero scribe type ${evidence.headers.heroScribe.type}`);
   }
 

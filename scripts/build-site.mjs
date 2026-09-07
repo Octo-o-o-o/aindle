@@ -47,9 +47,8 @@ for (const size of [32, 48, 180, 192, 512]) {
   copyFile(must(`assets/brand/icon-${size}.png`), path.join(OUT, 'brand', `icon-${size}.png`));
 }
 copyFile(must('assets/brand/og.png'), path.join(OUT, 'brand', 'og.png'));
-copyFile(must('assets/website/hero-oasis.jpg'), path.join(OUT, 'images', 'hero-oasis.jpg'));
-copyFile(must('assets/website/hero-scribe.jpg'), path.join(OUT, 'images', 'hero-scribe.jpg'));
 copyFile(must('docs/screenshots/eink-local.png'), path.join(OUT, 'images', 'eink-local.png'));
+copyFile(must('docs/screenshots/complex-scribe.png'), path.join(OUT, 'images', 'hero-scribe.png'));
 
 const demoFiles = [
   'index.html',

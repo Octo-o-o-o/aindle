@@ -53,6 +53,10 @@
     var cap = btn.getAttribute('data-caption');
     if (src) photo.setAttribute('src', src);
     if (alt) photo.setAttribute('alt', alt);
+    var width = btn.getAttribute('data-width');
+    var height = btn.getAttribute('data-height');
+    if (width) photo.setAttribute('width', width);
+    if (height) photo.setAttribute('height', height);
     if (caption && cap) caption.textContent = cap;
     switches.forEach(function (item) {
       item.setAttribute('aria-pressed', item === btn ? 'true' : 'false');

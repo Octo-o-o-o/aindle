@@ -17,13 +17,13 @@ Lock-screen board (Oasis 1, **1072×1448**). Lock to look; unlock and it is a no
 
 <img src="docs/screenshots/eink-local.png" alt="Kindle Oasis 1 lock screen: quotas, in-progress tasks, battery, mock data" width="420">
 
-Same numbers on a computer. One Mac, Claude + Codex, one live task — the usual first day.
+The hub board on a small Kindle (Oasis) and a large one (Scribe). One host, Claude + Codex, one live task — the usual first day.
 
-| Phone | Desktop |
+| Kindle Oasis | Kindle Scribe |
 | --- | --- |
-| <img src="docs/screenshots/simple-phone.png" alt="Simple mock on a phone: two quota cards" width="260"> | <img src="docs/screenshots/simple-desktop.png" alt="Simple mock on a desktop: quotas on the left, live and recent tasks on the right" width="520"> |
+| <img src="docs/screenshots/simple-oasis.png" alt="Simple mock on a Kindle Oasis: Claude, Codex, Cursor, Grok" width="280"> | <img src="docs/screenshots/simple-scribe.png" alt="Simple mock on a Kindle Scribe: one card per agent, tasks on the right" width="360"> |
 
-Three hosts and many seats: [complex desktop](docs/screenshots/complex-desktop.png) · [complex phone](docs/screenshots/complex-phone.png). Static copies of those pages: `python3 demo/serve.py`.
+Three hosts and many seats: [complex Scribe](docs/screenshots/complex-scribe.png) · [complex Oasis](docs/screenshots/complex-oasis.png). Static copies of those pages: `python3 demo/serve.py`.
 
 ## Start
 
@@ -38,7 +38,7 @@ npm run hub
 
 Open:
 
-- Desktop: [http://127.0.0.1:8787/monitor.html](http://127.0.0.1:8787/monitor.html)
+- Board: [http://127.0.0.1:8787/monitor.html](http://127.0.0.1:8787/monitor.html)
 - Lock-screen HTML: [http://127.0.0.1:8787/eink.html?page=local](http://127.0.0.1:8787/eink.html?page=local)
 - Lock-screen PNG: [http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local)
 

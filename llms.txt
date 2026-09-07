@@ -15,7 +15,7 @@ npm run hub
 
 Then open:
 
-- Desktop: http://127.0.0.1:8787/monitor.html
+- Board: http://127.0.0.1:8787/monitor.html
 - Lock-screen HTML: http://127.0.0.1:8787/eink.html?page=local
 - Lock-screen PNG: http://127.0.0.1:8787/dash.png?page=local
 

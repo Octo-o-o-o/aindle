@@ -37,7 +37,7 @@ const ALLOW = [
   /^site\.js$/,
   /^brand\/icon-(32|48|180|192|512)\.png$/,
   /^brand\/og\.png$/,
-  /^images\/hero-(oasis|scribe)\.jpg$/,
+  /^images\/hero-scribe\.png$/,
   /^images\/eink-local\.png$/,
   /^demo\/index\.html$/,
   /^demo\/oasis-monitor\.html$/,
@@ -96,8 +96,7 @@ function mustExist(rel) {
   'brand/icon-192.png',
   'brand/icon-512.png',
   'brand/og.png',
-  'images/hero-oasis.jpg',
-  'images/hero-scribe.jpg',
+  'images/hero-scribe.png',
   'images/eink-local.png',
   'demo/oasis-monitor.html',
   'demo/oasis-monitor-simple.html',
@@ -120,16 +119,10 @@ for (const size of [32, 48, 180, 192, 512]) {
 }
 const og = pngSize('brand/og.png');
 if (og.w !== 1200 || og.h !== 630) fail(`brand/og.png is ${og.w}x${og.h}, expected 1200x630`);
-function jpegMagic(rel) {
-  const buf = fs.readFileSync(path.join(OUT, rel));
-  if (buf.length < 3 || buf[0] !== 0xff || buf[1] !== 0xd8 || buf[2] !== 0xff) {
-    fail(`${rel} is not a JPEG`);
-  }
-}
-jpegMagic('images/hero-oasis.jpg');
-jpegMagic('images/hero-scribe.jpg');
 const eink = pngSize('images/eink-local.png');
 if (eink.w !== 1072 || eink.h !== 1448) fail(`images/eink-local.png is ${eink.w}x${eink.h}, expected 1072x1448`);
+const scribe = pngSize('images/hero-scribe.png');
+if (scribe.w !== 1860 || scribe.h !== 2480) fail(`images/hero-scribe.png is ${scribe.w}x${scribe.h}, expected 1860x2480`);
 
 const index = fs.readFileSync(path.join(OUT, 'index.html'), 'utf8');
 const requiredMeta = [
@@ -154,12 +147,11 @@ const requiredMeta = [
   'npx aindle agent',
   '/images/eink-local.png',
   '/llms.txt',
-  '/images/hero-oasis.jpg',
-  '/images/hero-scribe.jpg',
-  'width="1122"',
-  'height="1402"',
+  '/images/hero-scribe.png',
+  'width="1072"',
+  'height="1448"',
   'aria-label="设备示意图"',
-  '场景示意 · Mock 数据',
+  '锁屏 · 1072×1448 · Mock 数据',
   'Kindle Oasis',
   'Kindle Scribe',
   '/demo/oasis-monitor-simple.html?mode=full',

@@ -16,9 +16,12 @@
 | `assets/brand/og.png` | 1200×630 | Open Graph / Twitter 卡 |
 | `assets/website/hero-oasis-source.png` | 1122×1402 | 内置 imagegen 的 Oasis 摄影原图，不进 dist |
 | `assets/website/hero-scribe-source.png` | 1122×1402 | 内置 imagegen 的 Scribe 摄影原图，不进 dist |
-| `assets/website/hero-oasis.jpg` | 1122×1402 | 官网 Hero 默认图（sharp 机械转 JPEG） |
-| `assets/website/hero-scribe.jpg` | 1122×1402 | 官网 Hero 手动切换图（场景示意，不是已验证的 Scribe 锁屏安装） |
-| `docs/screenshots/eink-local.png` | 1072×1448 | 当前锁屏 mock（`demo/mock-view.json` → `renderEinkHtml`）。README 主图，官网「屏上长这样」。用 `node --import tsx scripts/capture-readme-screenshots.mjs` 重拍。 |
+| `assets/website/hero-oasis.jpg` | 1122×1402 | 早期 imagegen 设备摄影，不再用于 Hero |
+| `assets/website/hero-scribe.jpg` | 1122×1402 | 早期 imagegen 设备摄影，不再用于 Hero |
+| `docs/screenshots/eink-local.png` | 1072×1448 | 当前锁屏 mock（`demo/mock-view.json` → `renderEinkHtml`）。README 主图，官网 Hero 默认图与「屏上长这样」。用 `node --import tsx scripts/capture-readme-screenshots.mjs` 重拍。 |
+| `docs/screenshots/complex-scribe.png` | 1860×2480 | 官网 Hero 切换到 Scribe 时用的 Hub 看板 mock |
+| `docs/screenshots/simple-oasis.png` | 1072×1448 | README：Hub 看板，Oasis 1 画布（`?device=oasis1&kindle=1`） |
+| `docs/screenshots/simple-scribe.png` | 1860×2480 | README：Hub 看板，Scribe 画布（`?device=scribe`） |
 | `docs/screenshots/website-eink-demo.png` | 1072×1448 | 早期 CSS 壳所用的 Hub `/dash.png` mock 记录，不再用于 Hero。不要覆盖 `eink-local.png` |
 
 机械缩放由 [`scripts/export-brand-icons.mjs`](../scripts/export-brand-icons.mjs) 用 Node `sharp` 完成，不重绘 SVG、不用 Python。Cloudflare 构建**不要**跑它。运行时 Hub / Demo 只使用已经拷进 `packages/hub/public/` 与 `demo/` 的副本。eink PNG 用 `packages/hub/src/brand-mark.ts` 里的 data URI，不依赖相对路径。

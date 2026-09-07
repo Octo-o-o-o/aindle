@@ -57,56 +57,49 @@ window.AINDLE_MOCK = {
   "nowMain": 4,
   "nowTotal": 7,
   "refreshBusy": true,
-  "usageTotal": { "h24Tokens": "5.3M", "h24Cost": "$20.6", "d7Tokens": "49.8M", "d7Cost": "$184" },
+  "usageTotal": { "h24Tokens": "4.1M", "h24Cost": "$16.8", "d7Tokens": "38.2M", "d7Cost": "$142" },
   "hosts": [
-    { "id": "mbp",  "name": "MacBook Pro", "short": "MBP",  "role": "HOST · MBP", "ok": 1, "seen": "4 秒前",    "live": 4, "wait": 1, "attention": { "waiting": 1, "human": 1, "background": 2 }, "tokens": "41.8M", "sessions": 7 },
-    { "id": "mini", "name": "Mac mini",    "short": "Mini", "role": "HOST · HUB", "ok": 1, "seen": "2 秒前",    "live": 2, "wait": 1, "attention": { "waiting": 1, "human": 1, "background": 0 }, "tokens": "27.3M", "sessions": 5 },
-    { "id": "win",  "name": "Windows",     "short": "Win",  "role": "HOST · WIN", "ok": 0, "seen": "16 分钟前", "live": 0, "wait": 0, "attention": { "waiting": 0, "human": 0, "background": 0 }, "tokens": "8.9M",  "sessions": 3 }
+    { "id": "mbp",  "name": "MacBook Pro", "short": "MBP",  "role": "HOST · MBP", "ok": 1, "seen": "4 秒前",    "live": 4, "wait": 1, "attention": { "waiting": 1, "human": 1, "background": 2 }, "tokens": "28.6M", "sessions": 6 },
+    { "id": "mini", "name": "Mac mini",    "short": "Mini", "role": "HOST · HUB", "ok": 1, "seen": "2 秒前",    "live": 2, "wait": 1, "attention": { "waiting": 1, "human": 1, "background": 0 }, "tokens": "19.4M", "sessions": 4 },
+    { "id": "win",  "name": "Windows",     "short": "Win",  "role": "HOST · WIN", "ok": 0, "seen": "16 分钟前", "live": 0, "wait": 0, "attention": { "waiting": 0, "human": 0, "background": 0 }, "tokens": "6.1M",  "sessions": 2 }
   ],
   "subs": [
-    { "id": "claude-yx", "tool": "Claude Max", "label": "Claude Max · Ada · 3 hosts", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
+    { "id": "claude-home", "tool": "Claude", "label": "Claude · Home · MBP", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
       "usage": { "h24Tokens": "1.8M", "h24Cost": "$9.4", "d7Tokens": "18.4M", "d7Cost": "$86" },
       "windows": [
-      { "key": "5h",   "pct": 62, "reset": "23:40" },
-      { "key": "7d",   "pct": 41, "reset": "周日 20:00" },
-      { "key": "Opus", "pct": 27, "reset": "周日 20:00" }
+      { "key": "5h", "pct": 62, "reset": "23:40" },
+      { "key": "7d", "pct": 41, "reset": "周日 20:00" }
     ]},
-    { "id": "claude-dong", "tool": "Claude Max", "label": "Claude Max · Ben · Mini", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
-      "usage": { "h24Tokens": "612K", "h24Cost": "$3.1", "d7Tokens": "6.2M", "d7Cost": "$29" },
-      "windows": [
-      { "key": "5h",   "pct": 28, "reset": "22:05" },
-      { "key": "7d",   "pct": 19, "reset": "周六 09:00" },
-      { "key": "Opus", "pct": 8,  "reset": "周六 09:00" }
-    ]},
-    { "id": "claude-yf", "tool": "Claude Max", "label": "Claude Max · Cara · MBP", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
-      "usage": { "h24Tokens": "186K", "h24Cost": "$1.1", "d7Tokens": "1.8M", "d7Cost": "$8.6" },
-      "windows": [
-      { "key": "5h", "pct": 11, "reset": "明日 01:10" },
-      { "key": "7d", "pct": 6,  "reset": "周五 14:00" }
-    ]},
-    { "id": "codex-personal", "tool": "Codex Plus", "label": "Codex Plus · 个人 · MBP", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
-      "usage": { "h24Tokens": "2.4M", "h24Cost": "$6.2", "d7Tokens": "21M", "d7Cost": "$54" },
+    { "id": "codex-personal", "tool": "Codex", "label": "Codex · Personal · MBP", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
+      "usage": { "h24Tokens": "1.1M", "h24Cost": "$2.8", "d7Tokens": "9.6M", "d7Cost": "$24" },
       "windows": [
       { "key": "5h", "pct": 81, "reset": "23:15" },
       { "key": "7d", "pct": 55, "reset": "周五 12:00" }
     ]},
-    { "id": "codex-corp", "tool": "Codex", "label": "Codex · 公司 · Mini", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
-      "usage": { "h24Tokens": "294K", "h24Cost": "$0.80", "d7Tokens": "2.4M", "d7Cost": "$6.1" },
-      "windows": [
-      { "key": "5h", "pct": 14, "reset": "22:50" },
-      { "key": "7d", "pct": 9,  "reset": "下周一 09:00" }
-    ]},
-    { "id": "cursor-ultra", "tool": "Cursor Ultra", "label": "Cursor Ultra · 个人 · 账期 10/4", "source": "local", "scope": "", "kind": "quota", "billing": "subscription", "windows": [
+    { "id": "cursor-ultra", "tool": "Cursor", "label": "Cursor · Ultra · Mini", "source": "local", "scope": "", "kind": "quota", "billing": "subscription", "windows": [
       { "key": "Auto", "pct": 71, "reset": "账期" },
       { "key": "API",  "pct": 44, "reset": "账期" }
     ]},
-    { "id": "grok-build", "tool": "Grok Build", "label": "Grok Build · 主号 · MBP", "source": "local", "scope": "", "kind": "quota", "billing": "subscription", "windows": [
-      { "key": "今日", "pct": 19, "reset": "00:00" },
+    { "id": "grok-build", "tool": "Grok", "label": "Grok · Build · MBP", "source": "local", "scope": "", "kind": "quota", "billing": "subscription", "windows": [
       { "key": "本周", "pct": 33, "reset": "周一 00:00" },
       { "key": "本月", "pct": 22, "reset": "10/1" }
     ]},
-    { "id": "glm-relay", "tool": "GLM 中转", "label": "GLM 中转 · 第三方 · 无限额条", "source": "local", "scope": "", "kind": "quota", "billing": "metered", "none": 1,
-      "usage": { "h24Tokens": "3.1M", "h24Cost": "$1.9", "d7Tokens": "22.4M", "d7Cost": "$13.2" } },
+    { "id": "kimi-code", "tool": "Kimi", "label": "Kimi · Code · Mini", "source": "local", "scope": "", "kind": "quota", "billing": "subscription",
+      "usage": { "h24Tokens": "420K", "h24Cost": "$1.6", "d7Tokens": "3.1M", "d7Cost": "$11" },
+      "windows": [
+      { "key": "5h", "pct": 48, "reset": "22:50" },
+      { "key": "7d", "pct": 31, "reset": "周六 09:00" }
+    ]},
+    { "id": "zcode-home", "tool": "ZCode", "label": "ZCode · Home · MBP", "source": "local", "scope": "", "kind": "quota", "billing": "subscription", "windows": [
+      { "key": "5h", "pct": 24, "reset": "04:00" },
+      { "key": "7d", "pct": 17, "reset": "下周一 00:00" }
+    ]},
+    { "id": "gemini-main", "tool": "Gemini", "label": "Gemini · Home · Mini", "source": "local", "scope": "", "kind": "quota", "billing": "subscription", "windows": [
+      { "key": "5h", "pct": 36, "reset": "23:05" }
+    ]},
+    { "id": "deepseek-api", "tool": "DeepSeek", "label": "DeepSeek · API · MBP", "source": "local", "scope": "", "kind": "quota", "billing": "subscription", "windows": [
+      { "key": "预算", "pct": 41, "reset": "—" }
+    ]},
     { "id": "sub2api-site", "tool": "全站", "label": "全站 · 8 账号 · 累计 $1280 · 今日 $12", "source": "relay", "scope": "admin", "kind": "site", "billing": "metered", "none": 1 },
     { "id": "sub2api-anthropic", "tool": "anthropic", "label": "anthropic · account-a", "source": "relay", "scope": "admin", "kind": "account", "billing": "metered", "windows": [
       { "key": "5h", "pct": 12, "reset": "01:40" },
@@ -180,23 +173,23 @@ window.AINDLE_MOCK = {
     { "id": "sub2api-user-c", "tool": "carol", "label": "累计 $12 · 今日 $0 · 上次 3 天前", "source": "relay", "scope": "people", "kind": "member", "billing": "metered", "none": 1 }
   ],
   "now": [
-    { "tag": "ACTIVE", "title": "Aindle 调研落盘",     "tool": "Claude", "folder": "Aindle",   "detail": "Claude · Ada · MBP · 16 分钟",          "elapsed": "16分前",      "ended": "" },
-    { "tag": "WAIT",   "title": "Windows agent 骨架",   "tool": "Codex",  "folder": "Aindle",   "detail": "Codex 个人 · MBP · 待批准 · 3 分钟",    "elapsed": "3分12秒前",   "ended": "" },
-    { "tag": "ACTIVE", "title": "公司仓库 review",      "tool": "Codex",  "folder": "SayDo",    "detail": "Codex 公司 · Mini · 22 分钟",           "elapsed": "22分前",      "ended": "" },
-    { "tag": "IDLE",   "title": "截图包导出",           "tool": "Grok",   "folder": "YoUsage",  "detail": "Grok · MBP · 4 分钟无写入",             "elapsed": "41分前",      "ended": "" },
-    { "tag": "IDLE",   "title": "设置页改版",           "tool": "Cursor", "folder": "OctoDesk", "detail": "Cursor Ultra · Windows · 最后活动 25 分钟前", "elapsed": "1小时2分前", "ended": "" },
-    { "tag": "IDLE",   "title": "GLM 长文翻译",         "tool": "GLM",    "folder": "",         "detail": "GLM · MBP · 7 分钟无写入",              "elapsed": "55分前",      "ended": "" },
-    { "tag": "WAIT",   "title": "Extra account smoke test", "tool": "Claude", "folder": "Aindle",   "detail": "Claude · Cara · MBP · waiting on model", "elapsed": "9分48秒前",   "ended": "" }
+    { "tag": "ACTIVE", "title": "Aindle 调研落盘",     "tool": "Claude",   "folder": "Aindle",   "detail": "Claude · Home · MBP · 16 分钟",           "elapsed": "16分前",      "ended": "" },
+    { "tag": "WAIT",   "title": "Windows agent 骨架",   "tool": "Codex",    "folder": "Aindle",   "detail": "Codex · Personal · MBP · 待批准 · 3 分钟", "elapsed": "3分12秒前",   "ended": "" },
+    { "tag": "ACTIVE", "title": "公司仓库 review",      "tool": "Cursor",   "folder": "SayDo",    "detail": "Cursor · Ultra · Mini · 22 分钟",         "elapsed": "22分前",      "ended": "" },
+    { "tag": "IDLE",   "title": "截图包导出",           "tool": "Grok",     "folder": "YoUsage",  "detail": "Grok · Build · MBP · 4 分钟无写入",       "elapsed": "41分前",      "ended": "" },
+    { "tag": "IDLE",   "title": "长文翻译",             "tool": "Kimi",     "folder": "OctoDesk", "detail": "Kimi · Code · Mini · 7 分钟无写入",       "elapsed": "55分前",      "ended": "" },
+    { "tag": "IDLE",   "title": "设备档对照",           "tool": "ZCode",    "folder": "Aindle",   "detail": "ZCode · Home · MBP · 最后活动 25 分钟前", "elapsed": "1小时2分前", "ended": "" },
+    { "tag": "WAIT",   "title": "限额条冒烟",           "tool": "Claude",   "folder": "Aindle",   "detail": "Claude · Home · MBP · waiting on model",  "elapsed": "9分48秒前",   "ended": "" }
   ],
   "recent": [
-    { "tag": "DONE", "title": "生成实施 prompt",   "tool": "Claude", "folder": "Aindle",   "detail": "Claude · Ada · MBP · 8 分钟前",      "elapsed": "", "ended": "21:18" },
-    { "tag": "DONE", "title": "字体子集打包",       "tool": "Grok",   "folder": "YoUsage",  "detail": "Grok · MBP · 15 分钟前",            "elapsed": "", "ended": "21:11" },
-    { "tag": "DONE", "title": "Cursor 账期对照",    "tool": "Cursor", "folder": "OctoDesk", "detail": "Cursor Ultra · Windows · 31 分钟前", "elapsed": "", "ended": "20:55" },
-    { "tag": "DONE", "title": "Oasis 1 设备档",     "tool": "Claude", "folder": "Aindle",   "detail": "Claude · Ada · MBP · 42 分钟前",    "elapsed": "", "ended": "20:44" },
-    { "tag": "FAIL", "title": "上下文超限",         "tool": "Claude", "folder": "SayDo",    "detail": "Claude · Ben · Mini · 47 分钟前",     "elapsed": "", "ended": "20:39" },
-    { "tag": "DONE", "title": "公司 Codex hook",    "tool": "Codex",  "folder": "SayDo",    "detail": "Codex 公司 · Mini · 50 分钟前",      "elapsed": "", "ended": "20:36" },
-    { "tag": "FAIL", "title": "Grok billing 超时",  "tool": "Grok",   "folder": "YoUsage",  "detail": "Grok · MBP · 53 分钟前",            "elapsed": "", "ended": "20:33" },
-    { "tag": "DONE", "title": "WSL 家目录扫描",     "tool": "Codex",  "folder": "",         "detail": "Codex 个人 · Windows · 58 分钟前",   "elapsed": "", "ended": "20:28" }
+    { "tag": "DONE", "title": "生成实施 prompt",   "tool": "Gemini",   "folder": "Aindle",   "detail": "Gemini · Home · Mini · 8 分钟前",   "elapsed": "", "ended": "21:18" },
+    { "tag": "DONE", "title": "字体子集打包",       "tool": "DeepSeek", "folder": "YoUsage",  "detail": "DeepSeek · API · MBP · 15 分钟前",  "elapsed": "", "ended": "21:11" },
+    { "tag": "DONE", "title": "Cursor 账期对照",    "tool": "Cursor",   "folder": "OctoDesk", "detail": "Cursor · Ultra · Mini · 31 分钟前", "elapsed": "", "ended": "20:55" },
+    { "tag": "DONE", "title": "Oasis 1 设备档",     "tool": "Claude",   "folder": "Aindle",   "detail": "Claude · Home · MBP · 42 分钟前",   "elapsed": "", "ended": "20:44" },
+    { "tag": "FAIL", "title": "上下文超限",         "tool": "Kimi",     "folder": "SayDo",    "detail": "Kimi · Code · Mini · 47 分钟前",    "elapsed": "", "ended": "20:39" },
+    { "tag": "DONE", "title": "公司 hook 回归",     "tool": "Codex",    "folder": "SayDo",    "detail": "Codex · Personal · MBP · 50 分钟前", "elapsed": "", "ended": "20:36" },
+    { "tag": "FAIL", "title": "Grok billing 超时",  "tool": "Grok",     "folder": "YoUsage",  "detail": "Grok · Build · MBP · 53 分钟前",    "elapsed": "", "ended": "20:33" },
+    { "tag": "DONE", "title": "WSL 家目录扫描",     "tool": "ZCode",    "folder": "",         "detail": "ZCode · Home · Windows · 58 分钟前", "elapsed": "", "ended": "20:28" }
   ]
 };
 </script>

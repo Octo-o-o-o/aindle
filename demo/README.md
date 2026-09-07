@@ -62,7 +62,7 @@ URL 参数（可叠加，缺省回退到 hash 里的上次状态）：
 
 时间线以「周四 9月3日 21:26」为锚点且自洽：限额重置时间都在将来；陈旧主机
 （Windows，16 分钟前）名下 attention 归零并以「上次」前缀显示；
-订阅与任务的主机归属一致（Grok 在 MBP、公司 Codex 在 Mini 等）。公开 Demo 里的账号名是 Ada / Ben / Cara，不是真实姓名。
+订阅与任务的主机归属一致。本机限额每种 Agent 只列一份：Claude / Codex / Cursor / Grok / Kimi / ZCode / Gemini / DeepSeek。
 attention 分桶：进行中 2 · 待确认 2 · 后台任务 3，与各机卡片加总一致。零项不写。
 
 ## 局域网

@@ -17,13 +17,13 @@
 
 <img src="docs/screenshots/eink-local.png" alt="Kindle Oasis 1 锁屏：限额、进行中任务、电量，mock 数据" width="420">
 
-同一份数字也可以在电脑上看。一台 Mac、Claude + Codex、一条进行中的任务——第一天最常见的用法。
+Hub 看板按小屏 Kindle（Oasis）和大屏 Kindle（Scribe）来排。一台机器、Claude + Codex、一条进行中的任务——第一天最常见的用法。
 
-| 小屏 | 大屏 |
+| Kindle Oasis | Kindle Scribe |
 | --- | --- |
-| <img src="docs/screenshots/simple-phone.png" alt="简单 mock 小屏：两张限额卡" width="260"> | <img src="docs/screenshots/simple-desktop.png" alt="简单 mock 大屏：左侧限额、右侧进行中与近 1 小时任务" width="520"> |
+| <img src="docs/screenshots/simple-oasis.png" alt="简单 mock，Kindle Oasis：Claude、Codex、Cursor、Grok 各一份" width="280"> | <img src="docs/screenshots/simple-scribe.png" alt="简单 mock，Kindle Scribe：每种 Agent 一张限额卡，右侧是任务" width="360"> |
 
-三台主机、多份座位：[复杂大屏](docs/screenshots/complex-desktop.png) · [复杂小屏](docs/screenshots/complex-phone.png)。不连 Hub 的静态页：`python3 demo/serve.py`。
+三台主机、多份座位：[复杂 Scribe](docs/screenshots/complex-scribe.png) · [复杂 Oasis](docs/screenshots/complex-oasis.png)。不连 Hub 的静态页：`python3 demo/serve.py`。
 
 ## 开始使用
 
@@ -38,7 +38,7 @@ npm run hub
 
 然后打开：
 
-- 电脑：[http://127.0.0.1:8787/monitor.html](http://127.0.0.1:8787/monitor.html)
+- 看板：[http://127.0.0.1:8787/monitor.html](http://127.0.0.1:8787/monitor.html)
 - 锁屏 HTML：[http://127.0.0.1:8787/eink.html?page=local](http://127.0.0.1:8787/eink.html?page=local)
 - 锁屏 PNG：[http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local)
 
