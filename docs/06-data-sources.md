@@ -208,7 +208,7 @@ state =
 
 ## 13. Kiro（kiro.dev）——已接入（脆弱）
 
-- Token：`~/Library/Application Support/kiro-cli/data.sqlite3` 表 `auth_kv`（key `kirocli:social:token`，旧版 `kirocli:odic:token`；JSON 含 access_token/expires_at/profile_arn）。CLI 负责刷新——过期就跑一次 kiro-cli，本机当前即过期态。
+- Token：macOS `~/Library/Application Support/kiro-cli/data.sqlite3`；Windows `%APPDATA%\kiro-cli\data.sqlite3`（兼查 `%LOCALAPPDATA%` 与 `~\.kiro-cli`）；Linux `$XDG_DATA_HOME/kiro-cli` 或 `~/.kiro-cli`。表 `auth_kv`（key `kirocli:social:token`，旧版 `kirocli:odic:token`；JSON 含 access_token/expires_at/profile_arn）。CLI 负责刷新——过期就跑一次 kiro-cli。
 - 限额：`POST https://codewhisperer.us-east-1.amazonaws.com/`，`X-Amz-Target: AmazonCodeWhispererService.GetUsageLimits`，body `{profileArn}`。计划内用量 = `currentUsage − currentOverages`；plan 上限字段未文档化 → 容错探测多个候选键，拿不到就 label 显示原始 credits，不画假条。重置 `nextDateReset`。
 
 ## 14. DeepSeek——已接入（余额型）

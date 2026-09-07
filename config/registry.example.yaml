@@ -1,6 +1,10 @@
-# Copy to ./config/registry.yaml or run `aindle init`.
+# Copy to ./config/registry.yaml or run `npx aindle init --local`.
 # Only list subscriptions you want to monitor. Aindle does not auto-scan ~/.claude-*.
 # Never commit a filled-in registry. Secrets stay in local files / env vars.
+#
+# Paths: ~/.claude is %USERPROFILE%\.claude on Windows. %USERPROFILE% and %APPDATA%
+# also expand. If a tool lives only in WSL, run the agent inside that distro or
+# set home: to the UNC path (\\wsl$\Ubuntu\home\you\.claude).
 
 host:
   id: mbp

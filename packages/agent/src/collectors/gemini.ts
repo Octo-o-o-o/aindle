@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import https from 'node:https';
+import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import type { Subscription, UsageWindow } from '@aindle/core';
 import { expandHome, type RegistrySubscription } from '../registry.js';
@@ -36,7 +37,7 @@ export function geminiHome(entry: RegistrySubscription): string {
 }
 
 export function readGeminiOauth(entry: RegistrySubscription): GeminiOauth | null {
-  const file = `${geminiHome(entry)}/oauth_creds.json`;
+  const file = path.join(geminiHome(entry), 'oauth_creds.json');
   try {
     const creds = JSON.parse(fs.readFileSync(file, 'utf8')) as GeminiOauth;
     return creds?.access_token || creds?.refresh_token ? creds : null;
@@ -182,10 +183,27 @@ export function findAntigravityEndpoint(raw = listProcessCommands()): Antigravit
   return null;
 }
 
+export function processListCommand(platform: NodeJS.Platform = process.platform): { cmd: string; args: string[] } {
+  if (platform === 'win32') return { cmd: 'wmic', args: ['process', 'get', 'CommandLine'] };
+  return { cmd: 'ps', args: ['ax', '-o', 'command='] };
+}
+
 function listProcessCommands(): string[] {
+  const primary = processListCommand();
   try {
-    return execFileSync('ps', ['ax', '-o', 'command='], { encoding: 'utf8', timeout: 3000 }).split('\n');
+    return execFileSync(primary.cmd, primary.args, { encoding: 'utf8', timeout: 8000 }).split(/\r?\n/);
   } catch {
+    if (process.platform === 'win32') {
+      try {
+        return execFileSync(
+          'powershell.exe',
+          ['-NoProfile', '-Command', 'Get-CimInstance Win32_Process | ForEach-Object { $_.CommandLine }'],
+          { encoding: 'utf8', timeout: 8000 },
+        ).split(/\r?\n/);
+      } catch {
+        return [];
+      }
+    }
     return [];
   }
 }

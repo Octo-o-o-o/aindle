@@ -73,8 +73,17 @@ export function loadRegistry(filePath?: string): RegistryFile {
 }
 
 export function expandHome(input: string): string {
-  if (input.startsWith('~')) return path.join(os.homedir(), input.slice(1));
-  return input;
+  let s = input.trim();
+  if (!s) return s;
+  s = s.replace(/%([^%]+)%/g, (_, name: string) => {
+    const v = process.env[name];
+    return v && v.length ? v : `%${name}%`;
+  });
+  if (s.startsWith('~')) {
+    const rest = s.slice(1).replace(/^[/\\]+/, '');
+    return rest ? path.join(os.homedir(), rest) : os.homedir();
+  }
+  return s;
 }
 
 export function claudeCredsPath(home: string): string {

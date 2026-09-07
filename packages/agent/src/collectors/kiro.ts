@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { Subscription, UsageWindow } from '@aindle/core';
@@ -21,10 +22,45 @@ interface KiroAuthRow {
   profile_arn?: string;
 }
 
+export function kiroDefaultDbCandidates(opts?: {
+  platform?: NodeJS.Platform;
+  home?: string;
+  env?: NodeJS.ProcessEnv;
+}): string[] {
+  const platform = opts?.platform ?? process.platform;
+  const home = opts?.home ?? os.homedir();
+  const env = opts?.env ?? process.env;
+  if (platform === 'darwin') {
+    return [path.join(home, 'Library', 'Application Support', 'kiro-cli', 'data.sqlite3')];
+  }
+  if (platform === 'win32') {
+    const roaming = env.APPDATA || path.join(home, 'AppData', 'Roaming');
+    const local = env.LOCALAPPDATA || path.join(home, 'AppData', 'Local');
+    return [
+      path.join(roaming, 'kiro-cli', 'data.sqlite3'),
+      path.join(local, 'kiro-cli', 'data.sqlite3'),
+      path.join(home, '.kiro-cli', 'data.sqlite3'),
+    ];
+  }
+  const xdg = env.XDG_DATA_HOME || path.join(home, '.local', 'share');
+  return [path.join(xdg, 'kiro-cli', 'data.sqlite3'), path.join(home, '.kiro-cli', 'data.sqlite3')];
+}
+
 export function kiroDbPath(entry: RegistrySubscription): string {
-  return expandHome(
-    entry.home ?? path.join(os.homedir(), 'Library', 'Application Support', 'kiro-cli', 'data.sqlite3'),
-  );
+  if (entry.home) {
+    const expanded = expandHome(entry.home);
+    if (expanded.endsWith('.sqlite3') || expanded.endsWith('.db') || expanded.endsWith('.sqlite')) {
+      return expanded;
+    }
+    try {
+      if (fs.existsSync(expanded) && fs.statSync(expanded).isFile()) return expanded;
+    } catch {
+      /* treat as directory */
+    }
+    return path.join(expanded, 'data.sqlite3');
+  }
+  const candidates = kiroDefaultDbCandidates();
+  return candidates.find((p) => fs.existsSync(p)) ?? candidates[0]!;
 }
 
 function readKv(dbPath: string, keys: string[]): string | null {

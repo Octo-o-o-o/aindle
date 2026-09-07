@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -56,11 +55,14 @@ function exampleRegistryPath(): string {
 function printHelp(): never {
   console.log(`Aindle — Kindle-friendly AI usage monitor
 
-Usage:
-  aindle init [--local]     Write a starter registry.yaml
-  aindle hub                Start the hub (default :8787)
-  aindle agent [options]    Collect local usage and POST to the hub
-  aindle help               Show this help
+From this clone (the package is not on npm). Mac / Windows / Linux:
+  npx aindle init [--local]   Write a starter registry.yaml
+  npx aindle hub              Start the hub (default :8787)
+  npx aindle agent [options]  Collect local usage and POST to the hub
+  npx aindle help
+
+Same thing: npm run hub | npm run init | npm run agent -- --loop 60
+Do not type a bare "aindle" unless node_modules/.bin is on PATH.
 
 Agent options:
   --once           Push one report and exit (default)
@@ -77,6 +79,7 @@ Init:
 Env:
   AINDLE_PORT AINDLE_HOST AINDLE_TOKEN AINDLE_HUB_URL
   AINDLE_REGISTRY AINDLE_SEED_MOCK AINDLE_HUB_ID AINDLE_HUB_LABEL
+  AINDLE_CHROME
   AINDLE_SUB2API_BASE_URL AINDLE_SUB2API_EMAIL AINDLE_SUB2API_PASSWORD
   AINDLE_SUB2API_JWT AINDLE_SUB2API_ADMIN_KEY
 
@@ -99,11 +102,15 @@ function runInit(local: boolean): void {
   }
   fs.mkdirSync(path.dirname(dest), { recursive: true, mode: 0o700 });
   fs.copyFileSync(src, dest);
-  fs.chmodSync(dest, 0o600);
+  try {
+    fs.chmodSync(dest, 0o600);
+  } catch {
+    /* Windows ignores POSIX modes */
+  }
   console.log('wrote %s', dest);
-  console.log('Edit the file, then run:');
-  console.log('  aindle hub');
-  console.log('  aindle agent --loop 60');
+  console.log('Edit the file (keep only tools you use), then from this clone:');
+  console.log('  npm run hub');
+  console.log('  npx aindle agent --loop 60');
 }
 
 function parseAgentArgs(argv: string[]) {

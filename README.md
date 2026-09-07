@@ -27,7 +27,7 @@ Three hosts and many seats: [complex Scribe](docs/screenshots/complex-scribe.png
 
 ## Start
 
-Needs **Node.js 20+**. Clone this repo — the package is **not** on npm. First `npm run hub` compiles `@aindle/core` if needed (a few seconds).
+Needs **Node.js 20+** (22+ on Windows if you want Cursor / Kiro / ZCode). Clone this repo — the package is **not** on npm. First `npm run hub` compiles `@aindle/core` if needed (a few seconds).
 
 ```bash
 git clone https://github.com/Octo-o-o-o/aindle.git
@@ -40,7 +40,7 @@ Open:
 
 - Board: [http://127.0.0.1:8787/monitor.html](http://127.0.0.1:8787/monitor.html)
 - Lock-screen HTML: [http://127.0.0.1:8787/eink.html?page=local](http://127.0.0.1:8787/eink.html?page=local)
-- Lock-screen PNG: [http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local) — needs Chrome or Chromium on this machine
+- Lock-screen PNG: [http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local) — needs Chrome, Chromium, Edge, or Brave on this machine (`AINDLE_CHROME` if it is not in the usual place)
 
 The two HTML pages are enough to learn the UI. The hub seeds mock data so the screen is not empty. `AINDLE_SEED_MOCK=0` turns the sample off. State is in memory: restarting the hub reseeds the mock unless you turn that off.
 
@@ -57,6 +57,15 @@ npx aindle agent --loop 60
 ```
 
 `npx aindle` here is the **local** bin from this repo (`scripts/aindle.mjs`), not a global npm package. Same thing: `npm run init` then `npm run agent -- --loop 60`.
+
+### macOS and Windows
+
+The same commands work in Terminal, PowerShell, and cmd, as long as you run them **from this clone**. Do not type a bare `aindle` — it is not on PATH.
+
+- **Node.js 22+** is recommended on Windows. Node 20 can run the hub and the mock; Cursor / Kiro / ZCode need Node 22’s built-in `node:sqlite`, or a `sqlite3.exe` on PATH.
+- Lock-screen `/dash.png` looks for Chrome, Chromium, Edge, or Brave. If none are found, set `AINDLE_CHROME` to the browser path. The two HTML pages do not need a browser installed.
+- Kindle on the LAN: allow inbound TCP `8787` on the hub machine (Windows Defender / macOS firewall).
+- Tools that live only in **WSL** are a different home directory. Run the agent inside that distro, or set `home:` to the UNC path (`\\wsl$\Ubuntu\home\you\.claude`). `%USERPROFILE%` and `%APPDATA%` expand in `registry.yaml`.
 
 Copy [config/registry.example.yaml](config/registry.example.yaml) if you prefer. Aindle does not auto-scan every `~/.claude-*`. Delete unused entries — leftover seats that cannot be read become empty or `stale`, they should not crash the agent. Never commit a filled-in `registry.yaml` (it is gitignored).
 
@@ -87,7 +96,7 @@ Primary path: **`/dash.png` + FBInk**. Scripts live in [`kindle/oasis1/`](kindle
 4. KUAL → start lock-screen monitor. Lock to see the board.
 5. Page-turn keys switch **local / now / relay** only while locked. Unlock = stock Kindle.
 
-PNG is exactly **1072×1448**. The hub host needs Chrome or Chromium (`AINDLE_CHROME` if it is not in the default path). Default refresh: 10 minutes idle, 5 minutes when a task is busy.
+PNG is exactly **1072×1448**. The hub host needs Chrome, Chromium, Edge, or Brave (`AINDLE_CHROME` if it is not in the default path). Default refresh: 10 minutes idle, 5 minutes when a task is busy.
 
 ## What it is / what it is not
 

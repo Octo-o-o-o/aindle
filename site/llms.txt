@@ -17,7 +17,9 @@ The package is not on npm. First `npm run hub` compiles `@aindle/core` if needed
 
 Then open http://127.0.0.1:8787/monitor.html and http://127.0.0.1:8787/eink.html?page=local
 
-`/dash.png` needs Chrome or Chromium on the hub machine.
+`/dash.png` needs Chrome, Chromium, Edge, or Brave on the hub machine.
+
+Same commands on macOS and Windows (PowerShell or cmd), from this clone. Windows: Node.js 22+ recommended for Cursor / Kiro / ZCode sqlite.
 
 Live machines (local bin in this clone, not a global npm package): `npx aindle init --local` then `npx aindle agent --loop 60`.
 

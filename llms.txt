@@ -19,7 +19,9 @@ Then open:
 
 - Board: http://127.0.0.1:8787/monitor.html
 - Lock-screen HTML: http://127.0.0.1:8787/eink.html?page=local
-- Lock-screen PNG: http://127.0.0.1:8787/dash.png?page=local (needs Chrome/Chromium)
+- Lock-screen PNG: http://127.0.0.1:8787/dash.png?page=local (needs Chrome, Chromium, Edge, or Brave)
+
+Same commands on macOS and Windows (PowerShell or cmd), from this clone. Do not type a bare `aindle`. Windows: Node.js 22+ recommended so Cursor / Kiro / ZCode can read local sqlite.
 
 The hub seeds mock data so the screen is not empty. Live machines (local bin, not a global npm package):
 

@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import crypto from 'node:crypto';
-import { expandHome } from '../registry.js';
+import { claudeCredsPath, expandHome } from '../registry.js';
 
 const SECURITY = '/usr/bin/security';
 const DEFAULT_SERVICE = 'Claude Code-credentials';
@@ -86,7 +86,7 @@ export function readClaudeCreds(configDir: string): ClaudeCredsBundle | null {
     }
   }
 
-  const credPath = `${home}/.credentials.json`;
+  const credPath = claudeCredsPath(home);
   if (!fs.existsSync(credPath)) return null;
   try {
     const creds = JSON.parse(fs.readFileSync(credPath, 'utf8')) as ClaudeCredsFile;

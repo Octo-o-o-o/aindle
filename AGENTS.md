@@ -9,7 +9,7 @@ npm install
 npm run hub                      # first run compiles @aindle/core if needed
 # http://127.0.0.1:8787/monitor.html
 # http://127.0.0.1:8787/eink.html?page=local
-# http://127.0.0.1:8787/dash.png?page=local   # needs Chrome/Chromium
+# http://127.0.0.1:8787/dash.png?page=local   # Chrome / Edge / Brave, or AINDLE_CHROME
 ```
 
 ```bash
@@ -19,7 +19,7 @@ npx aindle agent --mock          # push the built-in sample once
 npx aindle agent --dry-run       # print JSON, do not POST
 ```
 
-`npx aindle` is the local bin (`scripts/aindle.mjs`), not an npm-published package. Same: `npm run init` / `npm run agent -- --loop 60`. No database or extra Aindle daemon.
+`npx aindle` is the local bin (`scripts/aindle.mjs`), not an npm-published package. Same: `npm run init` / `npm run agent -- --loop 60`. No database or extra Aindle daemon. Mac / Windows / Linux use the same commands from this clone; do not type a bare `aindle`. Windows: Node 22+ recommended (Cursor / Kiro / ZCode sqlite). `/dash.png` accepts Chrome, Chromium, Edge, Brave, or `AINDLE_CHROME`.
 
 ```bash
 npm run check                    # packages + demo freshness + kindle smoke
@@ -51,7 +51,7 @@ Hub seeds mock data unless `AINDLE_SEED_MOCK=0`. Default port `8787` (`AINDLE_PO
 
 On-screen buckets: **进行中** (human) · **待确认** (direct wait) · **后台任务** (agent/machine). `wait` today is Claude `AskUserQuestion` and Codex `request_user_input` only.
 
-Oasis 1 canvas is **1072×1448**. Lock-screen PNG needs Chrome/Chromium on the hub host.
+Oasis 1 canvas is **1072×1448**. Lock-screen PNG needs Chrome, Chromium, Edge, or Brave on the hub host.
 
 ## Docs
 

@@ -148,6 +148,8 @@ const requiredMeta = [
   'npx aindle init --local',
   '包没有发到 npm',
   '不需要数据库',
+  'PowerShell',
+  'Node.js 22',
   '/images/eink-local.png',
   '/llms.txt',
   '/images/hero-scribe.png',

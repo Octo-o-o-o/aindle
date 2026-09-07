@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
+import path from 'node:path';
 
 const require = createRequire(import.meta.url);
 
@@ -101,9 +102,19 @@ export function readSqliteValue(dbPath: string, sql: string, column: string): st
   }
 }
 
+export function lookupCommandBin(): string {
+  if (process.platform !== 'win32') return 'which';
+  const root = process.env.SystemRoot;
+  if (root) {
+    const p = path.join(root, 'System32', 'where.exe');
+    if (fs.existsSync(p)) return p;
+  }
+  return 'where.exe';
+}
+
 function commandExists(cmd: string): boolean {
   try {
-    execFileSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { stdio: 'ignore' });
+    execFileSync(lookupCommandBin(), [cmd], { stdio: 'ignore', timeout: 2000 });
     return true;
   } catch {
     return false;

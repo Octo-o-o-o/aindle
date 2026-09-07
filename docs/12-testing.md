@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js ≥ 20
+- Node.js ≥ 20（Windows 上读 Cursor / Kiro / ZCode 建议 22+）
 - From the repository root:
 
 ```bash
@@ -10,7 +10,7 @@ npm install
 npm run check
 ```
 
-`check` compiles every package, bundles `dist/cli.js`, runs schema/merge tests, and checks the generated demo. A fresh clone can also run `npm run hub` / `npx aindle` before that bundle exists: `scripts/ensure-built.mjs` compiles `@aindle/core`, and `scripts/aindle.mjs` is the local bin.
+`check` compiles every package, bundles `dist/cli.js`, runs schema/merge tests, and checks the generated demo. A fresh clone can also run `npm run hub` / `npx aindle` before that bundle exists: `scripts/ensure-built.mjs` compiles `@aindle/core`, and `scripts/aindle.mjs` prefers `tsx src/cli.ts` in a clone so a stale bundle cannot break `npx aindle`.
 
 ## 1. Gate
 
@@ -46,6 +46,14 @@ export AINDLE_TOKEN=dev-secret
 export AINDLE_SEED_MOCK=0
 export AINDLE_HUB_ID=mini
 export AINDLE_HUB_LABEL="Mac mini"
+```
+
+PowerShell:
+
+```powershell
+$env:AINDLE_PORT=8787
+$env:AINDLE_TOKEN="dev-secret"
+$env:AINDLE_HUB_URL="http://127.0.0.1:8787"
 ```
 
 ## 3. Agent

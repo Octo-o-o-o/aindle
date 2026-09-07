@@ -27,7 +27,7 @@ Hub 看板按小屏 Kindle（Oasis）和大屏 Kindle（Scribe）来排。一台
 
 ## 开始使用
 
-需要 **Node.js 20+**。请 **clone 本仓库**——包没有发到 npm。第一次 `npm run hub` 若还没有编译产物，会先编 `@aindle/core`（几秒钟）。
+需要 **Node.js 20+**（Windows 上若要读 Cursor / Kiro / ZCode，建议 22+）。请 **clone 本仓库**——包没有发到 npm。第一次 `npm run hub` 若还没有编译产物，会先编 `@aindle/core`（几秒钟）。
 
 ```bash
 git clone https://github.com/Octo-o-o-o/aindle.git
@@ -40,7 +40,7 @@ npm run hub
 
 - 看板：[http://127.0.0.1:8787/monitor.html](http://127.0.0.1:8787/monitor.html)
 - 锁屏 HTML：[http://127.0.0.1:8787/eink.html?page=local](http://127.0.0.1:8787/eink.html?page=local)
-- 锁屏 PNG：[http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local) —— 这台机器上要有 Chrome / Chromium
+- 锁屏 PNG：[http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local) —— 这台机器上要有 Chrome / Chromium / Edge / Brave（找不到时设 `AINDLE_CHROME`）
 
 前两个 HTML 就够对照界面。Hub 默认灌一份 mock，避免空屏。只想等真 agent 时设 `AINDLE_SEED_MOCK=0`。状态在内存里：重启 Hub 会重新灌 mock（除非关掉种子）。
 
@@ -57,6 +57,15 @@ npx aindle agent --loop 60
 ```
 
 这里的 `npx aindle` 是仓库里的本地 bin（`scripts/aindle.mjs`），不是 npm 全球包。等价写法：`npm run init`，然后 `npm run agent -- --loop 60`。
+
+### macOS 与 Windows
+
+Terminal、PowerShell、cmd 都是这几条命令，务必在 **这个 clone** 里跑。不要只打 `aindle`——它不在 PATH 里。
+
+- Windows 上建议 **Node.js 22+**。Node 20 能跑 Hub 和 mock；Cursor / Kiro / ZCode 要靠 Node 22 自带的 `node:sqlite`，或者 PATH 里有 `sqlite3.exe`。
+- `/dash.png` 会找 Chrome、Chromium、Edge、Brave。都没有就设 `AINDLE_CHROME`。两个 HTML 页不需要装浏览器。
+- Kindle 走局域网时，Hub 那台机要放行入站 TCP `8787`（Windows 防火墙 / macOS 防火墙）。
+- 工具只装在 **WSL** 里则家目录不同：在那个发行版里跑 agent，或把 `home:` 写成 UNC（`\\wsl$\Ubuntu\home\you\.claude`）。`registry.yaml` 里 `%USERPROFILE%`、`%APPDATA%` 会展开。
 
 也可以手抄 [config/registry.example.yaml](config/registry.example.yaml)。Aindle 不会自动扫遍所有 `~/.claude-*`。用不到的条目删掉——读不到的座位会空着或变 `stale`，不应把整个 agent 打崩。填好的 `registry.yaml` 不要提交（已在 gitignore）。
 
@@ -87,7 +96,7 @@ npx aindle agent --mock       # 推一次内置样例
 4. KUAL → 开锁屏监控。锁屏看板。
 5. 翻页键只在锁屏时切 **本机 / 进行中 / 中转**。解锁 = 原厂 Kindle。
 
-PNG 正好 **1072×1448**。出图需要 hub 那台机器上有 Chrome / Chromium（不在默认路径就设 `AINDLE_CHROME`）。默认 10 分钟一刷，有进行中任务时 5 分钟。
+PNG 正好 **1072×1448**。出图需要 hub 那台机器上有 Chrome / Chromium / Edge / Brave（不在默认路径就设 `AINDLE_CHROME`）。默认 10 分钟一刷，有进行中任务时 5 分钟。
 
 ## 它是什么 / 不是什么
 

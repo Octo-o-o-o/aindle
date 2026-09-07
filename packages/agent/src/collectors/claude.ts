@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 import type { Subscription, UsageWindow } from '@aindle/core';
 import { expandHome, type RegistrySubscription } from '../registry.js';
 import {
@@ -50,6 +51,7 @@ function detectClaudeVersion(): string {
       encoding: 'utf8',
       timeout: 2000,
       stdio: ['ignore', 'pipe', 'pipe'],
+      shell: process.platform === 'win32',
     });
     const match = out.match(/(\d+\.\d+\.\d+)/);
     if (match?.[1]) return match[1];
@@ -182,7 +184,7 @@ function lastKnown(entry: RegistrySubscription, cached?: Subscription): Subscrip
 
 export function claudeProjectsDir(entry: RegistrySubscription): string {
   if (entry.projectsDir) return expandHome(entry.projectsDir);
-  return expandHome(`${entry.home ?? '~/.claude'}/projects`);
+  return path.join(expandHome(entry.home ?? '~/.claude'), 'projects');
 }
 
 export function claudeSessionBusy(entry: RegistrySubscription): boolean {

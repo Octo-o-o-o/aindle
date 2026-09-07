@@ -63,6 +63,17 @@ describe('A6 UI and v1 ingest', () => {
     assert.equal(fs.existsSync(path.join(root, 'scripts', 'ensure-built.mjs')), true);
     assert.equal(fs.existsSync(path.join(root, 'scripts', 'link-local-bin.mjs')), true);
     assert.match(String(pkg.scripts?.postinstall), /link-local-bin/);
+    const linker = fs.readFileSync(path.join(root, 'scripts', 'link-local-bin.mjs'), 'utf8');
+    assert.match(linker, /aindle\.cmd/);
+    assert.match(linker, /aindle\.ps1/);
+    assert.match(linker, /copyFileSync/);
+    assert.match(linker, /never fail postinstall/);
+    const launcher = fs.readFileSync(path.join(root, 'scripts', 'aindle.mjs'), 'utf8');
+    assert.match(launcher, /src\/cli\.ts/);
+    assert.match(launcher, /existsSync\(src\) && fs\.existsSync\(tsx\)/);
+    const buildCli = fs.readFileSync(path.join(root, 'scripts', 'build-cli.mjs'), 'utf8');
+    assert.match(buildCli, /createRequire/);
+    assert.match(buildCli, /dist', 'cli\.js'/);
   });
 
   it('hub serves the brand favicon and masthead PNG', async () => {
