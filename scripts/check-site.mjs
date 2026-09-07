@@ -191,8 +191,13 @@ const requiredMeta = [
   'height="1448"',
   'id="hero-photo"',
   '场景示意',
-  '锁屏 · 1072×1448 · Mock 数据',
+  '锁屏 · 1072×1448 · 示例数据',
   'Kindle Oasis',
+  'data-set-lang="zh"',
+  'data-set-lang="en"',
+  'data-set-theme="light"',
+  'data-set-theme="dark"',
+  'data-i18n="hero.lede"',
   'https://github.com/Octo-o-o-o/aindle',
 ];
 for (const needle of requiredMeta) {
@@ -218,6 +223,9 @@ for (const banned of [
   'https://aindle.octoooo.com/scribe',
   '/images/hero-scribe.png',
   '/images/website-eink-demo.png',
+  'A private, read-only board for AI quotas',
+  'Mock 数据',
+  'Desk-side board',
 ]) {
   if (index.includes(banned)) fail(`index.html still has internal copy ${banned}`);
 }
@@ -227,6 +235,8 @@ if (css.includes('oasis-shell') || css.includes('oasis-screen') || css.includes(
 }
 if (css.includes('@keyframes rest')) fail('styles.css still has floating rest animation');
 if (!css.includes('prefers-reduced-motion')) fail('styles.css missing reduced-motion');
+if (!css.includes('data-theme="dark"')) fail('styles.css missing dark theme');
+if (!css.includes('prefers-color-scheme: dark')) fail('styles.css missing system dark fallback');
 if (!css.includes('Songti SC') || !css.includes('Georgia')) fail('styles.css missing required serif stack');
 if (/fonts\.googleapis|cdn\.jsdelivr|unpkg\.com/.test(index + css)) fail('external font/CDN reference');
 
@@ -270,8 +280,14 @@ if (!/unsafe-inline/.test(oasisCsp[0])) fail('oasis CSP must allow inline script
 if (!/unsafe-inline/.test(scribeCsp[0])) fail('scribe CSP must allow inline script/style');
 if (!/img-src 'none'/.test(oasisCsp[0] + scribeCsp[0])) fail('oasis/scribe CSP should block images');
 const fourHtml = fs.readFileSync(path.join(OUT, '404.html'), 'utf8');
-if (/<style[\s>]|style=|<script[\s>]/i.test(fourHtml)) {
-  fail('404.html has inline style/script; keep using /styles.css so strict CSP still paints');
+if (/<style[\s>]|style=/i.test(fourHtml)) {
+  fail('404.html has inline style; keep using /styles.css so strict CSP still paints');
+}
+if (/<script(?![^>]*\ssrc="\/site\.js")/i.test(fourHtml)) {
+  fail('404.html may only load /site.js, no inline script');
+}
+if (!fourHtml.includes('data-set-lang="en"') || !fourHtml.includes('data-set-theme="dark"')) {
+  fail('404.html missing language or theme controls');
 }
 for (const [rel, device] of [
   ['oasis.html', 'oasis1'],

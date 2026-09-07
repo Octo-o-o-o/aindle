@@ -54,7 +54,7 @@ python3 -m http.server 4173 --directory dist/site
 # 也可用 wrangler pages dev dist/site 看真实 Pages headers。
 ```
 
-`site:build` 只用 Node 标准库，输出 `dist/site`。不要把 `config/`、`.env`、Hub、真实 snapshot 或整个仓库拷进去。首页不再推广用短地址在设备浏览器里预览 Demo。`/oasis` 与 `/scribe` 仍会生成完整 HTML（设备档写进 `AINDLE_PRESET`，不经过 meta refresh、query string，也不引用 PNG/ICO），给旧链接用，不作为官网入口。公开站还带 `/llms.txt`（给编程 agent）、`/images/hero-desk.jpg`（Hero 场景图）和 `/images/eink-local.png`（锁屏 mock）。
+`site:build` 只用 Node 标准库，输出 `dist/site`。不要把 `config/`、`.env`、Hub、真实 snapshot 或整个仓库拷进去。首页不再推广用短地址在设备浏览器里预览 Demo。`/oasis` 与 `/scribe` 仍会生成完整 HTML（设备档写进 `AINDLE_PRESET`，不经过 meta refresh、query string，也不引用 PNG/ICO），给旧链接用，不作为官网入口。公开站还带 `/llms.txt`（给编程 agent）、`/images/hero-desk.jpg`（Hero 场景图）和 `/images/eink-local.png`（锁屏 mock）。首页与 404 用同一套 `site.js` 做中/英与浅色/深色切换，偏好存在 `localStorage`，英文可用 `?lang=en`。默认中文；中文页不再夹一句英文摘要。
 
 ## Cloudflare Pages（Git integration）
 

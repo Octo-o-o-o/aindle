@@ -206,6 +206,43 @@ async function checkHeroPhoto(page, errors) {
   return { initial };
 }
 
+async function checkPrefs(page, errors) {
+  const before = await page.evaluate(() => ({
+    lang: document.documentElement.getAttribute('data-lang'),
+    theme: document.documentElement.getAttribute('data-theme'),
+    h1: (document.querySelector('#hero-title') || document.querySelector('h1') || {}).textContent || '',
+    en: Boolean(document.querySelector('[data-set-lang="en"]')),
+    dark: Boolean(document.querySelector('[data-set-theme="dark"]')),
+  }));
+  if (!before.en || !before.dark) errors.push('missing language or theme controls');
+  if (before.lang && before.lang !== 'zh' && before.lang !== 'en') {
+    errors.push(`unexpected data-lang ${before.lang}`);
+  }
+  await page.locator('[data-set-lang="en"]').click();
+  const en = await page.evaluate(() => ({
+    lang: document.documentElement.getAttribute('data-lang'),
+    htmlLang: document.documentElement.lang,
+    h1: (document.querySelector('#hero-title') || document.querySelector('h1') || {}).textContent || '',
+  }));
+  if (en.lang !== 'en') errors.push(`en toggle data-lang ${en.lang}`);
+  if (en.htmlLang !== 'en') errors.push(`en toggle html lang ${en.htmlLang}`);
+  if (!/unhurried|busy|not in the book/i.test(en.h1)) errors.push(`en h1 ${en.h1}`);
+  await page.locator('[data-set-lang="zh"]').click();
+  const zh = await page.evaluate(() => ({
+    lang: document.documentElement.getAttribute('data-lang'),
+    h1: (document.querySelector('#hero-title') || document.querySelector('h1') || {}).textContent || '',
+  }));
+  if (zh.lang !== 'zh') errors.push(`zh toggle data-lang ${zh.lang}`);
+  if (!/从容|不在书里/.test(zh.h1)) errors.push(`zh h1 ${zh.h1}`);
+  await page.locator('[data-set-theme="dark"]').click();
+  const dark = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+  if (dark !== 'dark') errors.push(`dark toggle ${dark}`);
+  await page.locator('[data-set-theme="light"]').click();
+  const light = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+  if (light !== 'light') errors.push(`light toggle ${light}`);
+  return { before, en, zh, dark, light };
+}
+
 async function checkPage(context, url, opts) {
   const errors = [];
   const consoleLines = [];
@@ -282,6 +319,7 @@ async function checkPage(context, url, opts) {
   let hero = null;
   if (opts.expectHero) {
     hero = await checkHeroPhoto(page, errors);
+    hero.prefs = await checkPrefs(page, errors);
   }
   let copy = null;
   if (opts.clickCopy) copy = await checkCopy(page, errors);
