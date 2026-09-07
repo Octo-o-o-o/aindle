@@ -16,10 +16,11 @@
 | 10 | [demo-review.md](10-demo-review.md) | 另一会话对 Demo 的改动复核 |
 | 12 | [testing.md](12-testing.md) | Stage 1 Hub/Agent 测试指南 |
 | 13 | [sub2api.md](13-sub2api.md) | Sub2API Admin / 普通用户如何配置 |
+| 14 | [website-and-brand.md](14-website-and-brand.md) | 官网、品牌图标、Cloudflare Pages Git 配置 |
 
-当前实施合同：[`plan/2026-09-04-yousage-borrowing-assessment.fable.md`](plan/2026-09-04-yousage-borrowing-assessment.fable.md)。独立交叉评审：[`review/2026-09-04-yousage-borrowing-cross-review.sol.md`](review/2026-09-04-yousage-borrowing-cross-review.sol.md)。实施 handoff：[`plan/2026-09-04-yousage-borrowing-IMPL-PROMPT.md`](plan/2026-09-04-yousage-borrowing-IMPL-PROMPT.md)。
+当前实施合同：[`plan/2026-09-04-yousage-borrowing-assessment.fable.md`](plan/2026-09-04-yousage-borrowing-assessment.fable.md)。独立交叉评审：[`review/2026-09-04-yousage-borrowing-cross-review.sol.md`](review/2026-09-04-yousage-borrowing-cross-review.sol.md)。实施 handoff：[`plan/2026-09-04-yousage-borrowing-IMPL-PROMPT.md`](plan/2026-09-04-yousage-borrowing-IMPL-PROMPT.md)。官网与品牌：[`plan/2026-09-05-website-branding.md`](plan/2026-09-05-website-branding.md)。
 
-Demo：[`../demo/oasis-monitor.html`](../demo/oasis-monitor.html)（mock） · Hub 实时 UI：`:8787/monitor.html`
+Demo：[`../demo/oasis-monitor.html`](../demo/oasis-monitor.html)（mock） · Hub 实时 UI：`:8787/monitor.html` · 官网：[`../site/index.html`](../site/index.html) · 给 agent：[`../AGENTS.md`](../AGENTS.md) · [`../llms.txt`](../llms.txt)
 
 ## 证据纪律
 

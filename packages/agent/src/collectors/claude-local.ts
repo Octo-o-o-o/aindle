@@ -108,16 +108,14 @@ function uniquePaths(paths: Array<string | undefined>): string[] {
   return [...new Set(paths.filter((p): p is string => Boolean(p)).map((p) => expandHome(p)))];
 }
 
-export function claudeLocalUsagePaths(home?: string): { headers: string[]; fill: string[] } {
+export function claudeLocalUsagePaths(home?: string): { headers: string[]; fill: string[]; own: string } {
   const root = claudeLocalUsageHome(home);
   const hinted = process.env.AINDLE_CLAUDE_RATE_FILE?.trim();
+  const own = path.join(root, '.config', 'aindle', 'claude-rate-limits.json');
   return {
-    headers: uniquePaths([
-      hinted,
-      path.join(root, '.config', 'aindle', 'claude-rate-limits.json'),
-      path.join(root, '.vibe-island', 'cache', 'rl.json'),
-    ]),
+    headers: uniquePaths([hinted, path.join(root, '.vibe-island', 'cache', 'rl.json')]).filter((p) => p !== own),
     fill: uniquePaths([path.join(root, '.vibe-island', 'cache', 'anthropic-oauth-usage.json')]),
+    own,
   };
 }
 
@@ -162,15 +160,21 @@ function sortWindows(windows: UsageWindow[]): UsageWindow[] {
 }
 
 export function readLocalClaudeUsage(now = Date.now(), home?: string): LocalClaudeUsage {
-  const { headers, fill } = claudeLocalUsagePaths(home);
+  const { headers, fill, own } = claudeLocalUsagePaths(home);
   const byKey = new Map<string, { win: UsageWindow; mtime: number; source: string }>();
   const header = mergeWindows(headers, byKey, false);
-  mergeWindows(fill, byKey, true);
+  const headerFresh = header.newest > 0 && now - header.newest <= FRESH_MS;
+  // Fresh conversation headers win. Stale headers must not block a newer oauth snapshot
+  // (Aindle used to keep Sep-4 test numbers in front of today's vibe-island file).
+  const fillInfo = mergeWindows(fill, byKey, headerFresh);
+  if (!byKey.size) mergeWindows([own], byKey, false);
+  const newest = Math.max(header.newest, fillInfo.newest);
+  const source = (fillInfo.newest >= header.newest ? fillInfo.source : undefined) ?? header.source;
   return {
     windows: sortWindows([...byKey.values()].map((row) => row.win)),
-    fresh: header.newest > 0 && now - header.newest <= FRESH_MS,
-    source: header.source,
-    mtime: header.newest,
+    fresh: newest > 0 && now - newest <= FRESH_MS,
+    source,
+    mtime: newest,
   };
 }
 

@@ -13,11 +13,11 @@ import {
   readRolloutMeta,
   rolloutThreadId,
 } from './codex.js';
-import { cursorChatsDir } from './cursor.js';
+import { cursorChatsDir, loadCursorComposerNames } from './cursor.js';
 import { grokSessionsDir } from './grok.js';
 import { kimiProjectsDir } from './kimi.js';
 import { zcodeDbPath } from './zcode.js';
-import { isClaudeUserAsk, isCodexUserAsk, lastAskMs, lastAskMsInDir } from './user-ask.js';
+import { isClaudeUserAsk, isCodexUserAsk, lastAskMs, lastAskMsInDir, lastCursorAskMs } from './user-ask.js';
 import { scanSessionWait, type WaitFlavor } from './wait-scan.js';
 
 type Collected = Run & { spawned?: boolean };
@@ -384,6 +384,11 @@ function cursorSessionRoot(sub: RegistrySubscription): string {
   return cursorChatsDir();
 }
 
+function cursorProjectsDir(sub: RegistrySubscription): string {
+  if (sub.home) return path.join(expandHome(sub.home), 'projects');
+  return path.join(os.homedir(), '.cursor', 'projects');
+}
+
 function listCursorSessionDirs(root: string): string[] {
   const out: string[] = [];
   const walk = (p: string) => {
@@ -406,11 +411,95 @@ function listCursorSessionDirs(root: string): string[] {
   return out;
 }
 
+function listCursorTranscripts(root: string): Array<{ file: string; project: string; id: string; spawned: boolean }> {
+  const out: Array<{ file: string; project: string; id: string; spawned: boolean }> = [];
+  let projects: fs.Dirent[];
+  try {
+    projects = fs.readdirSync(root, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const proj of projects) {
+    if (!proj.isDirectory()) continue;
+    const at = path.join(root, proj.name, 'agent-transcripts');
+    if (!fs.existsSync(at)) continue;
+    const project = projectTitle(proj.name);
+    let sessions: fs.Dirent[];
+    try {
+      sessions = fs.readdirSync(at, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const sess of sessions) {
+      if (!sess.isDirectory()) continue;
+      const main = path.join(at, sess.name, `${sess.name}.jsonl`);
+      if (fs.existsSync(main)) {
+        out.push({ file: main, project, id: sess.name, spawned: false });
+      }
+      const nested = path.join(at, sess.name, 'subagents');
+      let kids: fs.Dirent[];
+      try {
+        kids = fs.readdirSync(nested, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const kid of kids) {
+        if (!kid.isFile() || !kid.name.endsWith('.jsonl')) continue;
+        out.push({
+          file: path.join(nested, kid.name),
+          project,
+          id: path.basename(kid.name, '.jsonl'),
+          spawned: true,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+function scanCursorTranscripts(sub: RegistrySubscription, hostId: string, names: Map<string, string>): Collected[] {
+  const root = cursorProjectsDir(sub);
+  const now = Date.now();
+  const runs: Collected[] = [];
+  for (const sess of listCursorTranscripts(root)) {
+    const times = fileTimes(sess.file);
+    if (!times) continue;
+    const ageMin = Math.floor((now - times.mtime) / 60_000);
+    const state = stateFromAge(ageMin);
+    if (!state) continue;
+    const askedMs = lastCursorAskMs(sess.file) || undefined;
+    const mapped = sess.spawned
+      ? { initiator: 'agent' as const, initiatorConfidence: 'direct' as const, spawned: true }
+      : { initiator: 'human' as const, initiatorConfidence: 'derived' as const, spawned: false };
+    const named = clipSessionTitle(names.get(sess.id) ?? '') || undefined;
+    runs.push({
+      id: `cursor-${sub.id}-${sess.id}`,
+      hostId,
+      tool: 'Cursor',
+      title: named || fallbackRunTitle('Cursor', sess.project),
+      project: sess.project,
+      state,
+      startedAt: new Date(askedMs || times.startedMs || times.mtime).toISOString(),
+      lastActivityAt: new Date(times.mtime).toISOString(),
+      detail: `${sub.label} · ${ageMin} 分钟前活动`,
+      ...mapped,
+      stateConfidence: 'derived',
+    });
+  }
+  return runs;
+}
+
 function scanCursorSessions(sub: RegistrySubscription, hostId: string): Collected[] {
   const root = cursorSessionRoot(sub);
   const now = Date.now();
+  const dirs = listCursorSessionDirs(root);
+  const transcripts = listCursorTranscripts(cursorProjectsDir(sub));
+  const names = loadCursorComposerNames([
+    ...dirs.map((dir) => path.basename(dir)),
+    ...transcripts.map((sess) => sess.id),
+  ]);
   const runs: Collected[] = [];
-  for (const dir of listCursorSessionDirs(root)) {
+  for (const dir of dirs) {
     const hot = latestFile(dir, (n) => n === 'meta.json' || n === 'store.db' || n.endsWith('.jsonl'));
     const times = hot ? fileTimes(hot) : null;
     if (!times) continue;
@@ -419,11 +508,12 @@ function scanCursorSessions(sub: RegistrySubscription, hostId: string): Collecte
     if (!state) continue;
     const extra = cursorDirMeta(dir);
     const folder = extra.project || projectTitle(path.basename(dir));
+    const named = extra.title || clipSessionTitle(names.get(path.basename(dir)) ?? '') || undefined;
     runs.push({
       id: `cursor-${sub.id}-${path.basename(dir)}`,
       hostId,
       tool: 'Cursor',
-      title: extra.title || fallbackRunTitle('Cursor', extra.project || folder),
+      title: named || fallbackRunTitle('Cursor', extra.project || folder),
       project: extra.project || folder,
       state,
       startedAt: new Date(extra.askedMs || times.startedMs || times.mtime).toISOString(),
@@ -434,6 +524,7 @@ function scanCursorSessions(sub: RegistrySubscription, hostId: string): Collecte
       stateConfidence: 'derived',
     });
   }
+  runs.push(...scanCursorTranscripts(sub, hostId, names));
   return runs;
 }
 

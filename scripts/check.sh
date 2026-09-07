@@ -12,6 +12,8 @@ npm test
 node --import tsx --test packages/hub/test/*.test.ts
 node --import tsx --test packages/agent/test/*.test.ts
 node scripts/build-demo.mjs --check
+npm run site:build
+npm run site:check
 sh kindle/oasis1/test-wait.sh
 
 echo "check: ok"

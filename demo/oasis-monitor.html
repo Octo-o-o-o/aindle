@@ -8,6 +8,9 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aindle · Oasis Monitor Demo</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="brand/icon-32.png">
+<link rel="apple-touch-icon" href="brand/icon-180.png">
 <style type="text/css">
   html, body { margin: 0; padding: 0; min-height: 100%; }
   body { background: #f4efe4; color: #111111; font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
@@ -493,12 +496,20 @@ window.AINDLE_MOCK = {
       var s = MOCK.subs[i];
       var src = s.source || "local";
       if (currentView === "local") {
-        if (src === "local") out.push(s);
+        if (src !== "local") continue;
+        if (s.none || s.error) continue;
+        if (s.windows && s.windows.length) out.push(s);
+        else if (s.billing === "metered" && ((s.usage) || String(s.label || "").trim())) out.push(s);
       } else if (src === "relay" && s.scope === currentScope) {
         out.push(s);
       }
     }
     return out;
+  }
+
+  function quotaToolName(raw) {
+    var s = String(raw || "").replace(/\s+(Max|Pro|Plus|Ultra|Build|Builder|Team|Lite|Free|API|订阅|进阶|基础|企业)$/i, "").trim();
+    return s || String(raw || "");
   }
 
   function splitRelay(subs) {
@@ -512,10 +523,19 @@ window.AINDLE_MOCK = {
   }
 
   function cardSub(s) {
-    var label = s.label || "";
-    var title = s.tool || "";
-    if (title && label.indexOf(title + " · ") === 0) label = label.substring(title.length + 3);
-    return label;
+    var label = String(s.label || "").trim();
+    var title = String(s.tool || "").trim();
+    var short = quotaToolName(title);
+    var prefixes = [title, short];
+    var i;
+    for (i = 0; i < prefixes.length; i++) {
+      var p = prefixes[i];
+      if (!p) continue;
+      if (label.indexOf(p + " \u00b7 ") === 0) label = label.substring(p.length + 3);
+      else if (label === p) return "";
+      else if (label.indexOf(p + " ") === 0) label = label.substring(p.length + 1);
+    }
+    return label === title || label === short ? "" : label;
   }
 
   function runFolder(r) {
@@ -530,7 +550,11 @@ window.AINDLE_MOCK = {
 
   function attentionText(att, stale) {
     att = att || {};
-    var t = "等你 " + (att.waiting || 0) + " · 人手 " + (att.human || 0) + " · 后台 " + (att.background || 0);
+    var parts = [];
+    if (att.human) parts.push("进行中 " + att.human);
+    if (att.waiting) parts.push("待确认 " + att.waiting);
+    if (att.background) parts.push("后台任务 " + att.background);
+    var t = parts.length ? parts.join(" · ") : "进行中 0";
     return stale ? "上次 " + t : t;
   }
 
@@ -567,12 +591,24 @@ window.AINDLE_MOCK = {
     return html + "</table>";
   }
 
-  function billMark(s) {
-    var b = s && s.billing;
-    var t = b === "subscription" ? "订" : b === "metered" ? "量" : "";
-    if (!t) return "";
-    return '<span style="' + F(11) + "border:1px solid " + INK + ";background:#FFFFFF;color:" +
-      INK + ";padding:" + px(1) + "px " + px(4) + 'px;">' + t + "</span>";
+  function meteredSpend(s) {
+    var u = s && s.usage;
+    if (u) {
+      var h24 = usageSeg(u.h24Tokens, u.h24Cost);
+      var d7 = usageSeg(u.d7Tokens, u.d7Cost);
+      var parts = [];
+      if (h24 && h24 !== "—") parts.push("24h " + h24);
+      if (d7 && d7 !== "—") parts.push("7d " + d7);
+      if (parts.length) return parts.join(" · ");
+    }
+    return cardSub(s) || "—";
+  }
+
+  function meteredRow(s, tall) {
+    return '<table width="100%" cellpadding="' + px(3) + '" cellspacing="0" border="0"><tr>' +
+      '<td width="14%"><span style="' + F(tall ? 18 : 16) + '"><b>按量</b></span></td>' +
+      '<td><span style="' + F(tall ? 18 : 16) + ';display:block;overflow:hidden;white-space:nowrap;text-overflow:clip;"><b>' +
+      esc(meteredSpend(s)) + "</b></span></td></tr></table>";
   }
 
   // 按量来源（sub2api）只有美元没有 token 数：tokens 为 "0" 时只留 ≈$，
@@ -600,16 +636,19 @@ window.AINDLE_MOCK = {
       DETAIL.push(s);
       extra = SP(8) + tbtn("btn-detail-" + (DETAIL.length - 1), "详情");
     }
-    var mark = billMark(s);
-    var head = '<span style="' + F(tall ? 26 : 22) + '"><b>' + esc(s.tool) + "</b></span>" +
-      (mark ? "&nbsp;" + mark : "") +
-      (sub ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(sub) + "</span>" : "");
+    var metered = s.billing === "metered";
+    var head = '<div style="overflow:hidden;white-space:nowrap;text-overflow:clip;">' +
+      '<span style="' + F(tall ? 26 : 22) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
+      (!metered && sub ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(sub) + "</span>" : "") +
+      "</div>";
     var usage = usageLine(s);
     if (s.none) {
-      var hint = s.error ? "采集失败，保留上次读数。"
-        : (s.source || "local") === "local" ? "本地可监控，暂无限额条。" : "";
+      var hint = (s.source || "local") === "local" ? "" : (s.error ? "采集失败，保留上次读数。" : "");
       return card(head + (hint ? "<br>" + SP(4) + '<span style="' + F(14) + '">' + hint + "</span>" : "") +
         (usage ? "<br>" + SP(4) + usage : "") + extra);
+    }
+    if (metered) {
+      return card(head + "<br>" + SP(6) + meteredRow(s, tall) + extra);
     }
     return card(head + "<br>" + SP(6) + winRows(s.windows, tall) +
       (usage ? SP(4) + usage : "") + extra);
@@ -719,9 +758,14 @@ window.AINDLE_MOCK = {
         inkTab("ink-user", "我的", currentScope === "user") + "&nbsp;&nbsp;&nbsp;" +
         inkTab("ink-people", "用户", currentScope === "people");
     }
-    var brand = '<span id="ink-help" style="cursor:pointer;' + F(38) + ";letter-spacing:" +
+    var brand = '<table cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td valign="middle" style="padding-right:' + px(10) + 'px;">' +
+      '<img src="brand/icon-32.png" width="' + px(36) + '" height="' + px(36) + '" alt=""></td>' +
+      '<td valign="middle">' +
+      '<span id="ink-help" style="cursor:pointer;' + F(38) + ";letter-spacing:" +
       px(2) + 'px;"><b>AINDLE</b></span><br>' +
-      '<span style="' + F(13) + ";letter-spacing:" + px(2) + 'px;">AI MONITOR · ' + esc(viewTitle()) + "</span>";
+      '<span style="' + F(13) + ";letter-spacing:" + px(2) + 'px;">AI MONITOR · ' + esc(viewTitle()) + "</span>" +
+      "</td></tr></table>";
     var clock = '<span id="ink-clock" style="cursor:pointer;' + F(38) + '"><b>' +
       esc(MOCK.time) + "</b></span><br>" +
       '<span style="' + F(13) + '">' + esc(MOCK.date) + " · Hub " + esc(MOCK.hub) +
@@ -822,7 +866,7 @@ window.AINDLE_MOCK = {
         quotaCards(visibleSubs(), "还没有本机限额。", 1)
       );
       document.getElementById("panel-1").innerHTML = panelBody(
-        section("等你 · 人手 · 后台", globalAttention()) +
+        section("进行中 · 待确认 · 后台任务", globalAttention()) +
         runCards(MOCK.now || [], "这一小时没有进行中的会话。") +
         ((MOCK.recent || []).length
           ? section("近 1 小时", MOCK.recent.length + " 条") + runCards(MOCK.recent, "")
@@ -846,7 +890,7 @@ window.AINDLE_MOCK = {
       quotaCards(subs, "还没有本机限额。", cols)
     );
     document.getElementById("panel-2").innerHTML = panelBody(
-      section("等你 · 人手 · 后台", globalAttention()) +
+      section("进行中 · 待确认 · 后台任务", globalAttention()) +
       runCards(MOCK.now || [], "这一小时没有进行中的会话。")
     );
     document.getElementById("panel-3").innerHTML = panelBody(
@@ -920,9 +964,9 @@ window.AINDLE_MOCK = {
     var subs = visibleSubs();
     var live = MOCK.now || [];
     var recent = MOCK.recent || [];
-    var leftCol = section("订阅限额", subs.length + " 份") +
+    var leftCol = section("限额", subs.length + " 份") +
       quotaCards(subs, "还没有本机限额。", vp().w >= 1600 ? 2 : 1);
-    var rightCol = section("等你 · 人手 · 后台", globalAttention()) +
+    var rightCol = section("进行中 · 待确认 · 后台任务", globalAttention()) +
       runCards(live, "这一小时没有进行中的会话。") +
       (recent.length ? section("近 1 小时", recent.length + " 条") + runCards(recent, "") : "");
     if (vp().w >= 1000) {
@@ -964,7 +1008,7 @@ window.AINDLE_MOCK = {
     if (!t) return "";
     return SP(4) + hair() + SP(4) +
       '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
-      '<td align="right"><span style="' + F(14) + '">订阅消耗 · 24h ' + esc(t.h24Tokens) +
+      '<td align="right"><span style="' + F(14) + '">消耗 · 24h ' + esc(t.h24Tokens) +
       " tok ≈" + esc(t.h24Cost) + " · 7d " + esc(t.d7Tokens) + " tok ≈" + esc(t.d7Cost) +
       "</span></td></tr></table>" + SP(6);
   }

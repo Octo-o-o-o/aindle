@@ -263,7 +263,11 @@ export function countAttention(
 }
 
 export function formatAttention(att: Attention, stale = false): string {
-  const body = `等你 ${att.waiting} · 人手 ${att.human} · 后台 ${att.background}`;
+  const parts: string[] = [];
+  if (att.human > 0) parts.push(`进行中 ${att.human}`);
+  if (att.waiting > 0) parts.push(`待确认 ${att.waiting}`);
+  if (att.background > 0) parts.push(`后台任务 ${att.background}`);
+  const body = parts.join(' · ') || '进行中 0';
   return stale ? `上次 ${body}` : body;
 }
 

@@ -112,7 +112,7 @@ agent 崩溃不影响上一帧。hub 收不到某台机器时，那台标 `stale
 
 1. 设备档：默认 `oasis1-portrait-1072x1448`（可切换 `oasis1-landscape-1448x1072` 或对照用的 Oasis 3 档）。
 2. `dash-loop`：原子下载、失败保留旧图、全刷计数、日志。
-3. **不要**默认 `preventScreenSaver=1`。听 `outOfScreenSaver`，醒来 settle 后再整板。
+3. **不要**默认 `preventScreenSaver=1`。听 `goingToScreenSaver` / `readyToSuspend` / `wakeupFromSuspend`。只在 `readyToSuspend` 里用整数 `rtcWakeup`；休眠前关 Wi-Fi，醒来再开。不要用 `deferSuspend` 对抗休眠。
 4. 双速刷新由 **PNG 里的标记或独立 `/meta.json`** 告诉 loop：`intervalSec`、`fullEvery`。hub 根据是否有 active run 改这两个数。
 5. KUAL：Start / Stop / Refresh / Uninstall。SSH 安装可以后做；第一版 USB 拷脚本也够。
 6. 配对：URL 带长期随机 token，或 mDNS + 一次性码。不要裸 `0.0.0.0`。

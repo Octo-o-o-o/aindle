@@ -36,12 +36,6 @@ type Sub = {
   usage?: { h24Tokens: string; h24Cost: string; d7Tokens: string; d7Cost: string };
 };
 
-function billGlyph(billing?: string): string {
-  if (billing === 'subscription') return '订';
-  if (billing === 'metered') return '量';
-  return '';
-}
-
 function asSubs(vm: ViewModel): Sub[] {
   return vm.subs as Sub[];
 }
@@ -58,7 +52,7 @@ const LAYOUT = {
   padBottom: 54,
   mast: 56,
   hair: 29,
-  quotaRow: 66,
+  quotaRow: 76,
   taskRow: 70,
   sec: 32,
   secAfterBlock: 58,
@@ -157,12 +151,12 @@ export function renderEinkHtml(vm: ViewModel, page: EinkPage, opts?: EinkOpts): 
   * { box-sizing:border-box; }
   .wrap { width:${OASIS1.w}px; height:${OASIS1.h}px; position:relative; background:${PAPER}; color:${INK}; overflow:hidden; }
   .pad { padding:30px 30px 54px; }
-  .mast { display:flex; justify-content:space-between; align-items:center; }
+  .mast { display:flex; justify-content:space-between; align-items:flex-start; }
   .when { display:flex; align-items:baseline; gap:12px; }
-  .date { font-size:48px; font-weight:700; letter-spacing:2px; }
-  .side { display:flex; align-items:center; justify-content:flex-end; gap:16px; }
-  .brand { font-size:20px; font-weight:700; letter-spacing:3px; text-align:right; }
-  .batt { display:flex; align-items:center; justify-content:flex-end; gap:8px; font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .date { font-size:48px; font-weight:700; letter-spacing:2px; line-height:1; }
+  .side { display:flex; align-items:flex-start; justify-content:flex-end; gap:16px; padding-top:4px; }
+  .brand { font-size:20px; font-weight:700; letter-spacing:3px; text-align:right; line-height:1; }
+  .batt { display:flex; align-items:center; justify-content:flex-end; gap:8px; font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1; }
   .batt-can { width:40px; height:16px; border:2px solid ${INK}; border-radius:3px; overflow:hidden; position:relative; }
   .batt-can:after { content:""; position:absolute; right:-5px; top:4px; width:3px; height:8px; background:${INK}; }
   .batt-fill { display:block; height:100%; background:${INK}; }
@@ -171,26 +165,27 @@ export function renderEinkHtml(vm: ViewModel, page: EinkPage, opts?: EinkOpts): 
   .sec { font-size:24px; font-weight:700; letter-spacing:2px; margin:0 0 4px; }
   .sec + .block { margin-top:0; }
   .block + .sec { margin-top:26px; }
-  .qrow { display:flex; align-items:center; min-height:56px; padding:14px 0; border-bottom:1px solid ${INK}; }
+  .qrow { display:flex; align-items:center; min-height:64px; padding:18px 0; border-bottom:1px solid ${INK}; }
   .qrow:last-child { border-bottom:0; }
-  .qname { width:188px; flex-shrink:0; padding-right:16px; }
-  .qhead { display:flex; align-items:center; gap:10px; }
+  .qname { width:220px; flex-shrink:0; padding-right:16px; overflow:hidden; }
+  .qhead { display:flex; align-items:center; gap:10px; min-width:0; }
   .qicon { width:28px; height:28px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-  .qtitle { font-size:32px; font-weight:700; line-height:1.15; }
+  .qtitle { font-size:32px; font-weight:700; line-height:1.15; min-width:0; overflow:hidden; text-overflow:clip; white-space:nowrap; }
   .aicon { display:block; flex-shrink:0; overflow:visible; }
   .qdiv { width:1px; align-self:stretch; background:${INK}; margin-right:16px; flex-shrink:0; }
   .qmeters { flex:1; display:flex; flex-direction:row; align-items:center; gap:22px; min-width:0; }
   .mrow { flex:1; min-width:0; display:flex; align-items:center; gap:8px; }
   .mkey { width:64px; flex-shrink:0; font-size:22px; font-weight:700; }
+  .mspend { flex:1; min-width:0; font-size:24px; font-weight:700; overflow:hidden; text-overflow:clip; white-space:nowrap; }
   .mbar { flex:1; height:16px; border:2px solid ${INK}; border-radius:999px; overflow:hidden; background:#fff; }
   .mfill { height:100%; background:${INK}; }
   .mfill.soft { background:repeating-linear-gradient(-45deg, ${INK} 0 3px, #fff 3px 7px); }
   .mpct { width:72px; flex-shrink:0; text-align:right; font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; }
-  .qbig { padding:16px 0 14px; border-bottom:1px solid ${INK}; }
+  .qbig { padding:20px 0 16px; border-bottom:1px solid ${INK}; }
   .qbig:last-child { border-bottom:0; }
-  .qb-head { display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+  .qb-head { display:flex; align-items:center; gap:14px; margin-bottom:10px; min-width:0; }
   .qb-icon { width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-  .qb-title { font-size:38px; font-weight:700; line-height:1.1; }
+  .qb-title { font-size:38px; font-weight:700; line-height:1.1; min-width:0; overflow:hidden; text-overflow:clip; white-space:nowrap; }
   .qb-sub { font-size:22px; font-weight:700; }
   .qb-row { display:flex; align-items:center; gap:14px; padding:7px 0; }
   .qb-key { width:88px; flex-shrink:0; font-size:24px; font-weight:700; }
@@ -376,20 +371,42 @@ function headerStatus(vm: ViewModel): string {
   return bits.filter(Boolean).join('  ·  ');
 }
 
+function usageSeg(tokens?: string, cost?: string): string {
+  const t = String(tokens || '—');
+  const c = String(cost || '—');
+  if (t === '0' && c !== '—') return `≈${c}`;
+  if (c === '—' && t !== '—') return `${t} tok`;
+  if (c === '—' && t === '—') return '';
+  return `${t} tok ≈${c}`;
+}
+
+function meteredSpend(sub: Sub): string {
+  const u = sub.usage;
+  if (u) {
+    const h24 = usageSeg(u.h24Tokens, u.h24Cost);
+    const d7 = usageSeg(u.d7Tokens, u.d7Cost);
+    const parts = [...(h24 ? [`24h ${h24}`] : []), ...(d7 ? [`7d ${d7}`] : [])];
+    if (parts.length) return parts.join(' · ');
+  }
+  const label = cardSub(sub).trim();
+  return label || '—';
+}
+
 function quotaRow(sub: Sub): string {
   const wins = pickWindows(sub.windows ?? []);
   const title = quotaSourceName(sub.tool);
-  const glyph = billGlyph(sub.billing);
-  const meters = wins.length
-    ? wins.map((w) => quotaMeter(w)).join('')
-    : `<div class="empty" style="padding:0;">${sub.error ? '暂时读不到' : '还没有读数'}</div>`;
+  const metered = sub.billing === 'metered';
+  const meters = metered
+    ? `<div class="mrow"><div class="mkey">按量</div><div class="mspend">${esc(meteredSpend(sub))}</div></div>`
+    : wins.length
+      ? wins.map((w) => quotaMeter(w)).join('')
+      : `<div class="empty" style="padding:0;">还没有读数</div>`;
   return `
     <div class="qrow">
       <div class="qname">
         <div class="qhead">
           <div class="qicon">${agentIcon(sub.tool, 28)}</div>
           <div class="qtitle">${esc(title)}</div>
-          ${glyph ? `<div class="qtitle" style="font-size:18px;border:1px solid ${INK};padding:1px 5px;">${glyph}</div>` : ''}
         </div>
       </div>
       <div class="qdiv"></div>
@@ -428,22 +445,24 @@ function quotaBigLabel(sub: Sub): string {
 
 function quotaBig(sub: Sub): string {
   const title = quotaSourceName(sub.tool);
-  const subLabel = clip(quotaBigLabel(sub), 22);
-  const glyph = billGlyph(sub.billing);
+  const metered = sub.billing === 'metered';
+  const subLabel = metered ? '' : clip(quotaBigLabel(sub), 22);
   const wins = uniqWindows(sub.windows ?? []).slice(0, 3);
-  const meters = wins.length
-    ? wins.map((w) => quotaBigMeter(w)).join('')
-    : `<div class="qb-row"><div class="qb-note">${sub.error ? '暂时读不到' : '还没有读数'}</div></div>`;
-  const usage = sub.usage
-    ? `<div class="qb-row"><div class="qb-note" style="font-size:20px;">24h ${esc(sub.usage.h24Tokens)} tok ≈${esc(sub.usage.h24Cost)} · 7d ${esc(sub.usage.d7Tokens)} tok ≈${esc(sub.usage.d7Cost)}</div></div>`
-    : '';
+  const meters = metered
+    ? `<div class="qb-row"><div class="qb-key">按量</div><div class="qb-note">${esc(meteredSpend(sub))}</div></div>`
+    : wins.length
+      ? wins.map((w) => quotaBigMeter(w)).join('')
+      : `<div class="qb-row"><div class="qb-note">还没有读数</div></div>`;
+  const usage =
+    !metered && sub.usage
+      ? `<div class="qb-row"><div class="qb-note" style="font-size:20px;">24h ${esc(sub.usage.h24Tokens)} tok ≈${esc(sub.usage.h24Cost)} · 7d ${esc(sub.usage.d7Tokens)} tok ≈${esc(sub.usage.d7Cost)}</div></div>`
+      : '';
   return `
     <div class="qbig">
       <div class="qb-head">
         <div class="qb-icon">${agentIcon(sub.tool, 34)}</div>
         <div class="qb-title">${esc(title)}</div>
         ${subLabel ? `<div class="qb-sub">${esc(subLabel)}</div>` : ''}
-        ${glyph ? `<div class="qb-sub" style="font-size:18px;border:1px solid ${INK};padding:1px 6px;">${glyph}</div>` : ''}
       </div>
       ${meters}
       ${usage}
@@ -493,16 +512,16 @@ function runRow(run: Run): string {
     </div>`;
 }
 
-// The fixed-height e-ink page fits about eight quota cards; keep errors
-// (re-login hints) and the most-burned windows when there are more sources.
+// The fixed-height e-ink page fits about eight quota cards; drop unread
+// sources and keep the most-burned windows when there are more sources.
 const LOCAL_CARD_MAX = 8;
 
 function localSubs(vm: ViewModel): Sub[] {
   const subs = asSubs(vm).filter((s) => {
     if (s.source !== 'local') return false;
-    if (s.error) return true;
-    if (s.none) return false;
-    return (s.windows?.length ?? 0) > 0;
+    if (s.none || s.error) return false;
+    if ((s.windows?.length ?? 0) > 0) return true;
+    return s.billing === 'metered' && Boolean(s.usage || String(s.label ?? '').trim());
   });
   if (subs.length <= LOCAL_CARD_MAX) return subs;
   return subs
@@ -585,15 +604,19 @@ export function quotaSourceName(raw: string): string {
   if (/zcode/i.test(s)) return 'ZCode';
   const brand = agentBrand(s);
   if (brand !== 'other' && SOURCE_NAMES[brand]) return SOURCE_NAMES[brand];
-  const stripped = s.replace(/\s+(Max|Pro|Plus|Ultra|Build|Builder|Team|Lite|Free|进阶|基础|企业)$/i, '').trim();
+  const stripped = s.replace(/\s+(Max|Pro|Plus|Ultra|Build|Builder|Team|Lite|Free|API|订阅|进阶|基础|企业)$/i, '').trim();
   return stripped || s;
 }
 
 function cardSub(sub: Sub): string {
   const title = prettyTool(sub.tool);
+  const short = quotaSourceName(sub.tool);
   let label = String(sub.label ?? '').trim();
-  if (title && label.startsWith(`${title} · `)) label = label.slice(title.length + 3);
-  if (label === title) return '';
+  for (const prefix of [title, short]) {
+    if (!prefix) continue;
+    if (label.startsWith(`${prefix} · `)) label = label.slice(prefix.length + 3);
+    if (label === prefix) return '';
+  }
   return label;
 }
 

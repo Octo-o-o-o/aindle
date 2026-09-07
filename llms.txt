@@ -1,0 +1,45 @@
+# Aindle
+
+> A private, read-only AI work board for a desk — or a jailbroken Kindle Oasis 1 lock screen.
+
+Aindle is self-hosted. The public website is an introduction plus mock demos. The hub stays on your LAN or Tailscale. It shows quotas, 24h/7d token spend, and in-progress / awaiting-confirmation / background tasks. It does not track productivity, approve work on the Kindle, or display prompts, replies, paths, or secrets.
+
+## Start
+
+```bash
+git clone https://github.com/Octo-o-o-o/aindle.git
+cd aindle
+npm install
+npm run hub
+```
+
+Then open:
+
+- Desktop: http://127.0.0.1:8787/monitor.html
+- Lock-screen HTML: http://127.0.0.1:8787/eink.html?page=local
+- Lock-screen PNG: http://127.0.0.1:8787/dash.png?page=local
+
+The hub seeds mock data so the screen is not empty. Live machines:
+
+```bash
+npx aindle init --local
+# edit ./config/registry.yaml — keep only tools you use
+npx aindle agent --loop 60
+```
+
+Optional Kindle Oasis 1: copy `kindle/oasis1/` to `/mnt/us/aindle`, set `HUB` in `hub.env` to the LAN URL (never `127.0.0.1` on the device), start from KUAL, then lock.
+
+## Docs
+
+- [README (English)](https://github.com/Octo-o-o-o/aindle/blob/main/README.md)
+- [README (简体中文)](https://github.com/Octo-o-o-o/aindle/blob/main/README.zh-CN.md)
+- [AGENTS.md](https://github.com/Octo-o-o-o/aindle/blob/main/AGENTS.md)
+- [Website](https://aindle.octoooo.com/)
+- [Simple demo](https://aindle.octoooo.com/demo/oasis-monitor-simple.html?mode=full)
+- [Complex demo](https://aindle.octoooo.com/demo/oasis-monitor.html?mode=full)
+- [Data sources](https://github.com/Octo-o-o-o/aindle/blob/main/docs/06-data-sources.md)
+- [Kindle Oasis 1](https://github.com/Octo-o-o-o/aindle/blob/main/kindle/oasis1/README.md)
+
+## What it is not
+
+Not a public SaaS. Not a TokenTracker / OctoMonitor fork. Not a billing invoice. Not a scoreboard. Unlocking the Kindle returns the stock reader.

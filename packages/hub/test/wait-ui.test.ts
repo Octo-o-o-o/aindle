@@ -27,9 +27,9 @@ describe('A6 UI and v1 ingest', () => {
   it('desktop monitor source shows WAIT, three buckets, and the wait matrix', () => {
     const html = fs.readFileSync(MONITOR, 'utf8');
     assert.match(html, /WAIT: "WAIT"/);
-    assert.match(html, /等你 /);
-    assert.match(html, /人手 /);
-    assert.match(html, /后台 /);
+    assert.match(html, /进行中 /);
+    assert.match(html, /待确认 /);
+    assert.match(html, /后台任务 /);
     assert.match(html, /wait 第一刀仅 Claude AskUserQuestion \+ Codex request_user_input/);
     assert.match(html, /function LP\(/);
     assert.match(html, /LP\(180\)/);
@@ -37,6 +37,26 @@ describe('A6 UI and v1 ingest', () => {
     assert.match(html, /width="52%"/);
     assert.doesNotMatch(html, /width="' \+ px\(64\)/);
     assert.doesNotMatch(html, /LP\(64\)/);
+    assert.match(html, /href="favicon\.ico"/);
+    assert.match(html, /src="brand\/icon-32\.png"/);
+    assert.match(html, /href="brand\/icon-180\.png"/);
+  });
+
+  it('hub serves the brand favicon and masthead PNG', async () => {
+    const { server } = createHubServer({ seedMock: false });
+    const port = await listen(server);
+    try {
+      const ico = await fetch(`http://127.0.0.1:${port}/favicon.ico`);
+      const mark = await fetch(`http://127.0.0.1:${port}/brand/icon-32.png`);
+      assert.equal(ico.status, 200);
+      assert.match(String(ico.headers.get('content-type')), /image\//);
+      assert.equal(mark.status, 200);
+      assert.equal(mark.headers.get('content-type'), 'image/png');
+      const png = Buffer.from(await mark.arrayBuffer());
+      assert.equal(png.toString('ascii', 1, 4), 'PNG');
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 
   it('eink HTML and PNG input model show WAIT and three buckets without sentinels', () => {
@@ -64,8 +84,10 @@ describe('A6 UI and v1 ingest', () => {
     const relay = renderEinkHtml(vm, 'relay');
     assert.match(local, />WAIT</);
     assert.match(now, />WAIT</);
-    assert.match(local, /等你 1 · 人手 1 · 后台 0/);
-    assert.match(now, /等你 1 · 人手 1 · 后台 0/);
+    assert.match(local, /进行中 1 · 待确认 1/);
+    assert.match(now, /进行中 1 · 待确认 1/);
+    assert.doesNotMatch(local, /后台任务/);
+    assert.doesNotMatch(now, /后台任务/);
     assert.match(local, /1\/3/);
     assert.match(now, /2\/3/);
     assert.match(relay, /3\/3/);

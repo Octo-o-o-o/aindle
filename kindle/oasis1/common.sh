@@ -30,6 +30,20 @@ in_screensaver() {
   echo "$st" | grep -qiE 'screen[[:space:]]*saver|screensaver'
 }
 
+# Oasis can drop isScreenSaver to 0 on the way into suspend. Treat
+# ready-to-sleep as still locked so we do not clear the RTC.
+powerd_asleep() {
+  st=$(lipc-get-prop com.lab126.powerd status 2>/dev/null)
+  echo "$st" | grep -qiE 'ready to suspend|going to suspend|sleeping|screen[[:space:]]*saver|screensaver'
+}
+
+still_locked() {
+  in_screensaver && return 0
+  [ -f "$ROOT/locked.flag" ] && return 0
+  powerd_asleep && return 0
+  return 1
+}
+
 mark_locked() {
   rm -f "$ROOT/unlocked.flag"
   : > "$ROOT/locked.flag"
@@ -44,14 +58,41 @@ clear_saver_flags() {
   rm -f "$ROOT/locked.flag" "$ROOT/unlocked.flag"
 }
 
+# powerd rtcWakeup / abortSuspend / deferSuspend are Int. Without -i the
+# write is often a silent no-op.
+lipc_set_int() {
+  lipc-set-prop -i "$1" "$2" "$3" >/dev/null 2>&1
+}
+
+# Oasis / PW3 class boards may expose rtc1 instead of rtc0.
+find_wakealarm() {
+  for n in 0 1 2 3; do
+    p="/sys/class/rtc/rtc$n/wakealarm"
+    if [ -w "$p" ]; then
+      echo "$p"
+      return 0
+    fi
+  done
+  return 1
+}
+
+clear_wakealarms() {
+  for n in 0 1 2 3; do
+    p="/sys/class/rtc/rtc$n/wakealarm"
+    if [ -w "$p" ]; then
+      echo 0 > "$p" 2>/dev/null || true
+    fi
+  done
+}
+
 # Kindle readyToSuspend lasts ~10s and the alarm can fire early.
-# Never ask powerd for a wake shorter than 15s; never farther than heartbeat.
+# Never ask powerd for a wake shorter than 15s; never farther than max.
 rtc_delay() {
   left=${1:-0}
-  hb=${2:-90}
+  hb=${2:-600}
   min=${3:-15}
   case "$left" in ''|*[!0-9-]* ) left=0 ;; esac
-  case "$hb" in ''|*[!0-9]* ) hb=90 ;; esac
+  case "$hb" in ''|*[!0-9]* ) hb=600 ;; esac
   case "$min" in ''|*[!0-9]* ) min=15 ;; esac
   [ "$left" -lt "$min" ] && left=$min
   [ "$left" -gt "$hb" ] && left=$hb

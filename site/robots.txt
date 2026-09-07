@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# https://llmstxt.org
+# https://aindle.octoooo.com/llms.txt
+
+Sitemap: https://aindle.octoooo.com/sitemap.xml

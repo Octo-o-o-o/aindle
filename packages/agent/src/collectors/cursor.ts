@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import type { Subscription, UsageWindow } from '@aindle/core';
 import type { RegistrySubscription } from '../registry.js';
-import { readSqliteValue } from '../lib/sqlite.js';
+import { readSqliteRows, readSqliteValue } from '../lib/sqlite.js';
 import { clampPercent, decodeJwtPayload } from '../lib/util.js';
 import { quotaDue, quotaPeek, quotaRemember } from '../lib/quota-gate.js';
 
@@ -185,4 +185,46 @@ export async function collectCursor(entry: RegistrySubscription): Promise<Subscr
 
 export function cursorChatsDir(): string {
   return path.join(os.homedir(), '.cursor', 'chats');
+}
+
+export function cursorAppHome(): string {
+  const hinted = process.env.AINDLE_CURSOR_APP_HOME?.trim();
+  return hinted || os.homedir();
+}
+
+export function cursorStateDbPath(appHome = cursorAppHome()): string {
+  return resolveCursorPaths(appHome).stateDbPath;
+}
+
+export function cursorComposerName(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value.trim()) return undefined;
+  try {
+    const rec = JSON.parse(value) as { name?: unknown };
+    if (typeof rec.name !== 'string') return undefined;
+    const name = rec.name.replace(/\s+/g, ' ').trim();
+    return name || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function loadCursorComposerNames(ids: string[], appHome = cursorAppHome()): Map<string, string> {
+  const out = new Map<string, string>();
+  const unique = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
+  if (!unique.length) return out;
+  const db = resolveCursorPaths(appHome).stateDbPath;
+  for (let i = 0; i < unique.length; i += 200) {
+    const chunk = unique.slice(i, i + 200);
+    const rows = readSqliteRows(
+      db,
+      `SELECT composerId, value FROM composerHeaders WHERE composerId IN (${chunk.map(() => '?').join(',')})`,
+      chunk,
+    );
+    for (const row of rows) {
+      const id = typeof row.composerId === 'string' ? row.composerId : '';
+      const name = cursorComposerName(row.value);
+      if (id && name) out.set(id, name);
+    }
+  }
+  return out;
 }

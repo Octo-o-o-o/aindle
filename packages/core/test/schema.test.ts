@@ -248,7 +248,7 @@ describe('v2 ingest and attention', () => {
     const vm = snapshotToViewModel(snap, now);
     assert.deepEqual(before, { waiting: 1, human: 1, background: 3 });
     assert.deepEqual(vm.attention, { waiting: 1, human: 1, background: 3 });
-    assert.equal(formatAttention(vm.attention), '等你 1 · 人手 1 · 后台 3');
+    assert.equal(formatAttention(vm.attention), '进行中 1 · 待确认 1 · 后台任务 3');
     assert.equal(vm.now.length <= 12, true);
     assert.equal(vm.now.some((r) => r.title.startsWith('Old ')), false);
     assert.equal(vm.now.some((r) => r.title === 'Side 1'), false);
@@ -256,6 +256,9 @@ describe('v2 ingest and attention', () => {
     const staleHost = vm.hosts.find((h) => h.id === 'mini');
     assert.equal(staleHost?.ok, 0);
     assert.deepEqual(staleHost?.attention, { waiting: 1, human: 0, background: 0 });
-    assert.equal(formatAttention(staleHost!.attention, true), '上次 等你 1 · 人手 0 · 后台 0');
+    assert.equal(formatAttention(staleHost!.attention, true), '上次 待确认 1');
+    assert.equal(formatAttention({ waiting: 0, human: 0, background: 0 }), '进行中 0');
+    assert.equal(formatAttention({ waiting: 0, human: 2, background: 0 }), '进行中 2');
+    assert.equal(formatAttention({ waiting: 1, human: 0, background: 0 }), '待确认 1');
   });
 });

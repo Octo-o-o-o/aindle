@@ -23,6 +23,7 @@
     "README.md",
     "README.zh-CN.md",
     "AGENTS.md",
+    "llms.txt",
     "LICENSE"
   ],
   "workspaces": [
@@ -33,7 +34,9 @@
     "test": "npm run test -w @aindle/core",
     "hub": "node --import tsx packages/hub/src/cli.ts",
     "agent": "node --import tsx packages/agent/src/cli.ts",
-    "check": "bash scripts/check.sh"
+    "check": "bash scripts/check.sh",
+    "site:build": "node scripts/build-site.mjs",
+    "site:check": "node scripts/check-site.mjs"
   },
   "keywords": [
     "kindle",
@@ -63,7 +66,7 @@
   "bugs": {
     "url": "https://github.com/Octo-o-o-o/aindle/issues"
   },
-  "homepage": "https://github.com/Octo-o-o-o/aindle#readme",
+  "homepage": "https://aindle.octoooo.com",
   "engines": {
     "node": ">=20"
   },

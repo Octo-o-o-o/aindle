@@ -20,9 +20,21 @@ check "$(rtc_delay 600 90 15)" 90 "cap long wait to heartbeat"
 check "$(rtc_delay 30 90 15)" 30 "keep mid wait"
 check "$(rtc_delay 5 90 15)" 15 "floor short wait"
 check "$(rtc_delay 0 90 15)" 15 "floor zero"
+check "$(rtc_delay 900 600 15)" 600 "cap long wait to paint interval"
+check "$(rtc_delay 120 600 15)" 120 "keep mid wait under 600"
+check "$(rtc_delay 3 '' 15)" 15 "invalid max falls back then floors"
 check "$(deadline_left 1000 1600)" 600 "remaining to deadline"
 check "$(deadline_left 1600 1600)" 0 "exactly due"
 check "$(deadline_left 1700 1600)" 0 "past deadline stays zero"
+
+# find_wakealarm must not crash when /sys/class/rtc is missing (host).
+if find_wakealarm >/dev/null 2>&1; then
+  alarm=$(find_wakealarm)
+  echo "$alarm" | grep -q '/sys/class/rtc/rtc[0-9]/wakealarm' || {
+    echo "FAIL find_wakealarm path: $alarm"
+    fail=$((fail + 1))
+  }
+fi
 
 if [ "$fail" -ne 0 ]; then
   echo "test-wait: $fail failed"

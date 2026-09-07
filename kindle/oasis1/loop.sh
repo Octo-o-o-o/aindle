@@ -1,8 +1,11 @@
 #!/bin/sh
 # Aindle Oasis 1 lock-screen monitor.
 # Paints only while the screensaver is up. Unlock keeps stock Kindle (books / Home).
-# Battery: e-ink keeps the last frame. Wi-Fi stays up while locked so the next
-# pull can succeed after powerd suspend. Unlock does not hold the radio.
+# Sleep protocol (Online Screensaver / KindleCron / KOReader):
+#   readyToSuspend → lipc -i rtcWakeup, then Wi-Fi off
+#   wakeupFromSuspend / goingToScreenSaver → Wi-Fi on → fetch → Wi-Fi off
+#   abortSuspend only while a fetch is in progress
+# Do not use deferSuspend: in readyToSuspend it can bounce powerd back to active.
 # Start via start.sh so KUAL can exit. Stop: sh /mnt/us/aindle/stop.sh
 
 ROOT=/mnt/us/aindle
@@ -16,6 +19,7 @@ LOCKING=$ROOT/just_locked
 UNLOCKING=$ROOT/just_unlocked
 WAKING=$ROOT/just_woke
 NEXTPAINT=$ROOT/next_paint_at
+FETCHING=$ROOT/fetching
 LOG=$ROOT/loop.log
 ENVFILE=$ROOT/hub.env
 
@@ -35,11 +39,13 @@ PAGE="${PAGE:-local}"
 # Locked refresh. Idle 10 min, busy 5 min. Override in hub.env.
 LOCK_SEC="${LOCK_SEC:-600}"
 LOCK_BUSY_SEC="${LOCK_BUSY_SEC:-300}"
-# Kindle only honors lipc rtcWakeup while in readyToSuspend. Keep waking
-# at least this often so the loop is not frozen past the paint deadline.
-LOCK_HEARTBEAT_SEC="${LOCK_HEARTBEAT_SEC:-90}"
-# Hold Wi-Fi while locked. Set 0 to turn the radio off between frames.
-LOCK_HOLD_WIFI="${LOCK_HOLD_WIFI:-1}"
+# Cap rtcWakeup at the paint interval. powerd only accepts it in readyToSuspend.
+LOCK_HEARTBEAT_SEC="${LOCK_HEARTBEAT_SEC:-600}"
+# After a frame, leave the radio up until readyToSuspend. Suspend always
+# turns it off so the next wake can bring Wi-Fi up cleanly. Set 1 only if
+# you want the radio on during the ~1 min screensaver-awake window.
+LOCK_HOLD_WIFI="${LOCK_HOLD_WIFI:-0}"
+LOCK_WIFI_WAIT_SEC="${LOCK_WIFI_WAIT_SEC:-30}"
 arg=${1:-start}
 case "$arg" in
   local|now|relay) PAGE=$arg ;;
@@ -80,9 +86,9 @@ if [ -x /mnt/us/extensions/kindle-monitor/bin/stop.sh ]; then
 fi
 
 echo $$ > "$PIDFILE"
-rm -f "$STOP"
+rm -f "$STOP" "$FETCHING"
 clear_saver_flags
-echo "[aindle] start $(date) pid=$$ hub=$HUB page=$PAGE mode=screensaver lock=${LOCK_SEC}s busy=${LOCK_BUSY_SEC}s hb=${LOCK_HEARTBEAT_SEC}s wifi_hold=${LOCK_HOLD_WIFI}" | tee -a "$LOG"
+echo "[aindle] start $(date) pid=$$ hub=$HUB page=$PAGE mode=screensaver lock=${LOCK_SEC}s busy=${LOCK_BUSY_SEC}s hb=${LOCK_HEARTBEAT_SEC}s wifi_hold=${LOCK_HOLD_WIFI} wifi_wait=${LOCK_WIFI_WAIT_SEC}" | tee -a "$LOG"
 
 LOCK_PID=""
 UNLOCK_PID=""
@@ -95,7 +101,7 @@ cleanup() {
   [ -n "$READY_PID" ] && kill "$READY_PID" 2>/dev/null
   [ -n "$WAKE_PID" ] && kill "$WAKE_PID" 2>/dev/null
   [ -n "$KEYS_PID" ] && kill "$KEYS_PID" 2>/dev/null
-  rm -f "$PIDFILE" "$IMG.tmp" "$KICK" "$LOCKING" "$UNLOCKING" "$WAKING"
+  rm -f "$PIDFILE" "$IMG.tmp" "$KICK" "$LOCKING" "$UNLOCKING" "$WAKING" "$FETCHING" "$ROOT/saver_miss"
 }
 trap cleanup EXIT INT TERM
 trap '' HUP
@@ -130,17 +136,19 @@ radio_on() {
   lipc-set-prop com.lab126.wifid enable 1 >/dev/null 2>&1 || true
 }
 
+# After a successful/failed frame. HOLD_WIFI keeps the radio up until suspend.
 radio_off() {
-  in_screensaver || return 0
-  [ "${LOCK_HOLD_WIFI:-1}" = 1 ] && return 0
+  still_locked || return 0
+  [ "${LOCK_HOLD_WIFI:-0}" = 1 ] && return 0
   lipc-set-prop com.lab126.cmd wirelessEnable 0 >/dev/null 2>&1 || true
 }
 
-# powerd freezes userspace after screensaver → readyToSuspend. deferSuspend
-# only helps while this process still runs. The alarm that actually wakes
-# Oasis is lipc rtcWakeup, and powerd only accepts it in readyToSuspend.
-keep_awake() {
-  lipc-set-prop com.lab126.powerd deferSuspend "${LOCK_HEARTBEAT_SEC:-90}" >/dev/null 2>&1 || true
+# Always drop the radio before powerd freezes it. A "held" radio across
+# suspend comes back as wirelessEnable=1 with no association.
+radio_off_for_suspend() {
+  still_locked || [ -f "$NEXTPAINT" ] || return 0
+  [ -f "$FETCHING" ] && return 0
+  lipc-set-prop com.lab126.cmd wirelessEnable 0 >/dev/null 2>&1 || true
 }
 
 now_s() {
@@ -165,31 +173,32 @@ set_paint_deadline() {
 
 clear_wake() {
   rm -f "$NEXTPAINT"
-  if [ -w /sys/class/rtc/rtc0/wakealarm ]; then
-    echo 0 > /sys/class/rtc/rtc0/wakealarm 2>/dev/null || true
-  fi
+  clear_wakealarms
 }
 
-# sysfs is a fallback. On modern Kindle firmware it is often ignored;
-# readyToSuspend must also call lipc rtcWakeup.
+# sysfs is a fallback. powerd often overwrites it at suspend; lipc rtcWakeup
+# during readyToSuspend is the write that actually sticks.
 schedule_wake_sysfs() {
   sec=$1
-  [ -e /sys/class/rtc/rtc0/wakealarm ] || return 1
-  echo 0 > /sys/class/rtc/rtc0/wakealarm 2>/dev/null || true
+  alarm=$(find_wakealarm) || return 1
+  echo 0 > "$alarm" 2>/dev/null || true
   now=$(now_s)
-  if [ "$now" -gt 0 ] && echo $((now + sec)) > /sys/class/rtc/rtc0/wakealarm 2>/dev/null; then
+  if [ "$now" -gt 0 ] && echo $((now + sec)) > "$alarm" 2>/dev/null; then
     return 0
   fi
-  echo "+$sec" > /sys/class/rtc/rtc0/wakealarm 2>/dev/null
+  echo "+$sec" > "$alarm" 2>/dev/null
 }
 
-schedule_wake() {
+# Only call from readyToSuspend. Window-outside writes fail and are logged.
+arm_rtc() {
   left=$1
-  hb=${LOCK_HEARTBEAT_SEC:-90}
+  hb=${LOCK_HEARTBEAT_SEC:-600}
   sec=$(rtc_delay "$left" "$hb" 15)
-  keep_awake
-  # lipc is the supported API; it only sticks during readyToSuspend.
-  lipc-set-prop com.lab126.powerd rtcWakeup "$sec" >/dev/null 2>&1 || true
+  if lipc_set_int com.lab126.powerd rtcWakeup "$sec"; then
+    echo "[aindle] rtcWakeup ${sec}s left=${left}s $(date)" >> "$LOG"
+  else
+    echo "[aindle] rtcWakeup FAIL sec=${sec} left=${left}s $(date)" >> "$LOG"
+  fi
   schedule_wake_sysfs "$sec" || true
 }
 
@@ -266,12 +275,22 @@ meta_url() {
 
 wait_wifi() {
   n=0
-  while [ $n -lt 90 ]; do
-    keep_awake
+  max=${LOCK_WIFI_WAIT_SEC:-30}
+  toggled=0
+  while [ $n -lt "$max" ]; do
     st=$(lipc-get-prop com.lab126.wifid cmState 2>/dev/null)
     echo "$st" | grep -qi CONNECTED && return 0
+    en=$(lipc-get-prop com.lab126.cmd wirelessEnable 2>/dev/null | tr -d ' \n\r')
+    # Held-across-suspend radio: flag stays 1, association is dead.
+    if [ "$en" = 1 ] && [ "$toggled" = 0 ] && [ "$n" -ge 5 ]; then
+      echo "[aindle] wifi zombie toggle $(date)" >> "$LOG"
+      lipc-set-prop com.lab126.cmd wirelessEnable 0 >/dev/null 2>&1 || true
+      sleep 1
+      n=$((n + 1))
+      toggled=1
+    fi
     radio_on
-    if [ $((n % 15)) -eq 14 ]; then
+    if [ $((n % 10)) -eq 9 ]; then
       wpa_cli -i wlan0 reassociate >/dev/null 2>&1 || true
     fi
     sleep 1
@@ -312,13 +331,23 @@ unlock_watch() {
 }
 
 # powerd only accepts rtcWakeup here. Re-arm on every readyToSuspend tick.
+# Do not require isScreenSaver=1: Oasis often clears that bit before sleep.
 ready_watch() {
   while [ ! -f "$STOP" ]; do
     if lipc-wait-event com.lab126.powerd readyToSuspend >/dev/null 2>&1; then
+      if [ -f "$FETCHING" ]; then
+        if lipc_set_int com.lab126.powerd abortSuspend 1; then
+          echo "[aindle] readyToSuspend abortSuspend (fetching) $(date)" >> "$LOG"
+        fi
+        continue
+      fi
+      if [ ! -f "$NEXTPAINT" ] && [ ! -f "$ROOT/locked.flag" ]; then
+        continue
+      fi
       left=$(deadline_left "$(now_s)" "$(paint_deadline)")
-      [ "$left" -gt 0 ] || left=${LOCK_HEARTBEAT_SEC:-90}
-      schedule_wake "$left"
-      echo "[aindle] readyToSuspend rtc=${left}s $(date)" >> "$LOG"
+      [ "$left" -gt 0 ] || left=15
+      arm_rtc "$left"
+      radio_off_for_suspend
     else
       sleep 5
     fi
@@ -331,16 +360,14 @@ wake_watch() {
   while [ ! -f "$STOP" ]; do
     if lipc-wait-event com.lab126.powerd wakeupFromSuspend >/dev/null 2>&1; then
       : > "$WAKING"
-      keep_awake
-      if in_screensaver; then
+      sleep 2
+      if still_locked || [ -f "$NEXTPAINT" ]; then
         mark_locked
         radio_on
         paint_cache || true
         left=$(deadline_left "$(now_s)" "$(paint_deadline)")
         if [ "$left" -le 0 ]; then
           : > "$KICK"
-        else
-          schedule_wake "$left"
         fi
       fi
       echo "[aindle] wakeupFromSuspend $(date)" >> "$LOG"
@@ -387,17 +414,30 @@ page_changed() {
   [ -n "$nowpage" ] && [ "$nowpage" != "$PAGE" ]
 }
 
+# isScreenSaver can flicker 0 during suspend. Need a few misses in a row.
 poll_saver() {
   if lipc_screensaver; then
+    rm -f "$ROOT/saver_miss"
     if [ ! -f "$ROOT/locked.flag" ]; then
       mark_locked
       : > "$LOCKING"
       return 0
     fi
   elif [ -f "$ROOT/locked.flag" ]; then
-    mark_unlocked
-    : > "$UNLOCKING"
-    return 0
+    if powerd_asleep; then
+      rm -f "$ROOT/saver_miss"
+      return 1
+    fi
+    n=$(tr -d ' \n\r' < "$ROOT/saver_miss" 2>/dev/null || echo 0)
+    case "$n" in ''|*[!0-9]*) n=0 ;; esac
+    n=$((n + 1))
+    echo "$n" > "$ROOT/saver_miss"
+    if [ "$n" -ge 3 ]; then
+      rm -f "$ROOT/saver_miss"
+      mark_unlocked
+      : > "$UNLOCKING"
+      return 0
+    fi
   fi
   return 1
 }
@@ -405,6 +445,7 @@ poll_saver() {
 # Sleep in chunks so lock / unlock / page / KUAL refresh can break in.
 # Use wall clock, not a sleep counter: after suspend, monotonic sleep
 # may not have consumed the interval even though RTC already fired.
+# Do not arm rtcWakeup here — it only sticks in readyToSuspend.
 idle_wait() {
   want=$1
   chunk=$2
@@ -416,9 +457,8 @@ idle_wait() {
   else
     deadline=0
   fi
-  if in_screensaver; then
+  if still_locked; then
     set_paint_deadline "$want"
-    schedule_wake "$want"
   else
     clear_wake
   fi
@@ -435,9 +475,6 @@ idle_wait() {
       left=$((deadline - now))
     fi
     [ "$left" -lt 1 ] && return 0
-    if in_screensaver; then
-      schedule_wake "$left"
-    fi
     step=$chunk
     [ "$left" -lt "$step" ] && step=$left
     [ "$step" -lt 1 ] && return 0
@@ -446,13 +483,21 @@ idle_wait() {
   done
 }
 
+end_fetch() {
+  rm -f "$FETCHING"
+  radio_off
+}
+
 fetch_and_paint() {
-  in_screensaver || return 0
-  keep_awake
+  if ! in_screensaver && [ ! -f "$ROOT/locked.flag" ]; then
+    return 0
+  fi
+  : > "$FETCHING"
   radio_on
   if ! wait_wifi; then
     echo "[aindle] $(date) wifi miss page=$PAGE" >> "$LOG"
     failures=$((failures + 1))
+    end_fetch
     return 1
   fi
   tries=0
@@ -469,7 +514,7 @@ fetch_and_paint() {
       last_page=$PAGE
       i=$((i + 1))
       echo "[aindle] $(date) painted page=$PAGE i=$i" >> "$LOG"
-      radio_off
+      end_fetch
       return 0
     fi
     tries=$((tries + 1))
@@ -478,6 +523,7 @@ fetch_and_paint() {
   done
   failures=$((failures + 1))
   echo "[aindle] $(date) fetch fail #$failures page=$PAGE" >> "$LOG"
+  end_fetch
   return 1
 }
 
@@ -489,18 +535,28 @@ while [ ! -f "$STOP" ]; do
   esac
 
   if [ -f "$UNLOCKING" ]; then
-    rm -f "$UNLOCKING" "$LOCKING" "$WAKING"
-    # Pillow can emit outOfScreenSaver while still in the saver.
-    # Believe lipc after a beat; a fake unlock used to clear the RTC
-    # and leave the wallpaper stuck on the first frame.
-    sleep 1
-    if in_screensaver; then
-      mark_locked
-      echo "[aindle] ignore unlock, still saver $(date)" >> "$LOG"
+    rm -f "$UNLOCKING" "$LOCKING" "$WAKING" "$FETCHING"
+    # Pillow / suspend can emit outOfScreenSaver while the cover is still
+    # closed. Wait a few seconds; if saver or readyToSuspend comes back,
+    # keep the RTC. A 1s check was too short on Oasis.
+    n=0
+    kept=0
+    while [ "$n" -lt 5 ]; do
+      sleep 1
+      if in_screensaver || powerd_asleep; then
+        mark_locked
+        echo "[aindle] ignore unlock, still saver/sleep $(date)" >> "$LOG"
+        kept=1
+        break
+      fi
+      n=$((n + 1))
+    done
+    if [ "$kept" = 1 ]; then
       continue
     fi
     mark_unlocked
     clear_wake
+    rm -f "$ROOT/saver_miss"
     echo "[aindle] unlocked $(date)" >> "$LOG"
     idle_wait 3600 5
     continue
@@ -523,7 +579,7 @@ while [ ! -f "$STOP" ]; do
     continue
   fi
 
-  if in_screensaver; then
+  if in_screensaver || [ -f "$ROOT/locked.flag" ]; then
     if fetch_and_paint; then
       idle_wait "$(next_lock_interval)" 5
     elif [ "$failures" -le 1 ]; then

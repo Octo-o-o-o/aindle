@@ -2,7 +2,8 @@
 ROOT=/mnt/us/aindle
 : > "$ROOT/loop.stop"
 rm -f "$ROOT/kick" "$ROOT/just_woke" "$ROOT/just_locked" "$ROOT/just_unlocked" \
-  "$ROOT/locked.flag" "$ROOT/unlocked.flag" "$ROOT/next_paint_at"
+  "$ROOT/locked.flag" "$ROOT/unlocked.flag" "$ROOT/next_paint_at" "$ROOT/fetching" \
+  "$ROOT/saver_miss"
 if [ -f "$ROOT/loop.pid" ]; then
   pid=$(cat "$ROOT/loop.pid" 2>/dev/null)
   if [ -n "$pid" ]; then

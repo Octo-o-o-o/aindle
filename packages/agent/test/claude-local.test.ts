@@ -52,7 +52,7 @@ describe('windowsFromClaudeUsage', () => {
 });
 
 describe('readLocalClaudeUsage', () => {
-  it('keeps conversation headers over a newer oauth snapshot and only fills missing keys', () => {
+  it('keeps a fresh conversation header over a newer oauth snapshot and only fills missing keys', () => {
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'aindle-claude-home-'));
     try {
       const vibe = path.join(home, '.vibe-island', 'cache');
@@ -65,8 +65,6 @@ describe('readLocalClaudeUsage', () => {
           seven_day: { used_percentage: 10, resets_at: 1788793200 },
         }),
       );
-      const old = (Date.now() - 20 * 60_000) / 1000;
-      fs.utimesSync(rl, old, old);
       fs.writeFileSync(
         path.join(vibe, 'anthropic-oauth-usage.json'),
         JSON.stringify({
@@ -84,13 +82,74 @@ describe('readLocalClaudeUsage', () => {
           },
         }),
       );
-      const got = readLocalClaudeUsage(Date.now(), home);
-      assert.equal(got.fresh, false);
+      const now = Date.now();
+      const got = readLocalClaudeUsage(now, home);
+      assert.equal(got.fresh, true);
       assert.deepEqual(
         got.windows.map((w) => [w.key, w.pct]),
         [
           ['5h', 8],
           ['7d', 10],
+          ['Fable', 100],
+        ],
+      );
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it('lets a newer oauth snapshot replace stale headers and ignores Aindle own cache', () => {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'aindle-claude-stale-'));
+    try {
+      const vibe = path.join(home, '.vibe-island', 'cache');
+      const ownDir = path.join(home, '.config', 'aindle');
+      fs.mkdirSync(vibe, { recursive: true });
+      fs.mkdirSync(ownDir, { recursive: true });
+      const rl = path.join(vibe, 'rl.json');
+      fs.writeFileSync(
+        rl,
+        JSON.stringify({
+          five_hour: { used_percentage: 0, resets_at: '2026-09-04T19:19:59Z' },
+          seven_day: { used_percentage: 64, resets_at: '2026-09-07T13:59:59Z' },
+        }),
+      );
+      const old = (Date.now() - 3 * 86400_000) / 1000;
+      fs.utimesSync(rl, old, old);
+      fs.writeFileSync(
+        path.join(ownDir, 'claude-rate-limits.json'),
+        JSON.stringify({
+          windows: [
+            { key: '5h', pct: 0, resetsAt: '2026-09-04T19:19:59.753Z' },
+            { key: '7d', pct: 64, resetsAt: '2026-09-07T13:59:59.753Z' },
+            { key: 'Fable', pct: 100, resetsAt: '2026-09-07T13:59:59.753Z' },
+          ],
+        }),
+      );
+      fs.utimesSync(path.join(ownDir, 'claude-rate-limits.json'), old, old);
+      fs.writeFileSync(
+        path.join(vibe, 'anthropic-oauth-usage.json'),
+        JSON.stringify({
+          _vibe_usage: {
+            five_hour: { utilization: 5, resets_at: '2026-09-06T21:09:59Z' },
+            seven_day: { utilization: 92, resets_at: '2026-09-07T13:59:59Z' },
+            limits: [
+              {
+                kind: 'weekly_scoped',
+                percent: 100,
+                resets_at: '2026-09-07T13:59:59Z',
+                scope: { model: { display_name: 'Fable' } },
+              },
+            ],
+          },
+        }),
+      );
+      const got = readLocalClaudeUsage(Date.now(), home);
+      assert.equal(got.fresh, true);
+      assert.deepEqual(
+        got.windows.map((w) => [w.key, w.pct]),
+        [
+          ['5h', 5],
+          ['7d', 92],
           ['Fable', 100],
         ],
       );

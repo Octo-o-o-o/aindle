@@ -1,0 +1,22 @@
+{
+  "name": "Aindle",
+  "short_name": "Aindle",
+  "description": "桌边的 AI 工作看板",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#F4F1E9",
+  "theme_color": "#111111",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

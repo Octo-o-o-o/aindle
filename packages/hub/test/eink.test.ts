@@ -1,10 +1,20 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildMockSnapshot, formatAttention, snapshotToViewModel } from '@aindle/core';
+import { AINDLE_MARK_DATA_URI } from '../src/brand-mark.js';
 import { einkMeta, fitEinkTaskLists, parseEinkBattery, parseEinkPage, pickWindows, prettyTool, quotaSourceName, renderEinkHtml } from '../src/eink.js';
 import { findChrome, htmlToPng, pngSize } from '../src/png.js';
 
 describe('eink pages', () => {
+  it('keeps the lock-screen masthead text-only', () => {
+    assert.match(AINDLE_MARK_DATA_URI, /^data:image\/png;base64,/);
+    const vm = snapshotToViewModel(buildMockSnapshot());
+    const html = renderEinkHtml(vm, 'local');
+    assert.equal(html.includes(AINDLE_MARK_DATA_URI), false);
+    assert.doesNotMatch(html, /class="mark"/);
+    assert.doesNotMatch(html, /src="\.?\/?brand\//);
+  });
+
   it('parses page aliases', () => {
     assert.equal(parseEinkPage('local'), 'local');
     assert.equal(parseEinkPage('now'), 'now');
@@ -25,6 +35,8 @@ describe('eink pages', () => {
     assert.equal(quotaSourceName('Grok Builder'), 'Grok');
     assert.equal(quotaSourceName('ZCode Lite'), 'ZCode');
     assert.equal(quotaSourceName('ZCode Pro'), 'ZCode');
+    assert.equal(quotaSourceName('DeepSeek API'), 'DeepSeek');
+    assert.equal(quotaSourceName('Kimi 订阅'), 'Kimi');
   });
 
   it('parses lock-screen battery from the pull query', () => {
@@ -78,6 +90,11 @@ describe('eink pages', () => {
     assert.match(now, /—/);
     assert.match(local, /Aindle Stage 1/);
     assert.match(local, /class="when"/);
+    assert.match(local, /align-items:flex-start/);
+    assert.doesNotMatch(local, /class="mark"/);
+    assert.doesNotMatch(local, /data:image\/png;base64,/);
+    assert.doesNotMatch(local, /src="brand\//);
+    assert.doesNotMatch(now, /src="brand\//);
     assert.doesNotMatch(local, /过热/);
     // 默认 mock 只有 2 份本地限额 → 宽松大卡模式
     assert.match(local, /class="qbig"/);
@@ -249,7 +266,7 @@ describe('eink pages', () => {
     assert.match(html, /class="foot"/);
   });
 
-  it('keeps a failed local Claude quota visible', () => {
+  it('hides unread local quotas and does not mark subscriptions', () => {
     const vm = snapshotToViewModel(buildMockSnapshot());
     vm.subs.unshift({
       id: 'claude-default',
@@ -262,22 +279,56 @@ describe('eink pages', () => {
       error: 1,
     });
     const html = renderEinkHtml(vm, 'local');
-    assert.match(html, /Claude/);
-    assert.doesNotMatch(html, /Claude Max/);
-    assert.match(html, /暂时读不到/);
+    assert.doesNotMatch(html, /暂时读不到/);
+    assert.doesNotMatch(html, /还没有读数/);
+    assert.doesNotMatch(html, />订</);
+    assert.doesNotMatch(html, />量</);
   });
 
-  it('shows 24h/7d usage and billing glyph on expanded quota cards', () => {
+  it('shows 24h/7d usage on expanded quota cards without a subscription mark', () => {
     const vm = snapshotToViewModel(buildMockSnapshot());
     const claude = vm.subs.find((s) => String(s.tool).includes('Claude'));
     assert.ok(claude);
     claude.billing = 'subscription';
     claude.usage = { h24Tokens: '1.2M', h24Cost: '$3.20', d7Tokens: '8.4M', d7Cost: '$21' };
-    // 默认 mock 只有 2 份本地限额 → 宽松大卡模式（quotaBig）
     const html = renderEinkHtml(vm, 'local');
     assert.match(html, /class="qbig"/);
     assert.match(html, /24h 1\.2M tok ≈\$3\.20 · 7d 8\.4M tok ≈\$21/);
-    assert.match(html, />订</);
+    assert.doesNotMatch(html, />订</);
+  });
+
+  it('labels metered spend as tokens/money instead of a percent bar', () => {
+    const vm = snapshotToViewModel(buildMockSnapshot());
+    vm.subs.push({
+      id: 'deepseek-api',
+      tool: 'DeepSeek API',
+      label: '余额 ¥12.00',
+      source: 'local',
+      scope: '',
+      kind: 'spend',
+      billing: 'metered',
+      windows: [{ key: '预算', pct: 3, reset: '—' }],
+    });
+    vm.subs.push({
+      id: 'paid-tokens',
+      tool: 'Paid',
+      label: 'Paid',
+      source: 'local',
+      scope: '',
+      kind: 'spend',
+      billing: 'metered',
+      usage: { h24Tokens: '1.2M', h24Cost: '$3.20', d7Tokens: '8.4M', d7Cost: '$21' },
+    });
+    const html = renderEinkHtml(vm, 'local');
+    assert.match(html, /DeepSeek/);
+    assert.doesNotMatch(html, /DeepSeek API/);
+    assert.match(html, /按量/);
+    assert.match(html, /余额 ¥12\.00/);
+    assert.match(html, /24h 1\.2M tok ≈\$3\.20 · 7d 8\.4M tok ≈\$21/);
+    assert.doesNotMatch(html, />预算</);
+    assert.doesNotMatch(html, /3%/);
+    assert.doesNotMatch(html, />订</);
+    assert.doesNotMatch(html, />量</);
   });
 });
 
@@ -292,5 +343,6 @@ describe('dash png', () => {
     const size = pngSize(buf);
     assert.equal(size.w, 1072);
     assert.equal(size.h, 1448);
+    assert.doesNotMatch(renderEinkHtml(vm, 'local'), /data:image\/png;base64,/);
   });
 });

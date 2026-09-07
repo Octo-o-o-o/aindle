@@ -29,16 +29,18 @@ copy_local() {
   mkdir -p "$dest/aindle" "$dest/extensions/aindle" "$dest/documents"
   cp "$ROOT/common.sh" "$ROOT/loop.sh" "$ROOT/start.sh" "$ROOT/stop.sh" "$ROOT/page.sh" \
     "$ROOT/keys.sh" "$ROOT/refresh.sh" "$ROOT/operate.sh" "$ROOT/resume.sh" \
-    "$ROOT/operate.html" "$dest/aindle/"
+    "$ROOT/operate.html" "$ROOT/brand-icon.png" "$dest/aindle/"
   if [ ! -f "$dest/aindle/hub.env" ]; then
     cp "$ROOT/hub.env.example" "$dest/aindle/hub.env"
   fi
+  # documents HTML is self-contained (data URI icon); no sibling PNG required.
   cp "$ROOT/operate.html" "$dest/documents/Aindle操作.html"
   cp "$ROOT/kual/config.xml" "$ROOT/kual/menu.json" "$dest/extensions/aindle/"
   rm -f "$dest/aindle/loop.pid" "$dest/aindle/kick" "$dest/aindle/just_woke" \
     "$dest/aindle/just_locked" "$dest/aindle/just_unlocked" \
     "$dest/aindle/locked.flag" "$dest/aindle/unlocked.flag" \
-    "$dest/aindle/next_paint_at" "$dest/aindle/loop.stop"
+    "$dest/aindle/next_paint_at" "$dest/aindle/loop.stop" "$dest/aindle/fetching" \
+    "$dest/aindle/saver_miss"
   echo "copied scripts to $dest"
 }
 
@@ -53,11 +55,12 @@ if [ -n "$SSH_HOST" ]; then
   ssh -o BatchMode=yes -o ConnectTimeout=5 "root@$SSH_HOST" "mkdir -p /mnt/us/aindle /mnt/us/extensions/aindle"
   scp -o BatchMode=yes "$ROOT/common.sh" "$ROOT/loop.sh" "$ROOT/start.sh" "$ROOT/stop.sh" \
     "$ROOT/page.sh" "$ROOT/keys.sh" "$ROOT/refresh.sh" "$ROOT/operate.sh" \
-    "$ROOT/resume.sh" "$ROOT/operate.html" "$ROOT/hub.env.example" \
+    "$ROOT/resume.sh" "$ROOT/operate.html" "$ROOT/brand-icon.png" "$ROOT/hub.env.example" \
     "root@$SSH_HOST:/mnt/us/aindle/"
+  # documents HTML is self-contained (data URI icon); no sibling PNG required.
   scp -o BatchMode=yes "$ROOT/operate.html" "root@$SSH_HOST:/mnt/us/documents/Aindle操作.html"
   scp -o BatchMode=yes "$ROOT/kual/config.xml" "$ROOT/kual/menu.json" "root@$SSH_HOST:/mnt/us/extensions/aindle/"
-  ssh -o BatchMode=yes "root@$SSH_HOST" "test -f /mnt/us/aindle/hub.env || cp /mnt/us/aindle/hub.env.example /mnt/us/aindle/hub.env" || true
+  ssh -o BatchMode=yes "root@$SSH_HOST" "test -f /mnt/us/aindle/hub.env || cp /mnt/us/aindle/hub.env.example /mnt/us/aindle/hub.env; rm -f /mnt/us/aindle/fetching /mnt/us/aindle/loop.stop /mnt/us/aindle/kick" || true
   echo "copied over SSH. start with: ssh root@$SSH_HOST sh /mnt/us/aindle/loop.sh local"
   exit 0
 fi

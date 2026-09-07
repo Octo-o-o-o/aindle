@@ -77,6 +77,9 @@ function contentType(filePath: string): string {
   if (filePath.endsWith('.css')) return 'text/css; charset=utf-8';
   if (filePath.endsWith('.json')) return 'application/json; charset=utf-8';
   if (filePath.endsWith('.png')) return 'image/png';
+  if (filePath.endsWith('.ico')) return 'image/x-icon';
+  if (filePath.endsWith('.webmanifest')) return 'application/manifest+json';
+  if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) return 'image/jpeg';
   return 'application/octet-stream';
 }
 

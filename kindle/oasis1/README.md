@@ -20,7 +20,7 @@
 4. **U 盘和循环互斥。** 插线 = 只拷文件。推出、回桌面、连 Wi-Fi，再从 KUAL 开锁屏监控。
 5. **不要用 127.0.0.1。** 把示例 `http://192.168.1.2:8790` 改成 Hub 的真实局域网地址。
 6. **USBNetwork 没装。** 日常靠 Wi-Fi。USBNetwork 只为了 Mac SSH 调试。
-7. **锁屏默认 10 分钟一刷。** 有进行中任务时 5 分钟。解锁不拉图。锁屏时默认保持 Wi-Fi，并在 `readyToSuspend` 里设 `rtcWakeup`（只在这一刻 powerd 才认闹钟）。只写 sysfs 或只在循环开头设一次闹钟，Oasis 深睡后仍会停在第一帧。想改间隔或省电关无线，编辑 `hub.env` 的 `LOCK_SEC` / `LOCK_BUSY_SEC` / `LOCK_HOLD_WIFI`。立刻看新数用「立即刷新」。改完脚本必须重新拷进 Kindle 并从 KUAL 关一次、开一次监控。
+7. **锁屏默认 10 分钟一刷。** 有进行中任务时 5 分钟。解锁不拉图。闹钟只在 `readyToSuspend` 里用 `lipc-set-prop -i … rtcWakeup` 设置；休眠前关掉 Wi-Fi，醒来再开。Oasis 进休眠时 `isScreenSaver` 常会先掉成 0，不能据此清 RTC。假解锁会再确认几秒；`loop.log` 里应出现 `rtcWakeup`、`wakeupFromSuspend`、第二次 `painted`。锁屏时一直开着无线，休眠后经常变成「标志位还是开、实际没网」。机上旧的 `hub.env` 若仍写着 `LOCK_HOLD_WIFI=1`，休眠前还是会关无线；想和现在默认一致，把那一行改成 `0` 或删掉。若还留着 `LOCK_HEARTBEAT_SEC=90`，闹钟会被截成 90 秒，可改成 `600` 或删掉。立刻看新数用「立即刷新」。改完脚本必须重新拷进 Kindle，并从 KUAL 关一次、开一次监控。
 
 ## 主机地址
 

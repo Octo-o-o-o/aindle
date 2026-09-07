@@ -193,20 +193,20 @@ function fromLocal(entry: RegistrySubscription): Subscription | undefined {
   const local = readLocalClaudeUsage();
   if (!local.windows.length) return undefined;
   const sub: Subscription = {
-    ...baseSub(entry, local.fresh ? 'live' : 'cached'),
+    ...baseSub(entry, local.fresh ? 'live' : 'stale'),
     windows: local.windows,
   };
-  saveQuotaLast(sub);
+  if (local.fresh) saveQuotaLast(sub);
   return sub;
 }
 
 export async function collectClaude(entry: RegistrySubscription): Promise<Subscription> {
   const local = fromLocal(entry);
-  if (local) return local;
+  if (local?.confidence === 'live') return local;
 
   const key = CACHE_KEY(entry.id);
   const cached = quotaPeek<Subscription>(key);
-  const known = lastKnown(entry, cached);
+  const known = local?.windows.length ? local : lastKnown(entry, cached);
   if (process.env.AINDLE_CLAUDE_USAGE_API !== '1') {
     return known;
   }

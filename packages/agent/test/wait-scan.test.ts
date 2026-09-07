@@ -4,8 +4,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { countAttention, formatAttention, mergeReports, snapshotToViewModel } from '@aindle/core';
+import { createRequire } from 'node:module';
 import { collectRuns } from '../src/collectors/sessions.js';
+import { cursorStateDbPath } from '../src/collectors/cursor.js';
 import { resetWaitScanCache, scanSessionWait, structuralEventsFromRow } from '../src/collectors/wait-scan.js';
+
+const require = createRequire(import.meta.url);
 
 const A1 = 'A1-SECRET-/Users/sentinel/ask.md';
 const A2 = 'A2-SECRET-sk-ant-request-user-input';
@@ -372,13 +376,114 @@ describe('A3 unsupported tools stay age-only', () => {
           { id: 'grok-home', tool: 'grok', label: 'Grok', home: path.join(root, 'grok') },
         ],
       });
-      assert.ok(runs.some((r) => r.tool === 'Cursor'));
+      assert.ok(runs.some((r) => r.tool === 'Cursor' && r.title === 'Cursor meta'));
       assert.ok(runs.some((r) => r.tool === 'Kimi'));
       assert.ok(runs.some((r) => r.tool === 'GLM'));
       assert.ok(runs.some((r) => r.tool === 'Grok'));
       assert.equal(runs.some((r) => r.state === 'wait'), false);
       assertNoSentinel(runs);
     } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+function writeComposerHeaders(appHome: string, rows: Array<{ id: string; name: string }>) {
+  const dbPath = cursorStateDbPath(appHome);
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+  const { DatabaseSync } = require('node:sqlite') as {
+    DatabaseSync: new (p: string) => {
+      exec: (sql: string) => void;
+      prepare: (sql: string) => { run: (...args: string[]) => void };
+      close: () => void;
+    };
+  };
+  const db = new DatabaseSync(dbPath);
+  db.exec('CREATE TABLE composerHeaders (composerId TEXT PRIMARY KEY, value TEXT)');
+  const ins = db.prepare('INSERT INTO composerHeaders (composerId, value) VALUES (?, ?)');
+  for (const row of rows) {
+    ins.run(row.id, JSON.stringify({ type: 'head', composerId: row.id, name: row.name }));
+  }
+  db.close();
+}
+
+describe('Cursor IDE agent-transcripts', () => {
+  it('lists IDE transcripts as Cursor runs and folds subagents as spawned', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aindle-cursor-tx-'));
+    try {
+      const id = 'aaaaaaaa-0000-0000-0000-000000000001';
+      const sid = 'bbbbbbbb-0000-0000-0000-000000000002';
+      const dir = path.join(root, 'cursor', 'projects', 'Users-me-WorkSpace-Aindle', 'agent-transcripts', id);
+      fs.mkdirSync(path.join(dir, 'subagents'), { recursive: true });
+      const now = new Date();
+      const main = path.join(dir, `${id}.jsonl`);
+      fs.writeFileSync(
+        main,
+        `${JSON.stringify({
+          role: 'user',
+          message: {
+            content: [
+              {
+                type: 'text',
+                text: `<timestamp>Monday, Sep 7, 2026, 8:58 AM (UTC+8)</timestamp>\n<user_query>\n${A5_CURSOR_PROMPT}\n</user_query>`,
+              },
+            ],
+          },
+        })}\n`,
+      );
+      fs.writeFileSync(path.join(dir, 'subagents', `${sid}.jsonl`), `${JSON.stringify({ role: 'assistant' })}\n`);
+      fs.utimesSync(main, now, now);
+      fs.utimesSync(path.join(dir, 'subagents', `${sid}.jsonl`), now, now);
+
+      const runs = collectRuns({
+        host: { id: 't', label: 't' },
+        subscriptions: [{ id: 'cursor-ultra', tool: 'cursor', label: 'Cursor Ultra', home: path.join(root, 'cursor') }],
+      });
+      const human = runs.find((r) => r.id.endsWith(id));
+      const child = runs.find((r) => r.id.endsWith(sid));
+      assert.ok(human);
+      assert.equal(human?.tool, 'Cursor');
+      assert.equal(human?.title, 'Cursor · Aindle');
+      assert.equal(human?.initiator, 'human');
+      assert.ok(child);
+      assert.equal(child?.initiator, 'agent');
+      assert.equal(runs.some((r) => JSON.stringify(r).includes(A5_CURSOR_PROMPT)), false);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('uses composerHeaders.name for IDE transcripts and never the user_query', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aindle-cursor-name-'));
+    const prev = process.env.AINDLE_CURSOR_APP_HOME;
+    try {
+      const id = 'cccccccc-0000-0000-0000-000000000003';
+      const dir = path.join(root, 'cursor', 'projects', 'Users-me-WorkSpace-Aindle', 'agent-transcripts', id);
+      fs.mkdirSync(dir, { recursive: true });
+      const now = new Date();
+      const main = path.join(dir, `${id}.jsonl`);
+      fs.writeFileSync(
+        main,
+        `${JSON.stringify({
+          role: 'user',
+          message: { content: [{ type: 'text', text: `<user_query>\n${A5_CURSOR_PROMPT}\n</user_query>` }] },
+        })}\n`,
+      );
+      fs.utimesSync(main, now, now);
+      writeComposerHeaders(root, [{ id, name: 'Kindle Oasis data update issue' }]);
+      process.env.AINDLE_CURSOR_APP_HOME = root;
+
+      const runs = collectRuns({
+        host: { id: 't', label: 't' },
+        subscriptions: [{ id: 'cursor-ultra', tool: 'cursor', label: 'Cursor Ultra', home: path.join(root, 'cursor') }],
+      });
+      const human = runs.find((r) => r.id.endsWith(id));
+      assert.equal(human?.title, 'Kindle Oasis data update issue');
+      assert.equal(human?.project, 'Aindle');
+      assert.equal(JSON.stringify(runs).includes(A5_CURSOR_PROMPT), false);
+    } finally {
+      if (prev === undefined) delete process.env.AINDLE_CURSOR_APP_HOME;
+      else process.env.AINDLE_CURSOR_APP_HOME = prev;
       fs.rmSync(root, { recursive: true, force: true });
     }
   });
@@ -417,7 +522,7 @@ describe('A4 three-bucket cardinality', () => {
         { id: 'hub', label: 'Hub' },
       );
       const vm = snapshotToViewModel(snap);
-      assert.equal(formatAttention(vm.attention), '等你 1 · 人手 1 · 后台 3');
+      assert.equal(formatAttention(vm.attention), '进行中 1 · 待确认 1 · 后台任务 3');
       assert.equal(vm.now.length <= 12, true);
       assert.equal(vm.now.filter((r) => r.tag === 'WAIT' && r.title !== '后台 · 3').length, 1);
       assert.equal(vm.now.some((r) => r.title === '后台 · 3'), true);
