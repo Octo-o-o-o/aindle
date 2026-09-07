@@ -16,19 +16,19 @@
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
-    <string>/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    <string>__AINDLE_NODE_DIR__:/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
     <key>HOME</key>
     <string>__AINDLE_HOME__</string>
     <key>AINDLE_PORT</key>
-    <string>8790</string>
+    <string>8787</string>
     <key>AINDLE_HOST</key>
     <string>0.0.0.0</string>
     <key>AINDLE_SEED_MOCK</key>
     <string>0</string>
     <key>AINDLE_HUB_ID</key>
-    <string>mini</string>
+    <string>hub</string>
     <key>AINDLE_HUB_LABEL</key>
-    <string>Mac mini</string>
+    <string>Aindle Hub</string>
   </dict>
   <key>RunAtLoad</key>
   <true/>

@@ -1,5 +1,7 @@
 # 文档索引
 
+新用户请先看仓库根目录 [README.zh-CN.md](../README.zh-CN.md) / [README.md](../README.md)，或官网 [aindle.octoooo.com](https://aindle.octoooo.com)。下面 `01–10` 是立项调研，不是安装手册。
+
 阅读顺序：先 `01` 看问题是不是我们想的那样，再 `02` 看 Kindle 能不能扛住，然后 `03–05` 看三份参考各自能借什么，再用 `06–07` 对数据与架构，最后 `08` 结论、`09` 复核。
 
 | 编号 | 文件 | 回答的问题 |

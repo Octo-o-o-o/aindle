@@ -11,7 +11,7 @@ if [ -f "$ENVFILE" ]; then
   # shellcheck disable=SC1090
   . "$ENVFILE"
 fi
-HUB="${HUB:-http://192.168.1.2:8790}"
+HUB="${HUB:-http://192.168.1.2:8787}"
 PATHQ="${OPERATE:-/monitor.html?device=oasis1&kindle=1}"
 URL="$HUB$PATHQ"
 

@@ -45,6 +45,9 @@ function parseArgs(argv: string[]) {
 
 async function tick(opts: ReturnType<typeof parseArgs>) {
   const report = await collectReport({ mock: opts.mock, registryPath: opts.registryPath });
+  if (!opts.mock && report.subscriptions.length === 0) {
+    console.error('registry has no subscriptions; uncomment tools you already use in the YAML');
+  }
   if (opts.dryRun) {
     console.log(JSON.stringify(report, null, 2));
     return;

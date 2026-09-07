@@ -27,7 +27,7 @@ Hub 看板按小屏 Kindle（Oasis）和大屏 Kindle（Scribe）来排。一台
 
 ## 开始使用
 
-需要 **Node.js 20+**（Windows 上若要读 Cursor / Kiro / ZCode，建议 22+）。请 **clone 本仓库**——包没有发到 npm。第一次 `npm run hub` 若还没有编译产物，会先编 `@aindle/core`（几秒钟）。
+需要 **Git** 和 **Node.js 20+**（Windows 上若要读 Cursor / Kiro / ZCode，建议 22+）。请 **clone 本仓库**——包没有发到 npm。第一次 `npm run hub` 若还没有编译产物，会先编 `@aindle/core`（几秒钟）。
 
 ```bash
 git clone https://github.com/Octo-o-o-o/aindle.git
@@ -42,7 +42,7 @@ npm run hub
 - 锁屏 HTML：[http://127.0.0.1:8787/eink.html?page=local](http://127.0.0.1:8787/eink.html?page=local)
 - 锁屏 PNG：[http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local) —— 这台机器上要有 Chrome / Chromium / Edge / Brave（找不到时设 `AINDLE_CHROME`）
 
-前两个 HTML 就够对照界面。Hub 默认灌一份 mock，避免空屏。只想等真 agent 时设 `AINDLE_SEED_MOCK=0`。状态在内存里：重启 Hub 会重新灌 mock（除非关掉种子）。
+前两个 HTML 就够对照界面。Hub 默认把 mock 灌在主机 `mbp` 上，避免空屏。只想等真 agent 时设 `AINDLE_SEED_MOCK=0`（PowerShell：`$env:AINDLE_SEED_MOCK='0'`）。状态在内存里：重启 Hub 会重新灌 mock（除非关掉种子）。
 
 没有 Redis、没有数据库、没有第二个 Aindle 守护进程。Hub 是一个 Node 进程，agent 是另一个。
 
@@ -52,9 +52,11 @@ npm run hub
 
 ```bash
 npx aindle init --local
-# 编辑 ./config/registry.yaml，只留你真正在用的工具
+# 编辑 ./config/registry.yaml，只取消注释你已经登录过的工具
 npx aindle agent --loop 60
 ```
+
+`init` 会把这台电脑的名字写成 `host.id`（不会写成 `mbp`）。因此样例还在，你的机器是旁边另一台，直到你设 `AINDLE_SEED_MOCK=0` 并重启 Hub。起步文件里的工具全部是注释：如果不解开就跑 agent，这台主机会是空的，样例不会被盖掉。
 
 这里的 `npx aindle` 是仓库里的本地 bin（`scripts/aindle.mjs`），不是 npm 全球包。等价写法：`npm run init`，然后 `npm run agent -- --loop 60`。
 
@@ -67,7 +69,7 @@ Terminal、PowerShell、cmd 都是这几条命令，务必在 **这个 clone** �
 - Kindle 走局域网时，Hub 那台机要放行入站 TCP `8787`（Windows 防火墙 / macOS 防火墙）。
 - 工具只装在 **WSL** 里则家目录不同：在那个发行版里跑 agent，或把 `home:` 写成 UNC（`\\wsl$\Ubuntu\home\you\.claude`）。`registry.yaml` 里 `%USERPROFILE%`、`%APPDATA%` 会展开。
 
-也可以手抄 [config/registry.example.yaml](config/registry.example.yaml)。Aindle 不会自动扫遍所有 `~/.claude-*`。用不到的条目删掉——读不到的座位会空着或变 `stale`，不应把整个 agent 打崩。填好的 `registry.yaml` 不要提交（已在 gitignore）。
+也可以手抄 [config/registry.example.yaml](config/registry.example.yaml)。Aindle 不会自动扫遍所有 `~/.claude-*`。用不到的条目保持注释——解开却读不到的座位会变成空卡或 `error`，并留在屏上。填好的 `registry.yaml` 不要提交（已在 gitignore）。
 
 agent 只读这台机器上你已经登录过的工具（本地文件 / 各家 CLI 自己在用的限额接口）。不需要 Aindle 账号。
 
@@ -92,7 +94,7 @@ npx aindle agent --mock       # 推一次内置样例
 
 1. Hub 开在局域网（或 Tailscale）。Kindle 上 **不要** 写 `127.0.0.1`。
 2. 把 `kindle/oasis1/` 拷到设备（`/mnt/us/aindle`）。
-3. 改 `hub.env`：`HUB=http://192.168.x.x:8787`，以及可选 `TOKEN`。
+3. 在设备上把 `hub.env.example` 复制成 `hub.env`，再改 `HUB=http://192.168.x.x:8787`（只改 IP，端口保持 `8787`），以及可选 `TOKEN`。
 4. KUAL → 开锁屏监控。锁屏看板。
 5. 翻页键只在锁屏时切 **本机 / 进行中 / 中转**。解锁 = 原厂 Kindle。
 

@@ -13,7 +13,7 @@ npm install
 npm run hub
 ```
 
-The package is not on npm. First `npm run hub` compiles `@aindle/core` if needed. No database or extra Aindle service.
+Needs Git and Node.js 20+ (22+ on Windows for Cursor / Kiro / ZCode sqlite). The package is not on npm. First `npm run hub` compiles `@aindle/core` if needed. No database or extra Aindle service.
 
 Then open:
 
@@ -21,17 +21,19 @@ Then open:
 - Lock-screen HTML: http://127.0.0.1:8787/eink.html?page=local
 - Lock-screen PNG: http://127.0.0.1:8787/dash.png?page=local (needs Chrome, Chromium, Edge, or Brave)
 
-Same commands on macOS and Windows (PowerShell or cmd), from this clone. Do not type a bare `aindle`. Windows: Node.js 22+ recommended so Cursor / Kiro / ZCode can read local sqlite.
+Same commands on macOS and Windows (PowerShell or cmd), from this clone. Do not type a bare `aindle`.
 
-The hub seeds mock data so the screen is not empty. Live machines (local bin, not a global npm package):
+The hub seeds mock data on host `mbp` so the screen is not empty. `AINDLE_SEED_MOCK=0` (PowerShell: `$env:AINDLE_SEED_MOCK='0'`) turns the sample off. Live machines (local bin, not a global npm package):
 
 ```bash
 npx aindle init --local
-# edit ./config/registry.yaml — keep only tools you use
+# edit ./config/registry.yaml — uncomment only tools you already use
 npx aindle agent --loop 60
 ```
 
-Optional Kindle Oasis 1: copy `kindle/oasis1/` to `/mnt/us/aindle`, set `HUB` in `hub.env` to the LAN URL (never `127.0.0.1` on the device), start from KUAL, then lock.
+`init` stamps this computer's name (never `mbp`), so the sample stays until you disable it. Every tool in the starter file is commented.
+
+Optional Kindle Oasis 1: copy `kindle/oasis1/` to `/mnt/us/aindle`, copy `hub.env.example` to `hub.env`, set `HUB` to the LAN URL on port `8787` (never `127.0.0.1` on the device), start from KUAL, then lock.
 
 ## Docs
 

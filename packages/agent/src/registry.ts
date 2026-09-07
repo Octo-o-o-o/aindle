@@ -59,13 +59,14 @@ export function loadRegistry(filePath?: string): RegistryFile {
   const p = resolveRegistryPath(filePath);
   if (!fs.existsSync(p)) {
     throw new Error(
-      `registry not found: ${p}\nFrom the repo root: npx aindle init --local\nOr copy config/registry.example.yaml to ./config/registry.yaml (keep only tools you use).`,
+      `registry not found: ${p}\nFrom the repo root: npx aindle init --local\nOr copy config/registry.example.yaml to ./config/registry.yaml (uncomment only tools you already use).`,
     );
   }
   const raw = parseYaml(fs.readFileSync(p, 'utf8')) as RegistryFile;
   if (!raw.host?.id || !raw.host?.label) {
     throw new Error('registry.host.id and registry.host.label required');
   }
+  if (raw.subscriptions == null) raw.subscriptions = [];
   if (!Array.isArray(raw.subscriptions)) {
     throw new Error('registry.subscriptions must be an array');
   }
@@ -96,6 +97,35 @@ export function codexHomePath(home?: string): string {
 
 export function defaultBilling(entry: RegistrySubscription): BillingMode {
   return entry.billing ?? (entry.tool === 'sub2api' || entry.budget != null ? 'metered' : 'subscription');
+}
+
+const RESERVED_HOST_IDS = new Set(['mbp', 'mini', 'hub', 'demo']);
+
+export function yamlScalar(value: string): string {
+  if (!value || /[:#{}[\],&*?|<>=!%@`'"\\]/.test(value) || /^\s|\s$/.test(value) || value !== value.trim()) {
+    return JSON.stringify(value);
+  }
+  return value;
+}
+
+export function suggestHostIdentity(hostname = os.hostname()): RegistryHost {
+  const label = hostname.trim().replace(/\.local$/i, '') || 'This computer';
+  let id = label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (!id) id = 'local';
+  if (RESERVED_HOST_IDS.has(id)) id = `${id}-local`;
+  return { id, label };
+}
+
+export function applyHostToRegistryYaml(text: string, host: RegistryHost): string {
+  const block = `host:\n  id: ${yamlScalar(host.id)}\n  label: ${yamlScalar(host.label)}`;
+  const next = text.replace(/^host:\r?\n[ \t]*id:.*\r?\n[ \t]*label:.*$/m, block);
+  if (next === text) {
+    throw new Error('registry example is missing a host.id / host.label block');
+  }
+  return next;
 }
 
 export function stubSubscription(entry: RegistrySubscription, confidence: Confidence): Subscription {

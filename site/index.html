@@ -156,12 +156,12 @@
     <section id="start" class="sheet" aria-labelledby="start-title">
       <header class="sheet-head">
         <p class="kicker">04 · Start</p>
-        <h2 id="start-title">四条命令就能看见</h2>
+        <h2 id="start-title">克隆之后就能看见示例</h2>
       </header>
       <ol class="steps">
         <li>
           <h3>克隆</h3>
-          <p>需要 Node.js 20 或更高（Windows 上读 Cursor / Kiro 建议 Node.js 22）。请 clone 仓库：包没有发到 npm。</p>
+          <p>需要 Git，以及 Node.js 20 或更高（Windows 上读 Cursor / Kiro / ZCode 建议 Node.js 22）。请 clone 仓库：包没有发到 npm。</p>
           <div class="cmd">
             <pre><code id="cmd-clone">git clone https://github.com/Octo-o-o-o/aindle.git
 cd aindle
@@ -181,17 +181,17 @@ npm install</code></pre>
         </li>
         <li>
           <h3>看自己的机器</h3>
-          <p>真实额度从这里来。只开 Hub 的话，屏幕上会一直是示例数据。在<strong>同一个 clone</strong>里另开终端；<code>npx aindle</code> 用的是仓库本地命令，不是 npm 全球包。编辑 registry 时只留你已登录的工具。</p>
+          <p>真实额度从这里来。只开 Hub 的话，屏幕上会一直是示例数据。在<strong>同一个 clone</strong>里另开终端；<code>npx aindle</code> 用的是仓库本地命令，不是 npm 全球包。<code>init</code> 会写成这台电脑的名字，样例主机 <code>mbp</code> 还在。打开 <code>registry.yaml</code>，只取消注释你已登录的工具；不解开就跑，你的那台是空的，样例不会被盖掉。</p>
           <div class="cmd">
             <pre><code id="cmd-agent">npx aindle init --local
-# 编辑 ./config/registry.yaml，只留你在用的工具
+# 编辑 ./config/registry.yaml，只取消注释你已登录的工具
 npx aindle agent --loop 60</code></pre>
             <button type="button" data-copy="#cmd-agent">复制</button>
           </div>
         </li>
       </ol>
-      <p class="note">Mac 和 Windows 都用这几条命令（PowerShell 或 cmd 即可），不要只打 <code>aindle</code>。锁屏 PNG 也认本机 Chrome / Edge；找不到时设 <code>AINDLE_CHROME</code>。只看网页看板不必装浏览器。</p>
-      <p class="note">可选：把 <code>kindle/oasis1/</code> 拷到已越狱的 Oasis 1，改 <code>hub.env</code> 里的局域网地址，不要写 <code>127.0.0.1</code>。锁屏看图，解锁读书。给编程 agent 的短说明在仓库 <code>AGENTS.md</code> 与 <a href="/llms.txt">/llms.txt</a>。</p>
+      <p class="note">Mac 和 Windows 都用这几条命令（PowerShell 或 cmd 即可），不要只打 <code>aindle</code>。锁屏 PNG 也认本机 Chrome / Edge；找不到时设 <code>AINDLE_CHROME</code>。只看网页看板不必装浏览器。只要真数据时设 <code>AINDLE_SEED_MOCK=0</code>（PowerShell：<code>$env:AINDLE_SEED_MOCK='0'</code>）再重启 Hub。</p>
+      <p class="note">可选：把 <code>kindle/oasis1/</code> 拷到已越狱的 Oasis 1，先把 <code>hub.env.example</code> 复制成 <code>hub.env</code>，再改里面的局域网地址（端口默认 <code>8787</code>），不要写 <code>127.0.0.1</code>。Hub 那台机要放行入站 TCP <code>8787</code>。锁屏看图，解锁读书。给编程 agent 的短说明在仓库 <code>AGENTS.md</code> 与 <a href="/llms.txt">/llms.txt</a>。</p>
       <p class="more">
         源码与说明在
         <a href="https://github.com/Octo-o-o-o/aindle" rel="noopener noreferrer" target="_blank">GitHub</a>

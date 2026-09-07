@@ -13,7 +13,7 @@ npm run hub                      # first run compiles @aindle/core if needed
 ```
 
 ```bash
-npx aindle init --local          # writes ./config/registry.yaml
+npx aindle init --local          # writes ./config/registry.yaml (this machine's name; tools commented)
 npx aindle agent --loop 60       # live collectors
 npx aindle agent --mock          # push the built-in sample once
 npx aindle agent --dry-run       # print JSON, do not POST
@@ -28,7 +28,7 @@ node scripts/build-demo.mjs      # after monitor.html or demo/mock-view*.json
 node --import tsx scripts/capture-readme-screenshots.mjs
 ```
 
-Hub seeds mock data unless `AINDLE_SEED_MOCK=0` (PowerShell: `$env:AINDLE_SEED_MOCK='0'`). Default port `8787` (`AINDLE_PORT`). Prefer `npx aindle agent --dry-run` over `npm run agent -- --dry-run` if you need clean JSON (npm prints a banner on stdout).
+Hub seeds mock data on host `mbp` unless `AINDLE_SEED_MOCK=0` (PowerShell: `$env:AINDLE_SEED_MOCK='0'`). `init` uses this computer's name so the first live push does not replace the sample. Default port `8787` (`AINDLE_PORT`). Prefer `npx aindle agent --dry-run` over `npm run agent -- --dry-run` if you need clean JSON (npm prints a banner on stdout).
 
 ## Do not
 

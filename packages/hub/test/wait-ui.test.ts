@@ -157,4 +157,29 @@ describe('A6 UI and v1 ingest', () => {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }
   });
+
+  it('onboarding defaults use port 8787 and do not ship an enabled mbp registry', () => {
+    const root = path.join(__dirname, '..', '..', '..');
+    const rels = [
+      'kindle/oasis1/hub.env.example',
+      'kindle/oasis1/loop.sh',
+      'kindle/oasis1/operate.sh',
+      'kindle/oasis1/operate.html',
+      'scripts/macos/com.aindle.hub.plist',
+      'scripts/macos/com.aindle.agent.plist',
+    ];
+    for (const rel of rels) {
+      const text = fs.readFileSync(path.join(root, rel), 'utf8');
+      assert.doesNotMatch(text, /:8790/, rel);
+      assert.match(text, /8787/, rel);
+    }
+    const example = fs.readFileSync(path.join(root, 'config', 'registry.example.yaml'), 'utf8');
+    assert.match(example, /^host:\n  id: local\n  label: This computer$/m);
+    assert.doesNotMatch(example, /^[ \t]*- id:/m);
+    assert.match(example, /host "mbp"/);
+    const hubCli = fs.readFileSync(path.join(root, 'packages/hub/src/cli.ts'), 'utf8');
+    assert.match(hubCli, /Aindle Hub/);
+    assert.doesNotMatch(hubCli, /Mac mini/);
+    assert.match(hubCli, /AINDLE_HUB_ID \?\? 'hub'/);
+  });
 });

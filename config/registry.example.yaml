@@ -1,24 +1,29 @@
 # Copy to ./config/registry.yaml or run `npx aindle init --local`.
-# Only list subscriptions you want to monitor. Aindle does not auto-scan ~/.claude-*.
-# Never commit a filled-in registry. Secrets stay in local files / env vars.
+# `init` writes this machine's host id/label. The hub sample uses host "mbp",
+# so a first live push will not replace the mock until you set AINDLE_SEED_MOCK=0
+# and restart the hub.
+# Uncomment only subscriptions you already use on this machine. Aindle does not
+# auto-scan ~/.claude-*. Leftover seats that cannot be read stay on screen as
+# empty/error. Never commit a filled-in registry. Secrets stay in local files
+# / env vars.
 #
 # Paths: ~/.claude is %USERPROFILE%\.claude on Windows. %USERPROFILE% and %APPDATA%
 # also expand. If a tool lives only in WSL, run the agent inside that distro or
 # set home: to the UNC path (\\wsl$\Ubuntu\home\you\.claude).
 
 host:
-  id: mbp
-  label: MacBook Pro
+  id: local
+  label: This computer
 
 subscriptions:
   # Optional per-entry override: `billing: subscription|metered`
   # (default: sub2api entries and entries with `budget` are metered, the rest subscription).
-  - id: claude-default
-    tool: claude
-    label: Claude · Home
-    plan: Max
-    home: ~/.claude
-    projectsDir: ~/.claude/projects
+  # - id: claude-default
+  #   tool: claude
+  #   label: Claude · Home
+  #   plan: Max
+  #   home: ~/.claude
+  #   projectsDir: ~/.claude/projects
 
   # Extra Claude profile (uncomment and change home):
   # - id: claude-work
@@ -28,32 +33,32 @@ subscriptions:
   #   home: ~/.claude-work
   #   projectsDir: ~/.claude-work/projects
 
-  - id: codex-personal
-    tool: codex
-    label: Codex · Personal
-    plan: Plus
-    home: ~/.codex
+  # - id: codex-personal
+  #   tool: codex
+  #   label: Codex · Personal
+  #   plan: Plus
+  #   home: ~/.codex
 
-  - id: cursor-ultra
-    tool: cursor
-    label: Cursor Ultra
-    plan: Ultra
+  # - id: cursor-ultra
+  #   tool: cursor
+  #   label: Cursor Ultra
+  #   plan: Ultra
 
-  - id: grok-build
-    tool: grok
-    label: Grok Build
-    home: ~/.grok
+  # - id: grok-build
+  #   tool: grok
+  #   label: Grok Build
+  #   home: ~/.grok
 
-  - id: kimi-code
-    tool: kimi
-    label: Kimi Code
-    home: ~/.kimi-code
-    projectsDir: ~/.claude-kimi/projects
+  # - id: kimi-code
+  #   tool: kimi
+  #   label: Kimi Code
+  #   home: ~/.kimi-code
+  #   projectsDir: ~/.claude-kimi/projects
 
-  - id: glm-local
-    tool: glm
-    label: GLM · local sessions
-    projectsDir: ~/.claude-glm/projects
+  # - id: glm-local
+  #   tool: glm
+  #   label: GLM · local sessions
+  #   projectsDir: ~/.claude-glm/projects
 
   # ZCode (z.ai GLM Coding Plan): reads the local logged-in account.
   # quota  = decrypt ~/.zcode/v2/credentials.json (machine-derived key) → api.z.ai quota

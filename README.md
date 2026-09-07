@@ -27,7 +27,7 @@ Three hosts and many seats: [complex Scribe](docs/screenshots/complex-scribe.png
 
 ## Start
 
-Needs **Node.js 20+** (22+ on Windows if you want Cursor / Kiro / ZCode). Clone this repo — the package is **not** on npm. First `npm run hub` compiles `@aindle/core` if needed (a few seconds).
+Needs **Git** and **Node.js 20+** (22+ on Windows if you want Cursor / Kiro / ZCode). Clone this repo — the package is **not** on npm. First `npm run hub` compiles `@aindle/core` if needed (a few seconds).
 
 ```bash
 git clone https://github.com/Octo-o-o-o/aindle.git
@@ -42,7 +42,7 @@ Open:
 - Lock-screen HTML: [http://127.0.0.1:8787/eink.html?page=local](http://127.0.0.1:8787/eink.html?page=local)
 - Lock-screen PNG: [http://127.0.0.1:8787/dash.png?page=local](http://127.0.0.1:8787/dash.png?page=local) — needs Chrome, Chromium, Edge, or Brave on this machine (`AINDLE_CHROME` if it is not in the usual place)
 
-The two HTML pages are enough to learn the UI. The hub seeds mock data so the screen is not empty. `AINDLE_SEED_MOCK=0` turns the sample off. State is in memory: restarting the hub reseeds the mock unless you turn that off.
+The two HTML pages are enough to learn the UI. The hub seeds mock data on host `mbp` so the screen is not empty. `AINDLE_SEED_MOCK=0` turns the sample off (PowerShell: `$env:AINDLE_SEED_MOCK='0'`). State is in memory: restarting the hub reseeds the mock unless you turn that off.
 
 No Redis, database, or second Aindle daemon. Hub is one Node process; the agent is another.
 
@@ -52,9 +52,11 @@ In another terminal, from the **same clone**:
 
 ```bash
 npx aindle init --local
-# edit ./config/registry.yaml — keep only tools you actually use
+# edit ./config/registry.yaml — uncomment only tools you already use
 npx aindle agent --loop 60
 ```
+
+`init` writes this computer’s name as `host.id` (never `mbp`). The hub sample therefore stays on screen next to your machine until you set `AINDLE_SEED_MOCK=0` and restart the hub. Every tool in the starter file is commented: if you run the agent without uncommenting anything, that host is empty and the sample is still there.
 
 `npx aindle` here is the **local** bin from this repo (`scripts/aindle.mjs`), not a global npm package. Same thing: `npm run init` then `npm run agent -- --loop 60`.
 
@@ -67,7 +69,7 @@ The same commands work in Terminal, PowerShell, and cmd, as long as you run them
 - Kindle on the LAN: allow inbound TCP `8787` on the hub machine (Windows Defender / macOS firewall).
 - Tools that live only in **WSL** are a different home directory. Run the agent inside that distro, or set `home:` to the UNC path (`\\wsl$\Ubuntu\home\you\.claude`). `%USERPROFILE%` and `%APPDATA%` expand in `registry.yaml`.
 
-Copy [config/registry.example.yaml](config/registry.example.yaml) if you prefer. Aindle does not auto-scan every `~/.claude-*`. Delete unused entries — leftover seats that cannot be read become empty or `stale`, they should not crash the agent. Never commit a filled-in `registry.yaml` (it is gitignored).
+Copy [config/registry.example.yaml](config/registry.example.yaml) if you prefer. Aindle does not auto-scan every `~/.claude-*`. Leave unused entries commented — uncommented seats that cannot be read become empty or `error` cards and stay on screen. Never commit a filled-in `registry.yaml` (it is gitignored).
 
 The agent only reads tools you already logged into on that machine (local files / the same unofficial quota endpoints the CLIs use). It does not need an Aindle account.
 
@@ -92,7 +94,7 @@ Primary path: **`/dash.png` + FBInk**. Scripts live in [`kindle/oasis1/`](kindle
 
 1. Hub on the LAN (or Tailscale). Do **not** use `127.0.0.1` on the Kindle.
 2. Copy `kindle/oasis1/` to the device (`/mnt/us/aindle`).
-3. Edit `hub.env`: `HUB=http://192.168.x.x:8787` and optional `TOKEN`.
+3. Copy `hub.env.example` to `hub.env` on the device, then set `HUB=http://192.168.x.x:8787` (change the IP, keep port `8787`) and optional `TOKEN`.
 4. KUAL → start lock-screen monitor. Lock to see the board.
 5. Page-turn keys switch **local / now / relay** only while locked. Unlock = stock Kindle.
 

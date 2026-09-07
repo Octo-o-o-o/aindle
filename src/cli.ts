@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { applyHostToRegistryYaml, suggestHostIdentity } from '../packages/agent/src/registry.js';
 import { collectReport, pushReport } from '../packages/agent/src/run.js';
 import { startHub } from '../packages/hub/src/server.js';
 
@@ -56,7 +57,7 @@ function printHelp(): never {
   console.log(`Aindle — Kindle-friendly AI usage monitor
 
 From this clone (the package is not on npm). Mac / Windows / Linux:
-  npx aindle init [--local]   Write a starter registry.yaml
+  npx aindle init [--local]   Write a starter registry.yaml (this machine's name; tools commented)
   npx aindle hub              Start the hub (default :8787)
   npx aindle agent [options]  Collect local usage and POST to the hub
   npx aindle help
@@ -75,6 +76,8 @@ Agent options:
 Init:
   default          ~/.config/aindle/registry.yaml
   --local          ./config/registry.yaml
+  stamps host id/label from the computer name (never "mbp", so the hub sample stays)
+  leaves every tool commented — uncomment only what you already use
 
 Env:
   AINDLE_PORT AINDLE_HOST AINDLE_TOKEN AINDLE_HUB_URL
@@ -100,17 +103,20 @@ function runInit(local: boolean): void {
     console.log('already exists: %s', dest);
     return;
   }
+  const host = suggestHostIdentity();
+  const text = applyHostToRegistryYaml(fs.readFileSync(src, 'utf8'), host);
   fs.mkdirSync(path.dirname(dest), { recursive: true, mode: 0o700 });
-  fs.copyFileSync(src, dest);
+  fs.writeFileSync(dest, text, { encoding: 'utf8', mode: 0o600 });
   try {
     fs.chmodSync(dest, 0o600);
   } catch {
     /* Windows ignores POSIX modes */
   }
   console.log('wrote %s', dest);
-  console.log('Edit the file (keep only tools you use), then from this clone:');
-  console.log('  npm run hub');
+  console.log('host: %s (%s)', host.id, host.label);
+  console.log('Uncomment only tools you already use in that file, then:');
   console.log('  npx aindle agent --loop 60');
+  console.log('Hub sample stays on host "mbp" until AINDLE_SEED_MOCK=0 and a hub restart.');
 }
 
 function parseAgentArgs(argv: string[]) {
@@ -137,6 +143,9 @@ function parseAgentArgs(argv: string[]) {
 
 async function tick(opts: ReturnType<typeof parseAgentArgs>): Promise<void> {
   const report = await collectReport({ mock: opts.mock, registryPath: opts.registryPath });
+  if (!opts.mock && report.subscriptions.length === 0) {
+    console.error('registry has no subscriptions; uncomment tools you already use in the YAML');
+  }
   if (opts.dryRun) {
     console.log(JSON.stringify(report, null, 2));
     return;

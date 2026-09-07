@@ -13,15 +13,17 @@ npm install
 npm run hub
 ```
 
-The package is not on npm. First `npm run hub` compiles `@aindle/core` if needed. No database or extra Aindle service.
+Needs Git and Node.js 20+ (22+ on Windows for Cursor / Kiro / ZCode sqlite). The package is not on npm. First `npm run hub` compiles `@aindle/core` if needed. No database or extra Aindle service.
 
 Then open http://127.0.0.1:8787/monitor.html and http://127.0.0.1:8787/eink.html?page=local
 
 `/dash.png` needs Chrome, Chromium, Edge, or Brave on the hub machine.
 
-Same commands on macOS and Windows (PowerShell or cmd), from this clone. Windows: Node.js 22+ recommended for Cursor / Kiro / ZCode sqlite.
+Same commands on macOS and Windows (PowerShell or cmd), from this clone.
 
-Live machines (local bin in this clone, not a global npm package): `npx aindle init --local` then `npx aindle agent --loop 60`.
+The hub seeds mock data on host `mbp`. `init --local` stamps this computer's name and leaves every tool commented, so the first live push does not replace the sample. Uncomment only tools you already use, then `npx aindle agent --loop 60`. Set `AINDLE_SEED_MOCK=0` to hide the sample.
+
+Optional Kindle: copy `hub.env.example` to `hub.env`, then set the LAN URL on port `8787` (same as the hub). Never `127.0.0.1` on the device.
 
 ## Docs
 

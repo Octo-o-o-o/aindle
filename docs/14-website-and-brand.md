@@ -1,6 +1,6 @@
 # 官网、品牌与 Cloudflare Pages
 
-公开站是介绍 + 白名单 mock 示例，不是 Hub。源码在 [`site/`](../site/)，品牌原图在 [`assets/brand/`](../assets/brand/)。预定公开地址是 [https://aindle.octoooo.com](https://aindle.octoooo.com)；Pages 项目与自定义域名由有 Cloudflare 权限的人接入。本文不表示站点已经上线。
+公开站是介绍 + 白名单 mock 示例，不是 Hub。源码在 [`site/`](../site/)，品牌原图在 [`assets/brand/`](../assets/brand/)。公开地址是 [https://aindle.octoooo.com](https://aindle.octoooo.com)，由 Cloudflare Pages 从本仓库 Git 构建。
 
 ## 品牌源文件
 

@@ -33,7 +33,7 @@ if [ -f "$ENVFILE" ]; then
   . "$ENVFILE"
 fi
 
-HUB="${HUB:-http://192.168.1.2:8790}"
+HUB="${HUB:-http://192.168.1.2:8787}"
 TOKEN="${TOKEN:-}"
 PAGE="${PAGE:-local}"
 # Locked refresh. Idle 10 min, busy 5 min. Override in hub.env.

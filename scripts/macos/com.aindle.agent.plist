@@ -18,11 +18,11 @@
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
-    <string>/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    <string>__AINDLE_NODE_DIR__:/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
     <key>HOME</key>
     <string>__AINDLE_HOME__</string>
     <key>AINDLE_HUB_URL</key>
-    <string>http://127.0.0.1:8790</string>
+    <string>http://127.0.0.1:8787</string>
   </dict>
   <key>RunAtLoad</key>
   <true/>

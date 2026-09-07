@@ -18,9 +18,11 @@ escape_sed() {
   printf '%s' "$1" | sed 's/[&|]/\\&/g'
 }
 
+NODE_DIR="$(cd "$(dirname "$NODE_BIN")" && pwd)"
 ROOT_SED=$(escape_sed "$ROOT")
 HOME_SED=$(escape_sed "$HOME")
 NODE_SED=$(escape_sed "$NODE_BIN")
+NODE_DIR_SED=$(escape_sed "$NODE_DIR")
 
 mkdir -p "$DEST" "$LOGDIR"
 for name in com.aindle.hub com.aindle.agent; do
@@ -28,10 +30,11 @@ for name in com.aindle.hub com.aindle.agent; do
     -e "s|__AINDLE_ROOT__|$ROOT_SED|g" \
     -e "s|__AINDLE_HOME__|$HOME_SED|g" \
     -e "s|__AINDLE_NODE__|$NODE_SED|g" \
+    -e "s|__AINDLE_NODE_DIR__|$NODE_DIR_SED|g" \
     "$SRC/$name.plist" > "$DEST/$name.plist"
 done
 
-# Cursor-owned copies must die or launchd cannot bind :8790.
+# Cursor-owned copies must die or launchd cannot bind :8787.
 for pat in 'packages/hub/src/cli.ts' 'packages/agent/src/cli.ts'; do
   pids="$(pgrep -f "$pat" || true)"
   if [ -n "$pids" ]; then

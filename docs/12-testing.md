@@ -55,6 +55,7 @@ PowerShell:
 $env:AINDLE_PORT=8787
 $env:AINDLE_TOKEN="dev-secret"
 $env:AINDLE_HUB_URL="http://127.0.0.1:8787"
+$env:AINDLE_SEED_MOCK='0'
 ```
 
 ## 3. Agent
@@ -70,7 +71,8 @@ npx aindle agent --mock
 
 ```bash
 npx aindle init --local    # writes ./config/registry.yaml if missing
-# edit registry.yaml — keep only the tools you use
+# init stamps this computer's host id (never "mbp") and leaves every tool commented
+# uncomment only the tools you already use — unread seats become empty/error cards
 
 npx aindle agent --dry-run
 npx aindle agent --once
