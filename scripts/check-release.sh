@@ -14,7 +14,7 @@ scan() {
     return 0
   fi
   if grep -RInE --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist \
-    --exclude='*.map' --exclude='package-lock.json' --exclude='check-release.sh' \
+    --exclude='*.map' --exclude='package-lock.json' --exclude='check-release.sh' --exclude='check-site.mjs' \
     -e "$PATTERN" "$@" >"$SCAN_OUT" 2>/dev/null; then
     echo "release scan FAIL ($label): personal / secret markers still present"
     cat "$SCAN_OUT"
@@ -23,7 +23,7 @@ scan() {
 }
 
 if [[ -d .git ]] && git rev-parse --verify HEAD >/dev/null 2>&1; then
-  if git grep -nE "$PATTERN" -- ':!package-lock.json' ':!*.map' ':!scripts/check-release.sh'; then
+  if git grep -nE "$PATTERN" -- ':!package-lock.json' ':!*.map' ':!scripts/check-release.sh' ':!scripts/check-site.mjs'; then
     echo "release scan FAIL (git grep): personal / secret markers still present"
     exit 1
   fi
