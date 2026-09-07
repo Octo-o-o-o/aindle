@@ -89,7 +89,8 @@ function lanAddrs(): string[] {
     for (const nets of Object.values(os.networkInterfaces())) {
       if (!nets) continue;
       for (const net of nets) {
-        if (net.family === 'IPv4' && !net.internal) found.push(net.address);
+        const family = String(net.family);
+        if ((family === 'IPv4' || family === '4') && !net.internal) found.push(net.address);
       }
     }
   } catch {

@@ -22,13 +22,13 @@ npx aindle agent --dry-run       # print JSON, do not POST
 `npx aindle` is the local bin (`scripts/aindle.mjs`), not an npm-published package. Same: `npm run init` / `npm run agent -- --loop 60`. No database or extra Aindle daemon. Mac / Windows / Linux use the same commands from this clone; do not type a bare `aindle`. Windows: Node 22+ recommended (Cursor / Kiro / ZCode sqlite). `/dash.png` accepts Chrome, Chromium, Edge, Brave, or `AINDLE_CHROME`.
 
 ```bash
-npm run check                    # packages + demo freshness + kindle smoke
+npm run check                    # needs bash / Git Bash on Windows
 npm run site:build && npm run site:check
 node scripts/build-demo.mjs      # after monitor.html or demo/mock-view*.json
 node --import tsx scripts/capture-readme-screenshots.mjs
 ```
 
-Hub seeds mock data unless `AINDLE_SEED_MOCK=0`. Default port `8787` (`AINDLE_PORT`).
+Hub seeds mock data unless `AINDLE_SEED_MOCK=0` (PowerShell: `$env:AINDLE_SEED_MOCK='0'`). Default port `8787` (`AINDLE_PORT`). Prefer `npx aindle agent --dry-run` over `npm run agent -- --dry-run` if you need clean JSON (npm prints a banner on stdout).
 
 ## Do not
 

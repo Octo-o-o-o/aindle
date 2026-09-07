@@ -261,7 +261,10 @@ function appServerEnabled(): boolean {
 function readAccountViaAppServer(): Promise<UsageWindow[]> {
   return new Promise((resolve, reject) => {
     const command = process.env.CODEX_BIN ?? 'codex';
-    const child = spawn(command, ['app-server'], { stdio: ['pipe', 'pipe', 'ignore'] });
+    const child = spawn(command, ['app-server'], {
+      stdio: ['pipe', 'pipe', 'ignore'],
+      shell: process.platform === 'win32',
+    });
     const lines = readline.createInterface({ input: child.stdout });
     let settled = false;
 

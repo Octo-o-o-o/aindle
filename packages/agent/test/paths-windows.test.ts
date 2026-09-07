@@ -31,6 +31,7 @@ describe('kiro default db', () => {
     });
     assert.ok(win[0]?.includes('AppData'));
     assert.ok(win[0]?.endsWith('data.sqlite3'));
+    assert.ok(win.some((p) => p.includes(`${path.sep}.local${path.sep}share${path.sep}kiro-cli`)));
     const mac = kiroDefaultDbCandidates({ platform: 'darwin', home: '/Users/sam', env: {} });
     assert.equal(mac[0], '/Users/sam/Library/Application Support/kiro-cli/data.sqlite3');
   });

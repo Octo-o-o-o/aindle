@@ -40,6 +40,7 @@ export function kiroDefaultDbCandidates(opts?: {
       path.join(roaming, 'kiro-cli', 'data.sqlite3'),
       path.join(local, 'kiro-cli', 'data.sqlite3'),
       path.join(home, '.kiro-cli', 'data.sqlite3'),
+      path.join(home, '.local', 'share', 'kiro-cli', 'data.sqlite3'),
     ];
   }
   const xdg = env.XDG_DATA_HOME || path.join(home, '.local', 'share');

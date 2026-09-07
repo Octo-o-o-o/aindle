@@ -3,6 +3,7 @@
 ## Prerequisites
 
 - Node.js ≥ 20（Windows 上读 Cursor / Kiro / ZCode 建议 22+）
+- `npm run check` 需要 bash（macOS / Linux 自带；Windows 用 Git Bash）
 - From the repository root:
 
 ```bash
@@ -82,7 +83,7 @@ export AINDLE_TOKEN=dev-secret
 export AINDLE_REGISTRY=config/registry.yaml
 ```
 
-**Claude**: macOS Keychain `Claude Code-credentials` → Anthropic usage API; ≥180s throttle. Empty / expired token → run `claude login`. Draws 5h / 7d plus scoped weekly limits in `limits[]` (for example Fable).
+**Claude**: macOS Keychain `Claude Code-credentials`; Windows / Linux `~/.claude/.credentials.json` → Anthropic usage API; ≥180s throttle. Empty / expired token → run `claude login`. Draws 5h / 7d plus scoped weekly limits in `limits[]` (for example Fable).
 
 **Codex**: `~/.codex/auth.json` → ChatGPT `wham/usage`.
 
@@ -98,7 +99,7 @@ export AINDLE_REGISTRY=config/registry.yaml
 
 **Copilot（个人）**: `api.github.com/copilot_internal/user` → premium_interactions 剩余%。token 用 `AINDLE_COPILOT_TOKEN`/`keyFile`；钥匙串读取需 `AINDLE_COPILOT_KEYCHAIN=1`（首次弹授权框）。
 
-**Kiro**: `~/Library/Application Support/kiro-cli/data.sqlite3` token → CodeWhisperer `GetUsageLimits`；token 由 kiro-cli 负责刷新（过期 → error 提示跑一次 CLI）。
+**Kiro**: macOS `~/Library/Application Support/kiro-cli/data.sqlite3`；Windows `%APPDATA%\kiro-cli\data.sqlite3`（兼查 Local、`~\.kiro-cli`、`~\.local\share\kiro-cli`）→ CodeWhisperer `GetUsageLimits`；token 由 kiro-cli 负责刷新（过期 → error 提示跑一次 CLI）。
 
 **DeepSeek**: 官方 `/user/balance` 余额（kind `spend`）；key 顺序 `DEEPSEEK_API_KEY` → `keyFile` → `~/.qwen/settings.json`；`budget` 配置后画「预算」条。
 
