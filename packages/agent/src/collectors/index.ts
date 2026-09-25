@@ -1,4 +1,4 @@
-import { collectClaude } from './claude.js';
+import { collectClaude, markSharedClaudePools } from './claude.js';
 import { collectCodex } from './codex.js';
 import { collectCursor } from './cursor.js';
 import { collectGrok } from './grok.js';
@@ -118,11 +118,12 @@ async function collectSubscriptionsInner(entry: RegistrySubscription): Promise<S
  * to freshly collected subscriptions. Collector-set billing/usage win.
  */
 export function applyUsageAndBilling(registry: RegistryFile, subs: Subscription[]): Subscription[] {
+  const pooled = markSharedClaudePools(registry.subscriptions, subs);
   const usage = collectSourceUsage(registry);
   const byId = new Map(registry.subscriptions.map((entry) => [entry.id, entry]));
   const entryFor = (sub: Subscription): RegistrySubscription | undefined =>
     byId.get(sub.id) ?? registry.subscriptions.find((entry) => sub.id.startsWith(`${entry.id}-`));
-  return subs.map((sub) => {
+  return pooled.map((sub) => {
     const entry = entryFor(sub);
     const billing = sub.billing ?? (entry ? defaultBilling(entry) : undefined);
     const subUsage = sub.usage ?? usage.get(sub.id);

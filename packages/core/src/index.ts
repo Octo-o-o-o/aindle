@@ -3,3 +3,4 @@ export * from './schema.js';
 export * from './validate.js';
 export * from './merge.js';
 export * from './mock.js';
+export * from './octoooo-input.js';

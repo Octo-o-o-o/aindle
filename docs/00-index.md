@@ -33,3 +33,5 @@ Demo：[`../demo/oasis-monitor.html`](../demo/oasis-monitor.html)（mock） · H
 - 任何 `credentials.json` / `auth.json` / cookie / Keychain 内容
 - TokenTracker `queue.jsonl` 与限额缓存的具体数字
 - Kindle 序列号、真实 IP、SSH 密码
+
+r6 隔离候选的只读设备输出、TLS 配置与恢复见 [r6-output.md](r6-output.md)。旧 Hub/Agent 安装不因本候选改动自动迁移。

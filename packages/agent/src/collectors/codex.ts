@@ -8,7 +8,7 @@ import { clampPercent, decodeJwtPayload, normalizeResetAt } from '../lib/util.js
 import { quotaDue, quotaPeek, quotaRemember } from '../lib/quota-gate.js';
 
 const WHAM_URL = 'https://chatgpt.com/backend-api/wham/usage';
-const APP_SERVER_TIMEOUT_MS = 5000;
+const APP_SERVER_TIMEOUT_MS = 12_000;
 const TIMEOUT_MS = 15_000;
 const ROLLOUT_ID_RE = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\.jsonl)?$/i;
 const PLAN_NAMES: Record<string, string> = {
@@ -210,20 +210,97 @@ function inferWindowKey(w: WhamWindow | undefined, fallback: string): string {
   return fallback;
 }
 
-function shapeWhamWindows(body: {
-  rate_limit?: { primary_window?: WhamWindow; secondary_window?: WhamWindow };
-}): UsageWindow[] {
+interface WhamRateLimit {
+  primary_window?: WhamWindow;
+  secondary_window?: WhamWindow;
+  primaryWindow?: WhamWindow;
+  secondaryWindow?: WhamWindow;
+}
+
+interface WhamAdditionalLimit {
+  limit_name?: string;
+  limitName?: string;
+  metered_feature?: string;
+  meteredFeature?: string;
+  rate_limit?: WhamRateLimit;
+  rateLimit?: WhamRateLimit;
+}
+
+interface WhamUsageBody {
+  rate_limit?: WhamRateLimit;
+  rateLimit?: WhamRateLimit;
+  additional_rate_limits?: WhamAdditionalLimit[];
+  additionalRateLimits?: WhamAdditionalLimit[];
+}
+
+function firstNonEmpty(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return undefined;
+}
+
+export function extraCodexWindowKey(name: string, minutes?: number): string {
+  const lower = name.toLowerCase();
+  if (lower.includes('spark')) {
+    if (minutes != null && minutes >= 24 * 60) return 'Spark周';
+    return 'Spark';
+  }
+  const raw = name.replace(/^codex[-_\s]*/i, '').trim() || name.trim();
+  if (raw.length <= 8) return raw;
+  return `${[...raw].slice(0, 7).join('')}…`;
+}
+
+function pushUniqueWindow(out: UsageWindow[], key: string, raw: unknown, reset: unknown): void {
+  const pct = clampPercent(raw);
+  if (pct === null) return;
+  if (out.some((w) => w.key === key)) return;
+  out.push({ key, pct, resetsAt: normalizeResetAt(reset) });
+}
+
+function shapeWhamBucket(out: UsageWindow[], window: WhamWindow | undefined, fallback: string): void {
+  if (!window) return;
+  pushUniqueWindow(
+    out,
+    inferWindowKey(window, fallback),
+    window.used_percent ?? (window as { usedPercent?: number }).usedPercent,
+    window.reset_at ?? (window as { resetAt?: unknown }).resetAt,
+  );
+}
+
+function shapeAdditionalWham(out: UsageWindow[], extras: WhamAdditionalLimit[] | undefined): void {
+  if (!extras?.length) return;
+  for (const entry of extras) {
+    const limit = entry.rate_limit ?? entry.rateLimit;
+    const name = firstNonEmpty(entry.limit_name, entry.limitName, entry.metered_feature, entry.meteredFeature);
+    if (!name) continue;
+    const primary = limit?.primary_window ?? limit?.primaryWindow;
+    const secondary = limit?.secondary_window ?? limit?.secondaryWindow;
+    if (primary) {
+      pushUniqueWindow(
+        out,
+        extraCodexWindowKey(name, minutesFromWham(primary)),
+        primary.used_percent ?? (primary as { usedPercent?: number }).usedPercent,
+        primary.reset_at ?? (primary as { resetAt?: unknown }).resetAt,
+      );
+    }
+    if (secondary) {
+      pushUniqueWindow(
+        out,
+        extraCodexWindowKey(`${name} week`, minutesFromWham(secondary) ?? 24 * 60),
+        secondary.used_percent ?? (secondary as { usedPercent?: number }).usedPercent,
+        secondary.reset_at ?? (secondary as { resetAt?: unknown }).resetAt,
+      );
+    }
+  }
+}
+
+export function shapeWhamWindows(body: WhamUsageBody): UsageWindow[] {
   const out: UsageWindow[] = [];
-  const primary = body.rate_limit?.primary_window;
-  const secondary = body.rate_limit?.secondary_window;
-  const pPct = clampPercent(primary?.used_percent);
-  if (pPct !== null) {
-    out.push({ key: inferWindowKey(primary, '5h'), pct: pPct, resetsAt: normalizeResetAt(primary?.reset_at) });
-  }
-  const sPct = clampPercent(secondary?.used_percent);
-  if (sPct !== null) {
-    out.push({ key: inferWindowKey(secondary, '7d'), pct: sPct, resetsAt: normalizeResetAt(secondary?.reset_at) });
-  }
+  const limit = body.rate_limit ?? body.rateLimit;
+  shapeWhamBucket(out, limit?.primary_window ?? limit?.primaryWindow, '5h');
+  shapeWhamBucket(out, limit?.secondary_window ?? limit?.secondaryWindow, '7d');
+  shapeAdditionalWham(out, body.additional_rate_limits ?? body.additionalRateLimits);
   return out;
 }
 
@@ -234,9 +311,13 @@ export function isCodexProPlan(plan?: string): boolean {
 
 export function finalizeCodexWindows(windows: UsageWindow[], plan?: string): UsageWindow[] {
   if (!isCodexProPlan(plan)) return windows;
+  const extras = windows.filter((w) => w.key !== '5h' && w.key !== '7d');
   const weekly = windows.filter((w) => w.key === '7d');
-  if (weekly.length) return weekly;
-  return windows.map((w) => (w.key === '5h' ? { ...w, key: '7d' } : w));
+  if (weekly.length) return [...weekly, ...extras];
+  const remapped = windows
+    .filter((w) => w.key === '5h' || w.key === '7d')
+    .map((w) => (w.key === '5h' ? { ...w, key: '7d' } : w));
+  return [...remapped, ...extras];
 }
 
 async function fetchWhamUsage(token: string, accountId: string | null): Promise<UsageWindow[]> {
@@ -249,7 +330,7 @@ async function fetchWhamUsage(token: string, accountId: string | null): Promise<
   const res = await fetch(WHAM_URL, { headers, signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (res.status === 401 || res.status === 403 || res.status === 404) return [];
   if (!res.ok) throw new Error(`Codex wham HTTP ${res.status}`);
-  const body = (await res.json()) as Parameters<typeof shapeWhamWindows>[0];
+  const body = (await res.json()) as WhamUsageBody;
   return shapeWhamWindows(body);
 }
 
@@ -258,12 +339,66 @@ function appServerEnabled(): boolean {
   return !['0', 'off', 'false'].includes(flag);
 }
 
-function readAccountViaAppServer(): Promise<UsageWindow[]> {
+function windowMinutes(rec: Record<string, unknown> | null): number | undefined {
+  if (!rec) return undefined;
+  const n = Number(rec.windowDurationMins ?? rec.window_duration_mins ?? rec.window_minutes ?? rec.window);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+function pushAppServerWindow(
+  out: UsageWindow[],
+  rec: Record<string, unknown> | null,
+  fallback: string,
+  keyOverride?: string,
+): void {
+  if (!rec) return;
+  const minutes = windowMinutes(rec);
+  const key = keyOverride ?? windowKeyFromMinutes(minutes, fallback);
+  pushUniqueWindow(
+    out,
+    key,
+    rec.usedPercent ?? rec.used_percent ?? rec.percent,
+    rec.resetsAt ?? rec.resets_at ?? rec.reset_at,
+  );
+}
+
+export function windowsFromAppServerResult(result: unknown): UsageWindow[] {
+  const root = asRecord(result);
+  if (!root) return [];
+  const out: UsageWindow[] = [];
+  const rl = asRecord(root.rateLimits) ?? asRecord(root.rate_limits);
+  const primary = asRecord(rl?.primary);
+  const secondary = asRecord(rl?.secondary);
+  if (primary || secondary) {
+    pushAppServerWindow(out, primary, '5h');
+    pushAppServerWindow(out, secondary, '7d');
+  } else if (rl) {
+    pushAppServerWindow(out, asRecord(rl.fiveHour) ?? asRecord(rl.five_hour), '5h', '5h');
+    pushAppServerWindow(out, asRecord(rl.sevenDay) ?? asRecord(rl.seven_day), '7d', '7d');
+  }
+
+  const byId = asRecord(root.rateLimitsByLimitId) ?? asRecord(root.rate_limits_by_limit_id);
+  const mainId = typeof rl?.limitId === 'string' ? rl.limitId : typeof rl?.limit_id === 'string' ? rl.limit_id : 'codex';
+  if (byId) {
+    for (const [id, snap] of Object.entries(byId)) {
+      if (id === mainId || id === 'codex') continue;
+      const rec = asRecord(snap);
+      const p = asRecord(rec?.primary);
+      const s = asRecord(rec?.secondary);
+      if (p) pushAppServerWindow(out, p, '5h', extraCodexWindowKey(id, windowMinutes(p)));
+      if (s) pushAppServerWindow(out, s, '7d', extraCodexWindowKey(`${id} week`, windowMinutes(s) ?? 24 * 60));
+    }
+  }
+  return out;
+}
+
+function readAccountViaAppServer(home: string): Promise<UsageWindow[]> {
   return new Promise((resolve, reject) => {
     const command = process.env.CODEX_BIN ?? 'codex';
-    const child = spawn(command, ['app-server'], {
+    const child = spawn(command, ['-s', 'read-only', '-a', 'never', 'app-server'], {
       stdio: ['pipe', 'pipe', 'ignore'],
       shell: process.platform === 'win32',
+      env: { ...process.env, CODEX_HOME: home },
     });
     const lines = readline.createInterface({ input: child.stdout });
     let settled = false;
@@ -283,18 +418,7 @@ function readAccountViaAppServer(): Promise<UsageWindow[]> {
       if (settled) return;
       settled = true;
       cleanup();
-      const rateLimits = (result as { rateLimits?: Record<string, { usedPercent?: number; resetsAt?: string }> })
-        ?.rateLimits;
-      const out: UsageWindow[] = [];
-      for (const [key, srcKey] of [
-        ['5h', 'fiveHour'],
-        ['7d', 'sevenDay'],
-      ] as const) {
-        const w = rateLimits?.[srcKey];
-        const pct = clampPercent(w?.usedPercent);
-        if (pct !== null) out.push({ key, pct, resetsAt: w?.resetsAt });
-      }
-      resolve(out);
+      resolve(windowsFromAppServerResult(result));
     };
 
     const timer = setTimeout(() => fail(new Error('Codex app-server timeout')), APP_SERVER_TIMEOUT_MS);
@@ -451,7 +575,7 @@ export async function collectCodex(entry: RegistrySubscription): Promise<Subscri
 
     if (!windows.length && appServerEnabled()) {
       try {
-        windows = await readAccountViaAppServer();
+        windows = await readAccountViaAppServer(home);
         if (windows.length) confidence = 'live';
       } catch {
         /* rollout fallback */

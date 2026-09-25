@@ -1,0 +1,42 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { buildMockSnapshot } from '../src/mock.js';
+import { octooooInput } from '../src/octoooo-input.js';
+test('source import needs explicit native identity and true sample time', () => {
+  const snapshot = buildMockSnapshot();
+  const first = snapshot.runs[0]; first.project = '/private-project-sentinel';
+  const mapping = { instanceId: 'aindle-demo', sourceIdsByTool: { [first.tool]: 'fixture-source' } };
+  assert.equal(octooooInput(snapshot, mapping).observations.length, 0);
+  first.observedAt = new Date().toISOString(); first.state = 'idle'; first.stateConfidence = 'direct'; delete first.waitReason;
+  const result = octooooInput(snapshot, mapping);
+  assert.equal(result.observations[0].native_id, first.id);
+  assert.equal(result.observations[0].status, 'idle');
+  assert.equal(result.observations[0].source_observed_at, first.observedAt);
+  assert.equal(JSON.stringify(result.observations).includes(first.project ?? '/private-sentinel'), false);
+  delete first.observedAt;
+  assert.equal(octooooInput(snapshot, mapping).observations.length, 0);
+});
+test('subscription usage emits separate token and spend facts with USD currency', () => {
+  const snapshot = buildMockSnapshot();
+  const sub = snapshot.subscriptions.find((s) => (s.kind ?? 'quota') === 'quota' && s.windows.length > 0)!;
+  sub.tool = 'Claude'; sub.collectedAt = new Date().toISOString();
+  sub.usage = { h24: { tokens: 15300, cost: 3.5 }, d7: { tokens: 1000 } };
+  const result = octooooInput(snapshot, { instanceId: 'aindle-demo', sourceIdsByTool: { Claude: 'fixture-src' } });
+  const facts = result.usage.filter((u) => u.account === sub.id);
+  const metrics = facts.map((u) => `${u.window}:${String(u.metric)}`).sort();
+  assert.deepEqual(metrics.filter((m) => m.startsWith('24h:')), ['24h:spent_amount', '24h:used_tokens']);
+  assert.deepEqual(metrics.filter((m) => m.startsWith('7d:')), ['7d:used_percent', '7d:used_tokens']);
+  const spend = facts.find((u) => u.metric === 'spent_amount');
+  assert.equal(spend?.currency, 'USD'); assert.equal(spend?.value, 3.5); assert.equal(spend?.window_minutes, 1440);
+  const tokens = facts.find((u) => u.metric === 'used_tokens' && u.window === '24h');
+  assert.equal(tokens?.value, 15300); assert.equal('currency' in (tokens ?? {}), false);
+});
+test('non-integer tokens are skipped, not coerced', () => {
+  const snapshot = buildMockSnapshot();
+  const sub = snapshot.subscriptions.find((s) => (s.kind ?? 'quota') === 'quota' && s.windows.length > 0)!;
+  sub.tool = 'Claude'; sub.collectedAt = new Date().toISOString();
+  sub.usage = { h24: { tokens: 1.5 } };
+  const result = octooooInput(snapshot, { instanceId: 'aindle-demo', sourceIdsByTool: { Claude: 'fixture-src' } });
+  assert.equal(result.usage.filter((u) => u.metric === 'used_tokens').length, 0);
+  assert.ok(result.skipped.some((s) => s.id === sub.id && s.reason === 'non_integer_tokens'));
+});

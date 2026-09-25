@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import type { Subscription, UsageWindow } from '@aindle/core';
 import { expandHome, type RegistrySubscription } from '../registry.js';
@@ -71,12 +72,72 @@ function shapeWindows(u: ClaudeUsage): UsageWindow[] {
   return windowsFromClaudeUsage(u);
 }
 
-function baseSub(entry: RegistrySubscription, confidence: Subscription['confidence']): Subscription {
+function asRec(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+export function claudeUsageApiEnabled(): boolean {
+  const raw = String(process.env.AINDLE_CLAUDE_USAGE_API ?? '1').trim().toLowerCase();
+  return !['0', 'off', 'false', 'no'].includes(raw);
+}
+
+export function isDefaultClaudeHome(entry: RegistrySubscription): boolean {
+  return expandHome(entry.home ?? '~/.claude') === expandHome('~/.claude');
+}
+
+export function readClaudeOrganizationId(configDir: string): string | undefined {
+  try {
+    const raw = JSON.parse(fs.readFileSync(path.join(expandHome(configDir), '.claude.json'), 'utf8')) as unknown;
+    const uuid = asRec(asRec(raw)?.oauthAccount)?.organizationUuid;
+    if (typeof uuid === 'string' && uuid.trim()) return uuid.trim().toLowerCase();
+  } catch {
+    /* missing or unreadable */
+  }
+  return undefined;
+}
+
+export function markSharedClaudePools(
+  entries: RegistrySubscription[],
+  subs: Subscription[],
+): Subscription[] {
+  const orgById = new Map<string, string>();
+  for (const entry of entries) {
+    if (entry.tool !== 'claude') continue;
+    const org = readClaudeOrganizationId(entry.home ?? '~/.claude');
+    if (org) orgById.set(entry.id, org);
+  }
+  const counts = new Map<string, number>();
+  for (const org of orgById.values()) counts.set(org, (counts.get(org) ?? 0) + 1);
+  return subs.map((sub) => {
+    const org = orgById.get(sub.id);
+    if (!org || (counts.get(org) ?? 0) < 2) return sub;
+    return { ...sub, shared: true };
+  });
+}
+
+function claudePlan(entry: RegistrySubscription, oauth?: ClaudeOauth): string {
+  const named = oauth?.subscriptionType?.trim();
+  if (named) return named;
+  const tier = String(oauth?.rateLimitTier ?? '');
+  if (/max_20x/i.test(tier)) return 'Max 20x';
+  if (/max_5x/i.test(tier)) return 'Max 5x';
+  if (/max/i.test(tier)) return 'Max';
+  if (/pro/i.test(tier)) return 'Pro';
+  return entry.plan ?? 'Max';
+}
+
+function baseSub(
+  entry: RegistrySubscription,
+  confidence: Subscription['confidence'],
+  oauth?: ClaudeOauth,
+): Subscription {
   return {
     id: entry.id,
     tool: 'Claude',
     label: entry.label,
-    plan: entry.plan ?? 'Max',
+    plan: claudePlan(entry, oauth),
     shared: entry.shared,
     source: 'local',
     kind: 'quota',
@@ -192,7 +253,9 @@ export function claudeSessionBusy(entry: RegistrySubscription): boolean {
 }
 
 function fromLocal(entry: RegistrySubscription): Subscription | undefined {
-  const local = readLocalClaudeUsage();
+  const local = isDefaultClaudeHome(entry)
+    ? readLocalClaudeUsage(Date.now(), undefined, entry.id)
+    : readLocalClaudeUsage(Date.now(), undefined, entry.id, { ownOnly: true });
   if (!local.windows.length) return undefined;
   const sub: Subscription = {
     ...baseSub(entry, local.fresh ? 'live' : 'stale'),
@@ -209,7 +272,7 @@ export async function collectClaude(entry: RegistrySubscription): Promise<Subscr
   const key = CACHE_KEY(entry.id);
   const cached = quotaPeek<Subscription>(key);
   const known = local?.windows.length ? local : lastKnown(entry, cached);
-  if (process.env.AINDLE_CLAUDE_USAGE_API !== '1') {
+  if (!claudeUsageApiEnabled()) {
     return known;
   }
 
@@ -244,14 +307,15 @@ export async function collectClaude(entry: RegistrySubscription): Promise<Subscr
     }
     if (!fetched.body) throw new Error(`HTTP ${fetched.status}`);
 
+    const bundle = readClaudeCreds(configDir);
     const sub: Subscription = {
-      ...baseSub(entry, 'live'),
+      ...baseSub(entry, 'live', bundle?.creds.claudeAiOauth),
       windows: shapeWindows(fetched.body),
     };
     quotaRemember(key, sub, sub.windows.length > 0, undefined, Date.now(), intervalMs);
     if (sub.windows.length) {
       saveQuotaLast(sub);
-      writeLocalClaudeUsage(sub.windows);
+      writeLocalClaudeUsage(sub.windows, undefined, entry.id);
     }
     return sub;
   } catch (err) {
