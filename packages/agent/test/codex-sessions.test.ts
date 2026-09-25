@@ -48,6 +48,23 @@ describe('finalizeCodexWindows', () => {
   it('relabels a lone Pro 5h bar as weekly', () => {
     assert.deepEqual(finalizeCodexWindows([{ key: '5h', pct: 5 }], 'Pro'), [{ key: '7d', pct: 5 }]);
   });
+
+  it('keeps extra Codex windows when dropping Pro 5h', () => {
+    assert.deepEqual(
+      finalizeCodexWindows(
+        [
+          { key: '5h', pct: 20 },
+          { key: '7d', pct: 8 },
+          { key: 'Spark', pct: 40 },
+        ],
+        'Pro',
+      ),
+      [
+        { key: '7d', pct: 8 },
+        { key: 'Spark', pct: 40 },
+      ],
+    );
+  });
 });
 
 describe('codex nested rollouts', () => {

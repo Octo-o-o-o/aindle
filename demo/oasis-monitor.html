@@ -735,6 +735,11 @@ window.AINDLE_MOCK = {
       " · 7d " + esc(usageSeg(u.d7Tokens, u.d7Cost)) + "</span>";
   }
 
+  // Sub2API 的 shared 表示中转站账号，不是 Claude 同 org 限额池。
+  function sharedPool(s) {
+    return !!(s && s.shared && s.kind === "quota");
+  }
+
   // 订阅 ≤2 份时用宽松卡：大标题 + 加高条，把省下的纵向空间用掉
   function quotaCard(s, tall) {
     var sub = cardSub(s);
@@ -747,6 +752,7 @@ window.AINDLE_MOCK = {
     var head = '<div style="overflow:hidden;white-space:nowrap;text-overflow:clip;">' +
       '<span style="' + F(tall ? 26 : 22) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
       (!metered && sub ? '&nbsp;&nbsp;<span style="' + F(14) + '">' + esc(sub) + "</span>" : "") +
+      (sharedPool(s) ? '&nbsp;&nbsp;<span style="' + F(13) + '">同池</span>' : "") +
       "</div>";
     var usage = usageLine(s);
     if (s.none) {
@@ -757,7 +763,7 @@ window.AINDLE_MOCK = {
     if (metered) {
       return card(head + "<br>" + SP(6) + meteredRow(s, tall) + extra);
     }
-    return card(head + "<br>" + SP(6) + winRows(s.windows, tall) +
+    return card(head + "<br>" + SP(6) + winRows(displayWindows(s.windows), tall) +
       (usage ? SP(4) + usage : "") + extra);
   }
 
@@ -822,14 +828,15 @@ window.AINDLE_MOCK = {
     var sub = cardSub(s);
     var metered = s.billing === "metered";
     var name = '<span style="' + F(17) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
-      (!metered && sub ? "<br>" + '<span style="' + F(12) + '">' + esc(sub) + "</span>" : "");
+      (!metered && sub ? "<br>" + '<span style="' + F(12) + '">' + esc(sub) + "</span>" : "") +
+      (sharedPool(s) ? "<br>" + '<span style="' + F(12) + '">同池</span>' : "");
     var body;
     if (s.none) {
       body = usageLine(s) || '<span style="' + F(13) + '">还没有读数。</span>';
     } else if (metered) {
       body = meteredRow(s, false);
     } else {
-      body = winRows(s.windows, false) + (usageLine(s) ? SP(2) + usageLine(s) : "");
+      body = winRows(displayWindows(s.windows), false) + (usageLine(s) ? SP(2) + usageLine(s) : "");
     }
     return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
       '<td width="' + LP(128) + '" valign="middle">' + name + "</td>" +
@@ -845,6 +852,7 @@ window.AINDLE_MOCK = {
       '<td valign="middle" style="padding-right:' + px(12) + 'px;">' + brandIcon(s.tool, px(tall ? 30 : 26)) + "</td>" +
       '<td valign="middle"><span style="' + F(tall ? 21 : 19) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
       (!metered && sub ? "<br>" + SP(2) + '<span style="' + F(tall ? 14 : 13) + 'color:' + INK2 + ';">' + esc(sub) + "</span>" : "") +
+      (sharedPool(s) ? "<br>" + SP(2) + '<span style="' + F(12) + 'color:' + INK2 + ';">同池</span>' : "") +
       "</td></tr></table>";
     var body;
     if (s.none) {
@@ -853,7 +861,7 @@ window.AINDLE_MOCK = {
       body = '<span style="' + F(tall ? 18 : 16) + '"><b>按量</b></span>&nbsp;&nbsp;&nbsp;<span style="' + F(tall ? 17 : 15) +
         'color:' + INK2 + ';">' + esc(meteredSpend(s)) + "</span>";
     } else {
-      body = scribeWinRows(s.windows, tall);
+      body = scribeWinRows(displayWindows(s.windows), tall);
     }
     return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
       '<td width="' + LP(210) + '" valign="middle">' + name + "</td>" +
@@ -1128,10 +1136,11 @@ window.AINDLE_MOCK = {
 
   function windowLane(key) {
     var k = String(key || "").toLowerCase();
-    if (/fable|opus|sonnet|5h|三方|api|session/.test(k)) return "burst";
+    if (/spark周/.test(k)) return "week";
+    if (/fable|opus|sonnet|spark|5h|三方|api|session/.test(k)) return "burst";
     if (/自由|自有|auto/.test(k)) return "free";
     if (/7d|本周|week/.test(k)) return "week";
-    if (/账期|月|billing|cycle/.test(k)) return "cycle";
+    if (/账期|月|billing|cycle|额外/.test(k)) return "cycle";
     return "other";
   }
 
@@ -1170,6 +1179,18 @@ window.AINDLE_MOCK = {
     return unique.sort(function (a, b) { return b.pct - a.pct; }).slice(0, 2);
   }
 
+  function displayWindows(windows) {
+    if (!windows || windows.length <= 4) return windows || [];
+    var mains = [], extras = [], i;
+    for (i = 0; i < windows.length; i++) {
+      var k = String(windows[i].key);
+      if (k === "5h" || k === "7d") mains.push(windows[i]);
+      else extras.push(windows[i]);
+    }
+    extras.sort(function (a, b) { return b.pct - a.pct; });
+    return mains.concat(extras.slice(0, Math.max(0, 4 - mains.length)));
+  }
+
   function pocketMeter(w, tall) {
     return '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>' +
       '<td width="' + px(tall ? 64 : 48) + '"><span style="' + F(tall ? 16 : 14) + '"><b>' +
@@ -1192,6 +1213,7 @@ window.AINDLE_MOCK = {
       '<td valign="middle"><span style="' + F(big ? 24 : 19) + '"><b>' + esc(quotaToolName(s.tool)) + "</b></span>" +
       (showSub && inlineSub ? '&nbsp;&nbsp;<span style="' + F(12) + 'color:' + INK2 + ';">' + esc(sub) + "</span>" : "") +
       (showSub && !inlineSub ? "<br>" + SP(2) + '<span style="' + F(14) + 'color:' + INK2 + ';">' + esc(sub) + "</span>" : "") +
+      (sharedPool(s) ? "<br>" + SP(2) + '<span style="' + F(12) + 'color:' + INK2 + ';">同池</span>' : "") +
       "</td></tr></table>";
   }
 

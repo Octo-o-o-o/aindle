@@ -175,6 +175,7 @@ function runHub(): void {
     hubLabel,
     seedMock,
     publicDir: resolvePublicDir(),
+    octooooProjectionToken: process.env.AINDLE_OCTOOOO_PROJECTION_TOKEN, octooooProjectionFile: process.env.AINDLE_OCTOOOO_PROJECTION_FILE,
   });
 }
 

@@ -153,6 +153,23 @@ describe('snapshotToViewModel usage', () => {
     confidence: 'live' as const,
   };
 
+  it('passes shared pool flag into the view model', () => {
+    const snap = snapWith([
+      {
+        ...baseSub,
+        id: 'claude-a',
+        label: 'Claude · A',
+        source: 'local',
+        kind: 'quota',
+        shared: true,
+        windows: [{ key: '5h', pct: 10 }],
+      },
+    ]);
+    const vm = snapshotToViewModel(snap, now);
+    const row = (vm.subs as Array<{ id: string; shared?: number }>).find((s) => s.id === 'claude-a');
+    assert.equal(row?.shared, 1);
+  });
+
   it('formats per-sub usage and aggregates usageTotal for local subscriptions only', () => {
     const snap = snapWith([
       {

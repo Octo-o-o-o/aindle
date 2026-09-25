@@ -85,6 +85,12 @@ export function windowsFromClaudeUsage(raw: unknown): UsageWindow[] {
   if (opus) pushWindow(out, seen, 'Opus', opus.pct, opus.reset);
   const sonnet = windowFromBucket(body.seven_day_sonnet);
   if (sonnet) pushWindow(out, seen, 'Sonnet', sonnet.pct, sonnet.reset);
+  const fable = windowFromBucket(body.seven_day_fable);
+  if (fable) pushWindow(out, seen, 'Fable', fable.pct, fable.reset);
+  const routines = windowFromBucket(body.seven_day_routines) ?? windowFromBucket(body.seven_day_cowork);
+  if (routines) pushWindow(out, seen, '例行', routines.pct, routines.reset);
+  const extra = windowFromBucket(body.extra_usage);
+  if (extra) pushWindow(out, seen, '额外', extra.pct, extra.reset);
 
   const limits = Array.isArray(body.limits) ? body.limits : [];
   for (const item of limits) {
@@ -93,7 +99,7 @@ export function windowsFromClaudeUsage(raw: unknown): UsageWindow[] {
     const scope = asRecord(rec.scope);
     const model = asRecord(scope?.model);
     const label = String(model?.display_name ?? model?.id ?? '').trim();
-    if (!label) continue;
+    if (!label || /design|omelette/i.test(label)) continue;
     pushWindow(out, seen, label, rec.percent ?? rec.utilization, rec.resets_at ?? rec.resetsAt);
   }
   return out;
@@ -108,10 +114,19 @@ function uniquePaths(paths: Array<string | undefined>): string[] {
   return [...new Set(paths.filter((p): p is string => Boolean(p)).map((p) => expandHome(p)))];
 }
 
-export function claudeLocalUsagePaths(home?: string): { headers: string[]; fill: string[]; own: string } {
+function rateCacheName(entryId?: string): string {
+  if (!entryId?.trim()) return 'claude-rate-limits.json';
+  const slug = entryId.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'account';
+  return `claude-rate-limits-${slug}.json`;
+}
+
+export function claudeLocalUsagePaths(
+  home?: string,
+  entryId?: string,
+): { headers: string[]; fill: string[]; own: string } {
   const root = claudeLocalUsageHome(home);
   const hinted = process.env.AINDLE_CLAUDE_RATE_FILE?.trim();
-  const own = path.join(root, '.config', 'aindle', 'claude-rate-limits.json');
+  const own = path.join(root, '.config', 'aindle', rateCacheName(entryId));
   return {
     headers: uniquePaths([hinted, path.join(root, '.vibe-island', 'cache', 'rl.json')]).filter((p) => p !== own),
     fill: uniquePaths([path.join(root, '.vibe-island', 'cache', 'anthropic-oauth-usage.json')]),
@@ -159,9 +174,29 @@ function sortWindows(windows: UsageWindow[]): UsageWindow[] {
   return [...windows].sort((a, b) => (rank[a.key] ?? 10) - (rank[b.key] ?? 10) || a.key.localeCompare(b.key));
 }
 
-export function readLocalClaudeUsage(now = Date.now(), home?: string): LocalClaudeUsage {
-  const { headers, fill, own } = claudeLocalUsagePaths(home);
+export function readLocalClaudeUsage(
+  now = Date.now(),
+  home?: string,
+  entryId?: string,
+  opts?: { ownOnly?: boolean },
+): LocalClaudeUsage {
+  const { headers, fill, own } = claudeLocalUsagePaths(home, entryId);
   const byKey = new Map<string, { win: UsageWindow; mtime: number; source: string }>();
+  if (opts?.ownOnly) {
+    mergeWindows([own], byKey, false);
+    let newest = 0;
+    try {
+      newest = fs.statSync(own).mtimeMs;
+    } catch {
+      newest = 0;
+    }
+    return {
+      windows: sortWindows([...byKey.values()].map((row) => row.win)),
+      fresh: newest > 0 && now - newest <= FRESH_MS,
+      source: byKey.size ? own : undefined,
+      mtime: newest,
+    };
+  }
   const header = mergeWindows(headers, byKey, false);
   const headerFresh = header.newest > 0 && now - header.newest <= FRESH_MS;
   // Fresh conversation headers win. Stale headers must not block a newer oauth snapshot
@@ -178,9 +213,9 @@ export function readLocalClaudeUsage(now = Date.now(), home?: string): LocalClau
   };
 }
 
-export function writeLocalClaudeUsage(windows: UsageWindow[], home?: string): void {
+export function writeLocalClaudeUsage(windows: UsageWindow[], home?: string, entryId?: string): void {
   if (!windows.length) return;
-  const file = path.join(claudeLocalUsageHome(home), '.config', 'aindle', 'claude-rate-limits.json');
+  const file = path.join(claudeLocalUsageHome(home), '.config', 'aindle', rateCacheName(entryId));
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const tmp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(

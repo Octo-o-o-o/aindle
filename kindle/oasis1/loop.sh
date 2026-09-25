@@ -37,6 +37,14 @@ fi
 HUB="${HUB:-http://192.168.1.2:8787}"
 TOKEN="${TOKEN:-}"
 PAGE="${PAGE:-local}"
+OCTOOOO_MODE="${OCTOOOO_MODE:-0}"
+OCTOOOO_PAGE="${OCTOOOO_PAGE:-0}"
+PROJECTION_EXPIRES=0
+if [ "$OCTOOOO_MODE" = 1 ]; then
+  case "$HUB" in https://*) ;; *) echo "[aindle] Octoooo projection requires HTTPS"; exit 2 ;; esac
+  [ -n "$TOKEN" ] || { echo "[aindle] projection token missing"; exit 2; }
+  case "$OCTOOOO_PAGE" in *[!0-9]*|'') echo "[aindle] projection page invalid"; exit 2 ;; esac
+fi
 # Locked refresh. Idle 10 min, busy 5 min. Override in hub.env.
 LOCK_SEC="${LOCK_SEC:-600}"
 LOCK_BUSY_SEC="${LOCK_BUSY_SEC:-300}"
@@ -55,10 +63,12 @@ case "$arg" in
   local|now|relay) PAGE=$arg ;;
   start|*) ;;
 esac
+if [ "$OCTOOOO_MODE" = 1 ]; then PAGE=$OCTOOOO_PAGE; else
 case "$PAGE" in
   now|relay) ;;
   *) PAGE=local ;;
 esac
+fi
 printf '%s\n' "$PAGE" > "$PAGEFILE"
 
 find_fbink() {
@@ -128,7 +138,31 @@ paint() {
   fi
 }
 
+projection_unavailable() {
+  [ "$OCTOOOO_MODE" = 1 ] || return 0
+  PROJECTION_EXPIRES=0
+  rm -f "$IMG" "$IMG.tmp" "$IMG.tmp.headers" "$META"
+  if in_screensaver; then
+    "$FBINK" -f -c -m "Octoooo unavailable" >/dev/null 2>&1 || true
+  fi
+}
+
+projection_lease_current() {
+  projection_now=$(now_s)
+  [ "$projection_now" -gt 0 ] 2>/dev/null &&
+    [ "$PROJECTION_EXPIRES" -gt "$projection_now" ] 2>/dev/null &&
+    [ "$PROJECTION_EXPIRES" -le $((projection_now + 30)) ] 2>/dev/null
+}
+
+projection_read_lease() {
+  PROJECTION_EXPIRES=$(awk 'tolower($1)=="x-octoooo-expires:" {gsub("\r", "", $2); print $2}' "$IMG.tmp.headers" | tail -1)
+  case "$PROJECTION_EXPIRES" in *[!0-9]*|'') PROJECTION_EXPIRES=0; return 1 ;; esac
+  [ "${#PROJECTION_EXPIRES}" -le 10 ] || { PROJECTION_EXPIRES=0; return 1; }
+  projection_lease_current
+}
+
 paint_cache() {
+  if [ "$OCTOOOO_MODE" = 1 ]; then projection_unavailable; return 1; fi
   if [ -s "$IMG" ]; then
     paint "$IMG" 1
     return 0
@@ -211,6 +245,11 @@ http_get() {
   url=$1
   dest=$2
   timeout=${3:-15}
+  if [ "$OCTOOOO_MODE" = 1 ]; then
+    command -v curl >/dev/null 2>&1 || return 1
+    curl -fsS --proto '=https' --connect-timeout 8 --max-time "$timeout" -D "$dest.headers" -H "Authorization: Bearer $TOKEN" "$url" -o "$dest"
+    return $?
+  fi
   if command -v wget >/dev/null 2>&1; then
     wget -q -T "$timeout" -t 2 -O "$dest" "$url" >/dev/null 2>&1 && [ -s "$dest" ] && return 0
     rm -f "$dest"
@@ -258,6 +297,9 @@ kindle_batt() {
 
 dash_url() {
   page=$1
+  if [ "$OCTOOOO_MODE" = 1 ]; then
+    printf '%s' "$HUB/octoooo.png?page=$page"; return
+  fi
   url="$HUB/dash.png?page=$page&t=$(now_s)"
   batt=$(kindle_batt || true)
   if [ -n "$batt" ]; then
@@ -271,6 +313,7 @@ dash_url() {
 
 meta_url() {
   page=$1
+  if [ "$OCTOOOO_MODE" = 1 ]; then printf '%s' "$HUB/octoooo-meta.json"; return; fi
   url="$HUB/eink-meta.json?page=$page"
   if [ -n "$TOKEN" ]; then
     url="$url&token=$TOKEN"
@@ -480,6 +523,7 @@ idle_wait() {
     need_wake && return 0
     page_changed && return 0
     now=$(now_s)
+    if [ "$OCTOOOO_MODE" = 1 ] && [ -s "$IMG" ] && ! projection_lease_current; then projection_unavailable; fi
     if [ "$deadline" -gt 0 ] && [ "$now" -ge "$deadline" ]; then
       return 0
     fi
@@ -509,6 +553,7 @@ fetch_and_paint() {
   radio_on
   if ! wait_wifi; then
     echo "[aindle] $(date) wifi miss page=$PAGE" >> "$LOG"
+    projection_unavailable
     failures=$((failures + 1))
     end_fetch
     return 1
@@ -516,8 +561,10 @@ fetch_and_paint() {
   tries=0
   while [ "$tries" -lt 2 ]; do
     if http_get "$(dash_url "$PAGE")" "$IMG.tmp" 18 && [ -s "$IMG.tmp" ]; then
-      mv "$IMG.tmp" "$IMG"
+      if [ "$OCTOOOO_MODE" = 1 ] && ! projection_read_lease; then projection_unavailable; end_fetch; return 1; fi
       http_get "$(meta_url "$PAGE")" "$META" 8 || true
+      if [ "$OCTOOOO_MODE" = 1 ] && ! projection_lease_current; then projection_unavailable; end_fetch; return 1; fi
+      mv "$IMG.tmp" "$IMG"
       failures=0
       full=0
       if [ "$PAGE" != "$last_page" ] || [ $((i % FULL_EVERY)) -eq 0 ]; then
@@ -536,16 +583,19 @@ fetch_and_paint() {
   done
   failures=$((failures + 1))
   echo "[aindle] $(date) fetch fail #$failures page=$PAGE" >> "$LOG"
+  projection_unavailable
   end_fetch
   return 1
 }
 
 while [ ! -f "$STOP" ]; do
   PAGE=$(tr -d ' \n\r' < "$PAGEFILE" 2>/dev/null)
-  case "$PAGE" in
-    now|relay) ;;
-    *) PAGE=local ;;
-  esac
+  if [ "$OCTOOOO_MODE" = 1 ]; then
+    case "$PAGE" in *[!0-9]*|'') PAGE=0 ;; esac
+    [ "$PAGE" -le 12 ] 2>/dev/null || PAGE=0
+  else
+    case "$PAGE" in now|relay) ;; *) PAGE=local ;; esac
+  fi
 
   if [ -f "$UNLOCKING" ]; then
     rm -f "$UNLOCKING" "$LOCKING" "$WAKING" "$FETCHING"

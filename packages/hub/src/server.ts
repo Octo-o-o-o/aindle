@@ -10,7 +10,8 @@ import {
   type Snapshot,
 } from '@aindle/core';
 import { einkMeta, parseEinkBattery, parseEinkPage, renderEinkHtml } from './eink.js';
-import { renderDashPng } from './png.js';
+import { renderDashPng, htmlToPng } from './png.js';
+import { readOctoooo, renderOctoooo } from './octoooo.js';
 import { HubStore } from './store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,6 +25,8 @@ export interface ServerOptions {
   staleAfterMs?: number;
   seedMock?: boolean;
   publicDir?: string;
+  octooooProjectionFile?: string;
+  octooooProjectionToken?: string;
 }
 
 function defaultPublicDir(): string {
@@ -129,6 +132,29 @@ export function createHubServer(opts: ServerOptions = {}) {
 
     if (pathname === '/health') {
       json(res, 200, { ok: true, hosts: store.listHostIds() });
+      return;
+    }
+
+    if (['/octoooo.html', '/octoooo.png', '/octoooo-meta.json'].includes(pathname) && req.method === 'GET') {
+      const projectionToken = opts.octooooProjectionToken;
+      if (!opts.octooooProjectionFile || !projectionToken || projectionToken.length < 32 || projectionToken === token) {
+        json(res, 503, { error: 'projection_not_configured' }); return;
+      }
+      if (!checkAuth(req, projectionToken)) return unauthorized(res);
+      const frame = readOctoooo(opts.octooooProjectionFile);
+      if (pathname === '/octoooo-meta.json') { json(res, 200, { pages: Math.max(1, Math.ceil(frame.usage.length / 8)), available: frame.available }); return; }
+      const page = Number(url.searchParams.get('page') ?? '0');
+      const png = pathname.endsWith('.png');
+      const html = renderOctoooo(frame, page, png);
+      try {
+        const body = png ? await htmlToPng(html) : html;
+        const current = readOctoooo(opts.octooooProjectionFile);
+        if (JSON.stringify(current) !== JSON.stringify(frame) || (frame.available && Date.now() >= frame.expiresAt)) {
+          json(res, 409, { error: 'projection_changed_retry' }); return;
+        }
+        res.writeHead(200, { 'Content-Type': png ? 'image/png' : 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Octoooo-Expires': String(frame.available ? Math.floor(frame.expiresAt / 1000) : 0) });
+        res.end(body);
+      } catch { json(res, 503, { error: 'projection_render_unavailable' }); }
       return;
     }
 

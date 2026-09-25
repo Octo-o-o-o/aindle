@@ -33,11 +33,16 @@ type Sub = {
   error?: number;
   windows?: Win[];
   billing?: string;
+  shared?: number;
   usage?: { h24Tokens: string; h24Cost: string; d7Tokens: string; d7Cost: string };
 };
 
 function asSubs(vm: ViewModel): Sub[] {
   return vm.subs as Sub[];
+}
+
+function sharedPool(sub: Sub): boolean {
+  return Boolean(sub.shared && sub.kind === 'quota');
 }
 
 export type EinkOpts = {
@@ -171,6 +176,7 @@ export function renderEinkHtml(vm: ViewModel, page: EinkPage, opts?: EinkOpts): 
   .qhead { display:flex; align-items:center; gap:10px; min-width:0; }
   .qicon { width:28px; height:28px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
   .qtitle { font-size:32px; font-weight:700; line-height:1.15; min-width:0; overflow:hidden; text-overflow:clip; white-space:nowrap; }
+  .qsub { font-size:18px; font-weight:700; margin-top:4px; }
   .aicon { display:block; flex-shrink:0; overflow:visible; }
   .qdiv { width:1px; align-self:stretch; background:${INK}; margin-right:16px; flex-shrink:0; }
   .qmeters { flex:1; display:flex; flex-direction:row; align-items:center; gap:22px; min-width:0; }
@@ -408,6 +414,7 @@ function quotaRow(sub: Sub): string {
           <div class="qicon">${agentIcon(sub.tool, 28)}</div>
           <div class="qtitle">${esc(title)}</div>
         </div>
+        ${sharedPool(sub) ? '<div class="qsub">同池</div>' : ''}
       </div>
       <div class="qdiv"></div>
       <div class="qmeters">${meters}</div>
@@ -463,6 +470,7 @@ function quotaBig(sub: Sub): string {
         <div class="qb-icon">${agentIcon(sub.tool, 34)}</div>
         <div class="qb-title">${esc(title)}</div>
         ${subLabel ? `<div class="qb-sub">${esc(subLabel)}</div>` : ''}
+        ${sharedPool(sub) ? '<div class="qb-sub">同池</div>' : ''}
       </div>
       ${meters}
       ${usage}
@@ -537,10 +545,11 @@ function prettyWinKey(key: string): string {
 
 function windowLane(key: string): 'burst' | 'free' | 'week' | 'cycle' | 'other' {
   const k = key.toLowerCase();
-  if (/fable|opus|sonnet|5h|三方|api|session/.test(k)) return 'burst';
+  if (/spark周/.test(k)) return 'week';
+  if (/fable|opus|sonnet|spark|5h|三方|api|session/.test(k)) return 'burst';
   if (/自由|自有|auto/.test(k)) return 'free';
   if (/7d|本周|week/.test(k)) return 'week';
-  if (/账期|月|billing|cycle/.test(k)) return 'cycle';
+  if (/账期|月|billing|cycle|额外/.test(k)) return 'cycle';
   return 'other';
 }
 

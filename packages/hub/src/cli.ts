@@ -8,4 +8,4 @@ const hubId = process.env.AINDLE_HUB_ID ?? 'hub';
 const hubLabel = process.env.AINDLE_HUB_LABEL ?? 'Aindle Hub';
 const seedMock = process.env.AINDLE_SEED_MOCK !== '0';
 
-startHub({ host, port, token, hubId, hubLabel, seedMock });
+startHub({ host, port, token, hubId, hubLabel, seedMock, octooooProjectionToken: process.env.AINDLE_OCTOOOO_PROJECTION_TOKEN, octooooProjectionFile: process.env.AINDLE_OCTOOOO_PROJECTION_FILE });
