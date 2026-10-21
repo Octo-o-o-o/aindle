@@ -15,9 +15,15 @@ export async function collectReport(opts: CollectOptions = {}): Promise<IngestRe
   }
 
   const registry = loadRegistry(opts.registryPath);
-  const subscriptionLists = await Promise.all(registry.subscriptions.map((s) => collectSubscriptions(s)));
+  const subscriptionLists = await Promise.all(registry.subscriptions.map(async (s) => {
+    const collected = await collectSubscriptions(s);
+    const collectedAt = new Date().toISOString();
+    return collected.map((item) => ({ ...item, ...(item.confidence === 'live' && !item.collectedAt ? { collectedAt } : {}) }));
+  }));
   const subscriptions = applyUsageAndBilling(registry, subscriptionLists.flat());
-  const runs = collectRuns(registry);
+  const observed = collectRuns(registry);
+  const observedAt = new Date().toISOString();
+  const runs = observed.map((run) => ({ ...run, observedAt: run.observedAt ?? observedAt }));
   const stats = collectHostStats(runs);
 
   return {

@@ -91,6 +91,7 @@ export const Subscription = z.object({
   windows: z.array(UsageWindow),
   confidence: Confidence,
   hostIds: z.array(z.string()).optional(),
+  collectedAt: z.string().datetime({ offset: true }).optional(),
   breakdown: UsageBreakdown.optional(),
 });
 export type Subscription = z.infer<typeof Subscription>;
@@ -124,6 +125,7 @@ export const Run = z
     state: RunState,
     startedAt: z.string().datetime({ offset: true }).optional(),
     lastActivityAt: z.string().datetime({ offset: true }).optional(),
+    observedAt: z.string().datetime({ offset: true }).optional(),
     detail: z.string().optional(),
     spawned: z.boolean().optional(),
     initiator: Initiator,

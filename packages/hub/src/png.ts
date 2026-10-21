@@ -108,6 +108,7 @@ export async function htmlToPng(
   html: string,
   width = OASIS1.w,
   height = OASIS1.h,
+  isolatedProfile = false,
 ): Promise<Buffer> {
   const chrome = findChrome();
   if (!chrome) {
@@ -139,7 +140,7 @@ export async function htmlToPng(
     ];
     // Isolated profile only on Windows: a running Chrome often locks the default
     // user-data dir. On macOS this flag made headless screenshot hang.
-    if (process.platform === 'win32') {
+    if (process.platform === 'win32' || isolatedProfile) {
       const userData = path.join(dir, 'chrome-user');
       fs.mkdirSync(userData);
       args.splice(args.length - 2, 0, `--user-data-dir=${userData}`);
