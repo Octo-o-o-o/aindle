@@ -170,6 +170,16 @@ describe('eink pages', () => {
       pair.map((w) => w.key),
       ['5h', '7d'],
     );
+    const spark = pickWindows([
+      { key: '5h', pct: 10, reset: '16:34' },
+      { key: '7d', pct: 20, reset: '23:34' },
+      { key: 'Spark', pct: 90, reset: '16:34' },
+      { key: 'Spark周', pct: 8, reset: '23:34' },
+    ]);
+    assert.deepEqual(
+      spark.map((w) => w.key),
+      ['Spark', '7d'],
+    );
     const claude = pickWindows([
       { key: '5h', pct: 3, reset: '20:39' },
       { key: '7d', pct: 64, reset: '周一 21:59' },
@@ -207,6 +217,12 @@ describe('eink pages', () => {
     assert.match(html, /自有/);
     assert.doesNotMatch(html, /自由/);
     assert.doesNotMatch(html, /账期/);
+  });
+
+  it('marks shared-pool subscriptions on the lock screen', () => {
+    const vm = snapshotToViewModel(buildMockSnapshot());
+    assert.match(renderEinkHtml(vm, 'local'), /同池/);
+    assert.doesNotMatch(renderEinkHtml(vm, 'relay'), /同池/);
   });
 
   it('shows three-bucket counts and folds background rows', () => {

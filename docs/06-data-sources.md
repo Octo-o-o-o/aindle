@@ -28,10 +28,11 @@
 ### 限额
 
 - 接口：`GET https://api.anthropic.com/api/oauth/usage`
-- Header：`anthropic-beta: oauth-2025-04-20` + Bearer
-- 字段（ccusage / TokenTracker / kindle-dashboard 三方一致）：`five_hour`、`seven_day`、scoped（opus/sonnet）、`extra_usage`
-- 凭证：macOS 默认 Keychain `Claude Code-credentials`；若设置了 `CLAUDE_CONFIG_DIR`，较新版本会变成 `Claude Code-credentials-<sha256(path)[:8]>`（社区 issue #20553 后续讨论，**本会话未读 Keychain**）
-- 刷新过勤会 429。kindle-dashboard 用 180s 门闩；TokenTracker 有 rate-limit 文件。Aindle 每订阅最多 2–3 分钟一次，失败保留 last-good
+- Header：`anthropic-beta: oauth-2025-04-20` + Bearer + `User-Agent: claude-code/<version>`
+- 字段：`five_hour`、`seven_day`、scoped（opus/sonnet/fable）、`seven_day_routines`、`extra_usage`（获取链对齐 CodexBar；不借 cookie / PTY / 账号切换）
+- 凭证：macOS 默认 Keychain `Claude Code-credentials`；若设置了 `CLAUDE_CONFIG_DIR`，较新版本会变成 `Claude Code-credentials-<sha256(path)[:8]>`
+- 默认会打 OAuth usage；`AINDLE_CLAUDE_USAGE_API=0` 关掉。新鲜的本机 statusline / vibe-island 头仍优先。失败保留 last-good
+- 同一 `.claude.json` `oauthAccount.organizationUuid` 的多条 Claude 订阅标 `shared`（屏上「同池」），不把 org id 写进快照。屏上只给 `kind=quota` 画「同池」，避免和 Sub2API 的 `shared` 混义
 
 ### 任务
 
@@ -64,12 +65,11 @@
 
 两条已有实现，语义接近但通道不同：
 
-1. **app-server**（kindle-dashboard）：`codex app-server` → `account/rateLimits/read`（primary/secondary ≈ 5h/7d）
-2. **ChatGPT web API**（TokenTracker）：`GET https://chatgpt.com/backend-api/wham/usage`，凭证 `~/.codex/auth.json`
+1. **wham**（与 CodexBar 相同）：`GET https://chatgpt.com/backend-api/wham/usage`，读指定 `CODEX_HOME/auth.json`。主窗口 + `additional_rate_limits`（如 Spark）
+2. **app-server**：`CODEX_HOME=<home> codex -s read-only -a never app-server` → `account/rateLimits/read`（`primary`/`secondary`，以及 `rateLimitsByLimitId` 里非主桶的额外条）。**不**写回 `auth.json`，也不带 `refreshToken=true`
+3. **rollout** 回退：该 home 下最近 `token_count.rate_limits`
 
-都不是公开稳定文档。Aindle 优先 app-server（官方 CLI 自己的通道），失败再 rollout 里的 `rate_limits` 事件。
-
-多 `CODEX_HOME` 必须 **分别** 出限额条。kindle-dashboard 把它合成一张卡，正是你不要的。
+都不是公开稳定文档。失败保留 last-good。多 `CODEX_HOME` 必须 **分别** 出限额条。不借 CodexBar 的 cookie / WebKit / 账号晋升。
 
 ### 任务
 

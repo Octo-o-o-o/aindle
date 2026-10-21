@@ -80,6 +80,10 @@ describe('A6 UI and v1 ingest', () => {
     assert.match(html, /function pocketQuotaRowWide\(/);
     assert.match(html, /function pocketQuotaRowNarrow\(/);
     assert.match(html, /function pickWindows\(/);
+    assert.match(html, /function displayWindows\(/);
+    assert.match(html, /function sharedPool\(/);
+    assert.match(html, /s.kind === "quota"/);
+    assert.match(html, /同池/);
     assert.match(html, /repeating-linear-gradient/);
     assert.match(html, /function pocketEmpty\(/);
     assert.match(html, /function pinPocketFooter\(/);

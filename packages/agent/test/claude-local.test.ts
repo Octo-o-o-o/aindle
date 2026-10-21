@@ -49,6 +49,24 @@ describe('windowsFromClaudeUsage', () => {
       ],
     );
   });
+
+  it('maps routines and extra_usage windows', () => {
+    const windows = windowsFromClaudeUsage({
+      five_hour: { utilization: 4, resets_at: '2026-09-11T04:00:00Z' },
+      seven_day: { utilization: 20, resets_at: '2026-09-14T08:00:00Z' },
+      seven_day_routines: { utilization: 55, resets_at: '2026-09-12T00:00:00Z' },
+      extra_usage: { utilization: 12, resets_at: '2026-10-01T00:00:00Z' },
+    });
+    assert.deepEqual(
+      windows.map((w) => [w.key, w.pct]),
+      [
+        ['5h', 4],
+        ['7d', 20],
+        ['例行', 55],
+        ['额外', 12],
+      ],
+    );
+  });
 });
 
 describe('readLocalClaudeUsage', () => {
@@ -214,6 +232,7 @@ describe('collectClaude local headers', () => {
   });
 
   it('does not hit the network when there is no local snapshot', async () => {
+    process.env.AINDLE_CLAUDE_USAGE_API = '0';
     const sub = await collectClaude({ ...ENTRY });
     assert.equal(sub.confidence, 'error');
     assert.deepEqual(sub.windows, []);

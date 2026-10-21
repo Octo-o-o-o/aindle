@@ -15,7 +15,7 @@ Options:
 
 Env:
   AINDLE_REGISTRY, AINDLE_HUB_URL, AINDLE_TOKEN
-  AINDLE_CLAUDE_USAGE_API=1  opt-in Anthropic /api/oauth/usage (off by default)
+  AINDLE_CLAUDE_USAGE_API=0  disable Anthropic /api/oauth/usage (on by default)
 `);
   process.exit(0);
 }

@@ -81,6 +81,7 @@ function mergeSubscriptions(reports: IngestReport[]): Subscription[] {
         hostIds: [...hostIds],
         ...(usage ? { usage } : {}),
         ...(billing ? { billing } : {}),
+        ...(merged.shared || prev.shared || sub.shared ? { shared: true } : {}),
       });
     }
   }
@@ -496,6 +497,7 @@ export function snapshotToViewModel(snapshot: Snapshot, now = new Date()) {
         kind: lane.kind,
         billing: s.billing ?? '',
         breakdown: s.breakdown,
+        ...(s.shared ? { shared: 1 as const } : {}),
         ...(usage ? { usage } : {}),
       };
       if (s.confidence === 'error') {
